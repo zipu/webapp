@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    {% block title %}<title>Yonsei Math</title>{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Add additional CSS in static file -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+</head>
+
+<body>
+    <div class="container">
+        <!-- 상단 메뉴 바  -->
+        <div class="topnav" style="padding-left: 30px">
+            
+            <a class="active" href="#home">Home</a>
+            <a href="#">Files</a>
+            <a href="#">Lectures</a>
+            <a href="#">Past Exam Papers</a>
+        </div>
+        <!-- 상단 메뉴 바 끝-->
+
+        <!-- 컨텐츠 -->
+        <div class="contents">
+            {% block content %}{% endblock %}
+        </div>
+        <!-- 컨텐츠 끝 -->
+    </div>
+</body>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+<script src="{% static 'js/maths.js' %}"></script>
+
+{% block javascript %}{% endblock %}
+</html>

@@ -1,0 +1,34 @@
+{% extends "base_generic.html"%}
+
+{% block content %}
+    <table id="files-table" class="display compact">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Course</th>
+                <th>Category</th>
+                <th>D</th>
+                <th>Note</th>
+                <th>File</th>
+                <th>Key</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for file in files  %}
+        <tr>
+            <td> {{file.title}} </td>
+            <td> {% for topic in file.topic.all %} {{topic}}/ {% endfor %} </td>
+            <td> {{file.course}} </td>
+            <td> {{file.category}} </td>
+            <td> {{file.difficulty}} </td>
+            <td> {{file.note}} </td>
+            <td> <a href='/media/{{file.file_location}}'>down</a> </td>
+            <td> {% if file.key_location %}<a href='/media/{{file.key_location}}'>down</a> {% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+
+{% endblock %}
+
+
