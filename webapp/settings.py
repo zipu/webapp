@@ -25,7 +25,7 @@ SECRET_KEY = 'o4&2mb0*)5&e*1zxse3((p_wfwu(6s(7ql-reeq4^eie)6d&db'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://yosep.azurewebsites.net/']
 
 
 # Application definition
