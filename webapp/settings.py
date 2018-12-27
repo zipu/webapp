@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'o4&2mb0*)5&e*1zxse3((p_wfwu(6s(7ql-reeq4^eie)6d&db'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -89,17 +89,52 @@ DATABASE_ROUTERS = [
     'maths.dbRouter.MathsDBRouter'
 ]
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME':os.path.join(BASE_DIR, 'db', 'project.db')
-    },
-    'maths':{
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db','maths.db')
+# [START db_setup]
+if os.getenv('GAE_APPLICATION', None):
+    # Running on production App Engine, so connect to Google Cloud SQL using
+    # the unix socket at /cloudsql/<your-cloudsql-connection string>
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '/cloudsql/choiyosep:asia-northeast1:mysql-instance',
+            'USER': 'yosep',
+            'PASSWORD': 'tkstjd',
+            'NAME': 'webapp',
+        },
+        'maths': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '/cloudsql/choiyosep:asia-northeast1:mysql-instance',
+            'USER': 'yosep',
+            'PASSWORD': 'tkstjd',
+            'NAME': 'maths',
+        }
     }
-}
-
+else:
+    # Running locally so connect to either a local MySQL instance or connect to
+    # Cloud SQL via the proxy. To start the proxy via command line:
+    #
+    #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
+    #
+    # See https://cloud.google.com/sql/docs/mysql-connect-proxy
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+            'NAME': 'webapp',
+            'USER': 'yosep',
+            'PASSWORD': 'tkstjd',
+        },
+        'maths' :{
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+            'NAME': 'maths',
+            'USER': 'yosep',
+            'PASSWORD': 'tkstjd',
+        }
+    }
+# [END db_setup]
 
 
 # Password validation
@@ -138,7 +173,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = 'static'#os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "maths/static"),
@@ -146,5 +181,5 @@ STATICFILES_DIRS = [
 
 # Media files (유저 업로드 파일들)
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+MEDIA_ROOT = 'media'#os.path.join(BASE_DIR, 'uploads')
 MEDIA_URL = '/media/'
