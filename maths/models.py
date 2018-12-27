@@ -41,7 +41,7 @@ def set_file_name(instance, filename):
     name, ext = filename.split('.')
     name = f'{instance.title}_{instance.difficulty}'
     fname = '.'.join((name,ext))
-    return f'maths/files/{instance.course}/{instance.category}/{fname}'
+    return f'maths/{instance.course}/{instance.category}/{fname}'
 
 class Topic(models.Model):
     """ This class represents the topics related with files """
