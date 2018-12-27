@@ -13,3 +13,6 @@ handlers:
 - url: /.*
   script: auto
 # [END django_app]
+
+# any environment variables you want to pass to your application.
+# accessible through os.environ['VARIABLE_NAME']

@@ -17,6 +17,7 @@ from google.oauth2 import service_account
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 with open(os.path.join(BASE_DIR, 'secrets.json')) as secrets_file:
     secrets = json.load(secrets_file)
 
@@ -37,8 +38,7 @@ def get_secret(setting, secrets=secrets):
 SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
+DEBUG = False if os.getenv('GAE_APPLICATION', None) else True
 if DEBUG == False:
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600
@@ -208,9 +208,8 @@ STATICFILES_DIRS = [
 
 # Media files (유저 업로드 파일들)
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR,"yosep-service-account.json")
+    os.path.join(BASE_DIR,"credentials.json")
 )
 GS_BUCKET_NAME = 'choiyosep.appspot.com'
 #MEDIA_ROOT = 'media'#os.path.join(BASE_DIR, 'uploads')
