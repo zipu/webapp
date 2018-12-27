@@ -9,21 +9,34 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-
+import json
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+with open(os.path.join(BASE_DIR, 'secrets.json')) as secrets_file:
+    secrets = json.load(secrets_file)
+
+def get_secret(setting, secrets=secrets):
+    """Get secret setting or fail with ImproperlyConfigured"""
+    try:
+        return secrets[setting]
+    except KeyError:
+        raise ImproperlyConfigured("Set the {} setting".format(setting))
+
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'o4&2mb0*)5&e*1zxse3((p_wfwu(6s(7ql-reeq4^eie)6d&db'
+SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -96,16 +109,16 @@ if os.getenv('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '/cloudsql/choiyosep:asia-northeast1:mysql-instance',
-            'USER': 'yosep',
-            'PASSWORD': 'tkstjd',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'webapp',
         },
         'maths': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '/cloudsql/choiyosep:asia-northeast1:mysql-instance',
-            'USER': 'yosep',
-            'PASSWORD': 'tkstjd',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'maths',
         }
     }
@@ -122,16 +135,16 @@ else:
             'HOST': '127.0.0.1',
             'PORT': '3306',
             'NAME': 'webapp',
-            'USER': 'yosep',
-            'PASSWORD': 'tkstjd',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
         },
         'maths' :{
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
             'PORT': '3306',
             'NAME': 'maths',
-            'USER': 'yosep',
-            'PASSWORD': 'tkstjd',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
         }
     }
 # [END db_setup]
