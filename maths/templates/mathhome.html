@@ -15,16 +15,16 @@
             </tr>
         </thead>
         <tbody>
-        {% for file in files  %}
+        {% for document in documents  %}
         <tr>
-            <td> {{file.title}} </td>
-            <td> {% for topic in file.topic.all %} {{topic}}/ {% endfor %} </td>
-            <td> {{file.course}} </td>
-            <td> {{file.category}} </td>
-            <td> {{file.difficulty}} </td>
-            <td> {{file.note}} </td>
-            <td> <a href='{{MEDIA_URL}}{{file.file_location}}'>down</a> </td>
-            <td> {% if file.key_location %}<a href=''>down</a> {% endif %}</td>
+            <td> {{document.title}} </td>
+            <td> {% for topic in document.topic.all %} {{topic}}/ {% endfor %} </td>
+            <td> {{document.course}} </td>
+            <td> {{document.category}} </td>
+            <td> {{document.difficulty}} </td>
+            <td> {{document.note}} </td>
+            <td> <a href='{{MEDIA_URL}}{{document.file}}'>down</a> </td>
+            <td> {% if document.key %}<a href=''>down</a> {% endif %}</td>
         </tr>
         {% endfor %}
         </tbody>

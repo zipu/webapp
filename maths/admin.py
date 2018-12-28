@@ -3,13 +3,13 @@ from django.contrib import admin
 # Register your models here.
 from django.forms.widgets import CheckboxSelectMultiple, TextInput, RadioSelect
 from django.db import models
-from maths.models import File, Lecture, PastExamPaper, Topic, Book
+from maths.models import Document, Lecture, PastExamPaper, Topic, Book
 
 
 
-@admin.register(File)
+@admin.register(Document)
 class FileAdmin(admin.ModelAdmin):
-    model = File
+    model = Document
     
     filter_horizontal = ('topic',)
     formfield_overrides ={

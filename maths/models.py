@@ -22,6 +22,8 @@
 
 """
 from django.db import models
+from django.db.models.signals import post_delete
+from datetime import datetime
 
 COURSES = [
     ("IBHL", "IB HighLevel"),
@@ -38,9 +40,16 @@ COURSES = [
 def set_file_name(instance, filename):
     
     name, ext = filename.split('.')
-    name = f'{instance.title}_{instance.difficulty}'
+    name = f'{instance.title}_{instance.category}_'+str(int(datetime.now().timestamp()))
     fname = '.'.join((name,ext))
-    return f'maths/{instance.course}/{instance.category}/{fname}'
+    return f'maths/{instance.course}/{fname}'
+
+def set_book_name(instance, filename):
+    name, ext = filename.split('.')
+    name = name+'_'+str(int(datetime.now().timestamp()))
+    fname = '.'.join((name, ext))
+    return f'maths/books/{fname}'
+
 
 class Topic(models.Model):
     """ This class represents the topics related with files """
@@ -50,7 +59,7 @@ class Topic(models.Model):
         return f"{self.name}"
 
 
-class File(models.Model):
+class Document(models.Model):
     """ This class represents the Files """
 
     CATEGORIES = [
@@ -70,26 +79,22 @@ class File(models.Model):
     topic = models.ManyToManyField(Topic, related_name='files')
     category = models.CharField(max_length=16, choices=CATEGORIES)
     difficulty = models.CharField(max_length=4, choices=DIFFICULTIES)
-    file_location = models.FileField(upload_to=set_file_name)
-    key_location = models.FileField(upload_to=set_file_name, null=True, blank=True)
+    file = models.FileField(upload_to=set_file_name)
+    key = models.FileField(upload_to=set_file_name, null=True, blank=True)
     pub_date = models.DateField(auto_now_add=True)
     note = models.CharField(max_length=256, blank=True)
 
     def __str__(self):
         return f"{self.title}/{self.course}/{self.category}/{self.difficulty}"
 
-    def save(self, *args, **kwargs):
-        # 파일 저장 경로 설정
-        super(File, self).save(*args, **kwargs)
-
 class Lecture(models.Model):
     """ This class represents the lectures """
     name = models.CharField(max_length=255)
     pub_date = models.DateField(auto_now_add=True)
     course = models.CharField(max_length=16, choices=COURSES)
-    lecture_note = models.ManyToManyField(File, related_name='notes', blank=True)
-    homework = models.ManyToManyField(File, related_name='homeworks', blank=True)
-    test = models.ManyToManyField(File, related_name='tests', blank=True)
+    lecture_note = models.ManyToManyField(Document, related_name='notes', blank=True)
+    homework = models.ManyToManyField(Document, related_name='homeworks', blank=True)
+    test = models.ManyToManyField(Document, related_name='tests', blank=True)
     note = models.TextField(max_length=256, blank=True)
 
     def __str__(self):
@@ -106,7 +111,7 @@ class PastExamPaper(models.Model):
     school = models.CharField(max_length=16, choices=SCHOOLS)
     course = models.CharField(max_length=16, choices=COURSES)
     topic = models.ManyToManyField(Topic, related_name='exams')
-    paper = models.ManyToManyField(File, related_name='exams')
+    paper = models.ManyToManyField(Document, related_name='exams')
 
     def __str__(self):
         return f"{self.name}"
@@ -115,7 +120,18 @@ class Book(models.Model):
     """ This class represents the book files """
     title = models.CharField(max_length=255)
     course = models.CharField(max_length=16, choices=COURSES)
-    file_location = models.FileField(upload_to='maths/books/')
+    file = models.FileField(upload_to=set_book_name, unique=True)
 
     def __str__(self):
         return f"{self.title}"
+
+
+# delete model instance associated files
+def post_delete_file(sender, instance, *args, **kwargs):
+    instance.file.delete(save=False)
+    if instance._meta.model.__name__ == 'Document':
+        instance.key.delete(save=False)
+
+
+post_delete.connect(post_delete_file, sender=Document)
+post_delete.connect(post_delete_file, sender=Book)

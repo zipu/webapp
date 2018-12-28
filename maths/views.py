@@ -5,14 +5,14 @@ from django.views.generic import TemplateView
 from django.core import serializers
 from django.http import JsonResponse
 
-from maths.models import File
+from maths.models import Document
 # Create your views here.
 
 class MathsView(TemplateView):
     template_name = "mathhome.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["files"] = File.objects.all()
+        context["documents"] = Document.objects.all()
         return context
     
     
@@ -20,9 +20,9 @@ class MathsView(TemplateView):
         # 페이지 로딩 후 ajax로 문서정보 전달
         if request.is_ajax():
             if request.GET.get('action') == 'init':
-                data = json.dumps(list(File.objects.all().values(
+                data = json.dumps(list(Document.objects.all().values(
                     'title','course','category','difficulty',
-                    'file_location','key_location','note','tag'
+                    'file','key','note','tag'
                 )))
 
             return JsonResponse(data, safe=False)
