@@ -22,7 +22,6 @@
 
 """
 from django.db import models
-from django.template.defaultfilters import slugify
 
 COURSES = [
     ("IBHL", "IB HighLevel"),
@@ -112,4 +111,11 @@ class PastExamPaper(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-    
+class Book(models.Model):
+    """ This class represents the book files """
+    title = models.CharField(max_length=255)
+    course = models.CharField(max_length=16, choices=COURSES)
+    file_location = models.FileField(upload_to='maths/books/')
+
+    def __str__(self):
+        return f"{self.title}"

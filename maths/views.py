@@ -8,8 +8,8 @@ from django.http import JsonResponse
 from maths.models import File
 # Create your views here.
 
-class IndexView(TemplateView):
-    template_name = "index.html"
+class MathsView(TemplateView):
+    template_name = "mathhome.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["files"] = File.objects.all()
@@ -27,7 +27,7 @@ class IndexView(TemplateView):
 
             return JsonResponse(data, safe=False)
         
-        return super(IndexView, self).get(request, *args, **kwargs)
+        return super(MathsView, self).get(request, *args, **kwargs)
     
 
 

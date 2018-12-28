@@ -23,8 +23,8 @@
             <td> {{file.category}} </td>
             <td> {{file.difficulty}} </td>
             <td> {{file.note}} </td>
-            <td> <a href='/media/{{file.file_location}}'>down</a> </td>
-            <td> {% if file.key_location %}<a href='/media/{{file.key_location}}'>down</a> {% endif %}</td>
+            <td> <a href='{{MEDIA_URL}}{{file.file_location}}'>down</a> </td>
+            <td> {% if file.key_location %}<a href=''>down</a> {% endif %}</td>
         </tr>
         {% endfor %}
         </tbody>

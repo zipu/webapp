@@ -91,6 +91,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
+            os.path.join(BASE_DIR, 'webapp/templates'),
             os.path.join(BASE_DIR, 'maths/templates')
         ],
         'APP_DIRS': True,
@@ -100,6 +101,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'webapp.context_processors.media'
             ],
         },
     },
@@ -210,5 +212,9 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     os.path.join(BASE_DIR,"credentials.json")
 )
 GS_BUCKET_NAME = 'choiyosep.appspot.com'
-#MEDIA_ROOT = 'media'#os.path.join(BASE_DIR, 'uploads')
-#MEDIA_URL = '/media/'
+MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
+
+#login
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'index'
