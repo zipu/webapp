@@ -1,0 +1,39 @@
+{% extends "base_generic.html"%}
+
+{% block maths %}
+<div class="documents" url="{% url 'documents' %}">    
+<table id="documents-table" class="table table-striped table-bordered" style="text-align: center">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Course</th>
+                <th>Category</th>
+                <th>D</th>
+                <th>File</th>
+                <th>Key</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for document in documents  %}
+        <tr>
+            <td style="text-align: left" class='doc-title'> {{document.title}} </td>
+            <td style="text-align: left"> {% for topic in document.topic.all %} {{topic}}/ {% endfor %} </td>
+            <td> {{document.course}} </td>
+            <td> {{document.category}} </td>
+            <td> {{document.difficulty}} </td>
+            <td> <a href='{{MEDIA_URL}}{{document.file}}' target='_blank'>down</a> </td>
+            <td> {% if document.key %}<a href='{{MEDIA_URL}}{{document.key}}'>down</a>
+                 {% else %}<a href='' style="color:grey;text-decoration: none">upload</a>
+                 {% endif %}</td>
+            <td><i class="far fa-trash-alt document" style='cursor: pointer;'
+                   value='{{document.id}}''></i></a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+</table>
+</div>
+{% endblock maths%}
+
+

@@ -38,12 +38,8 @@
 }
 
 .dataTables_filter input{
-    width: 300px;
+    width: 200% !important;
     height: 30px;
     margin-bottom: 10px;
 }
 
-.dataTables_length {
-    display: none;
-
-}

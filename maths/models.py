@@ -39,13 +39,15 @@ COURSES = [
 ]
 def set_file_name(instance, filename):
     
-    name, ext = filename.split('.')
+    name = '.'.join(filename.split('.')[:-1])
+    ext = filename.split('.')[-1]
     name = f'{instance.title}_{instance.category}_'+str(int(datetime.now().timestamp()))
     fname = '.'.join((name,ext))
     return f'maths/{instance.course}/{fname}'
 
 def set_book_name(instance, filename):
-    name, ext = filename.split('.')
+    name = '.'.join(filename.split('.')[:-1])
+    ext = filename.split('.')[-1]
     name = name+'_'+str(int(datetime.now().timestamp()))
     fname = '.'.join((name, ext))
     return f'maths/books/{fname}'

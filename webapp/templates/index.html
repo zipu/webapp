@@ -1,5 +1,24 @@
+{% load static %}
 <html>
-    <body>
-        <a href="/maths">maths</a>
-    </body>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'login.css' %}">
+</head>
+
+<body class='text-center'>
+    {% block content %}
+    <div class="form-signin">
+    <div class="list-group">
+        <a href="/maths/documents" class="list-group-item list-group-item-action list-group-item-success">Maths</a>
+        <a href="#" class="list-group-item list-group-item-action disabled">App2</a>
+        <a href="#" class="list-group-item list-group-item-action disabled">App3</a>
+    </div>
+    <div class="list-group" style="margin-top:30px">
+        <a href="/logout" class="btn btn-lg btn-primary btn-block">Logout</a>
+    </div>
+    </div>
+    {% endblock content %}
+</body>
+
 </html>

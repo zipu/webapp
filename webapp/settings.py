@@ -83,6 +83,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'webapp.middleware.LoginRequiredMiddleware' #custom login middleware
 ]
 
 ROOT_URLCONF = 'webapp.urls'
@@ -203,7 +204,8 @@ USE_TZ = True
 STATIC_ROOT = 'static'#os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "maths/static"),
+    os.path.join(BASE_DIR, "webapp/static"),
+    os.path.join(BASE_DIR, "maths/static")
 ]
 
 # Media files (유저 업로드 파일들)
@@ -215,6 +217,6 @@ GS_BUCKET_NAME = 'choiyosep.appspot.com'
 MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
 
 #login
-LOGIN_URL = 'login'
+LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'

@@ -47,21 +47,40 @@ $.ajaxSetup({
 
 // 여기서 부터 Main
 $(document).ready( function () {
-    //topnav bar
-    $('.topnav a').click(function() {
-        $(this).siblings('a').removeClass('active');
-        $(this).addClass('active');
-    });
-
     //문서 테이블 세팅
-    $('#files-table').DataTable({
-        info: false,
-        iDisplayLength: 50,
+    $('#documents-table').DataTable({
+        dom : '<"wrapper"frtip>',
         language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search"
-        }
+            "search": '<i class="fa fa-search" aria-hidden="true"></i>',
+            "searchPlaceholder": "Search"
+        },
+        columnDefs: [
+            {
+                targets:-1,
+                className: 'dt-right'
+            }
+        ]
     });
 
-    
-} );
+
+    //delete the document object
+    $(".document").click(function(){
+        var pk = $(this).attr('value');
+        var dom = $(this).parents('tr');
+        $.ajax({
+            type: "GET",
+            url: $('.documents').attr('url'),
+            data: {'pk': pk, 'action': 'delete'},
+            success: function(response){
+                if (response.success == true){
+                    dom.remove();
+                } else {
+                    alert("Cannot delete the object")
+                }
+            },
+        })
+    })
+
+
+
+});
