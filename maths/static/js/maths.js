@@ -44,39 +44,78 @@ $.ajaxSetup({
         }
     }
 });
-
 // 여기서 부터 Main
-$(document).ready( function () {
+$(document).ready(function () {
     //문서 테이블 세팅
     $('#documents-table').DataTable({
-        dom : '<"wrapper"frtip>',
+        dom: '<"wrapper"frtip>',
         language: {
             "search": '<i class="fa fa-search" aria-hidden="true"></i>',
             "searchPlaceholder": "Search"
         },
-        columnDefs: [
-            {
-                targets:-1,
-                className: 'dt-right'
-            }
-        ]
+        columnDefs: [{
+            targets: -1,
+            className: 'dt-right'
+        }]
     });
 
+    //Upload key file to the doc object
+    $(".key").on('input', function (e) {
+        e.preventDefault();
+
+        if ($(this).val()) {
+            var csrftoken = $("[name=csrfmiddlewaretoken]").val();
+            var form_data = new FormData();
+            var pk = $(this).attr('pk');
+            var media_url = $(this).attr('mediaurl');
+            form_data.append('file', $(this)[0].files[0]);
+            form_data.append('pk', pk);
+            form_data.append('csrfmiddlewaretoken', csrftoken);
+
+            $('#key-icon_'+pk).hide()
+            $('#loader_'+pk).show()
+
+
+            $.ajax({
+                url: $('.documents').attr('url'),
+                type: 'POST',
+                data: form_data,
+                success: function (data) {
+                    $('#key-icon_'+pk).show()
+                    $('#loader_'+pk).hide()
+                    if (data.success == true) {
+                        let keyurl = media_url+data.keyurl;
+                        let dom =  "<a href='"+keyurl+"' target='_blank' style='text-decoration: none'><i class='fas fa-download'></i></a> </td>"
+                        $('#td_'+pk).html(dom)
+                        console.log("File upload succeeded")
+                    } else {
+                        console.error("error has occured")
+                    }
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+            return false;
+        }
+    });
 
     //delete the document object
-    $(".document").click(function(){
+    $(".document").click(function () {
         title = $(this).parents('tr').find('.doc-title').text();
-        console.log(title)
-        var val = confirm("Are you sure to delete\n\""+title+"\"?")
-        if (val==true){
+        var val = confirm("Are you sure to delete\n\"" + title + "\"?")
+        if (val == true) {
             var pk = $(this).attr('value');
             var dom = $(this).parents('tr');
             $.ajax({
                 type: "GET",
                 url: $('.documents').attr('url'),
-                data: {'pk': pk, 'action': 'delete'},
-                success: function(response){
-                    if (response.success == true){
+                data: {
+                    'pk': pk,
+                    'action': 'delete'
+                },
+                success: function (response) {
+                    if (response.success == true) {
                         dom.remove();
                     } else {
                         alert("Could not delete the object")
@@ -85,7 +124,4 @@ $(document).ready( function () {
             })
         }
     })
-
-
-
 });

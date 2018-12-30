@@ -9,10 +9,10 @@
         <input type="hidden" name="next" value="{{ next }}">
     </form>
     <script>
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(event) { 
         $('#id_password').keypress(function(e){
             if(e.keyCode==13)
-            $('#id_submit').click();
+                $('#id_submit').click();
         });
     });
     </script>

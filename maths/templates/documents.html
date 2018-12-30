@@ -23,12 +23,20 @@
             <td> {{document.course}} </td>
             <td> {{document.category}} </td>
             <td> {{document.difficulty}} </td>
-            <td> <a href='{{MEDIA_URL}}{{document.file}}' target='_blank'>down</a> </td>
-            <td> {% if document.key %}<a href='{{MEDIA_URL}}{{document.key}}'>down</a>
-                 {% else %}<a href='' style="color:grey;text-decoration: none">upload</a>
+            <td> <a href='{{MEDIA_URL}}{{document.file}}' target='_blank' style="text-decoration: none"><i class="fas fa-download"></i></a> </td>
+            <td id="td_{{document.id}}"> {% if document.key %}<a href='{{MEDIA_URL}}{{document.key}}' target='_blank'><i class="fas fa-download"></i></a>
+                 {% else %}
+                 <form method="post" id="keyaddform" enctype="multipart/form-data" style="height:1px;"> {% csrf_token %}
+                        <label for="key_{{document.id}}" id='key-label'>
+                            <div id='loader_{{document.id}}' class='loader' style="display:none"></div>
+                            <i id='key-icon_{{document.id}}' class="fas fa-plus" style="cursor:pointer"></i>
+                        </label>
+                        <input type="file" name="key" id="key_{{document.id}}" class="key" 
+                               pk={{document.id}} mediaurl={{MEDIA_URL}} style="display:none" >
+                 </form>   
                  {% endif %}</td>
             <td><i class="far fa-trash-alt document" style='cursor: pointer;'
-                   value='{{document.id}}''></i></a></td>
+                   value='{{document.id}}'></i></a></td>
         </tr>
         {% endfor %}
         </tbody>

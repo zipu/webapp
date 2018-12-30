@@ -36,21 +36,21 @@ COURSES = [
     ("Y9", "Year 9"),
     ("Y10", "Year 10"),
     ("Y11", "Year 11"),
+    ("etc", "etc")
 ]
 def set_file_name(instance, filename):
     
-    name = '.'.join(filename.split('.')[:-1])
     ext = filename.split('.')[-1]
     name = f'{instance.title}_{instance.category}_'+str(int(datetime.now().timestamp()))
     fname = '.'.join((name,ext))
     return f'maths/{instance.course}/{fname}'
 
-def set_book_name(instance, filename):
-    name = '.'.join(filename.split('.')[:-1])
+def set_key_name(instance, filename):
+    
     ext = filename.split('.')[-1]
-    name = name+'_'+str(int(datetime.now().timestamp()))
-    fname = '.'.join((name, ext))
-    return f'maths/books/{fname}'
+    name = f'{instance.title}_{instance.category}_key_'+str(int(datetime.now().timestamp()))
+    fname = '.'.join((name,ext))
+    return f'maths/{instance.course}/{fname}'
 
 
 class Topic(models.Model):
@@ -67,7 +67,8 @@ class Document(models.Model):
     CATEGORIES = [
         ('Test', 'Test'),
         ('Worksheet', 'Worksheet'),
-        ('Lecture Note', 'Lecture Note')
+        ('Lecture Note', 'Lecture Note'),
+        ('Book', 'Book')
     ]
     DIFFICULTIES = [
         ('H', 'Hard'),
@@ -78,11 +79,11 @@ class Document(models.Model):
     
     title = models.CharField(max_length=255)
     course = models.CharField(max_length=16, choices=COURSES)
-    topic = models.ManyToManyField(Topic, related_name='files')
+    topic = models.ManyToManyField(Topic, related_name='files', blank=True)
     category = models.CharField(max_length=16, choices=CATEGORIES)
     difficulty = models.CharField(max_length=4, choices=DIFFICULTIES)
     file = models.FileField(upload_to=set_file_name)
-    key = models.FileField(upload_to=set_file_name, null=True, blank=True)
+    key = models.FileField(upload_to=set_key_name, null=True, blank=True)
     pub_date = models.DateField(auto_now_add=True)
     note = models.CharField(max_length=256, blank=True)
 
@@ -118,22 +119,10 @@ class PastExamPaper(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-class Book(models.Model):
-    """ This class represents the book files """
-    title = models.CharField(max_length=255)
-    course = models.CharField(max_length=16, choices=COURSES)
-    file = models.FileField(upload_to=set_book_name, unique=True)
-
-    def __str__(self):
-        return f"{self.title}"
-
-
 # delete model instance associated files
 def post_delete_file(sender, instance, *args, **kwargs):
     instance.file.delete(save=False)
-    if instance._meta.model.__name__ == 'Document':
-        instance.key.delete(save=False)
+    instance.key.delete(save=False)
 
 
 post_delete.connect(post_delete_file, sender=Document)
-post_delete.connect(post_delete_file, sender=Book)

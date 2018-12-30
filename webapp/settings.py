@@ -102,7 +102,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'webapp.context_processors.media'
+                'webapp.context_processors.constants'
             ],
         },
     },
@@ -220,3 +220,6 @@ MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
+
+#version
+MATH_APP_VERSION = '1.15' 

@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.forms.widgets import CheckboxSelectMultiple, TextInput, RadioSelect
 from django.db import models
-from maths.models import Document, Lecture, PastExamPaper, Topic, Book
+from maths.models import Document, Lecture, PastExamPaper, Topic
 
 
 
@@ -31,4 +31,3 @@ class ExamAdmin(admin.ModelAdmin):
     #filter_horizontal = ('course', 'lecture_note','homework','test')
 
 admin.site.register(Topic)
-admin.site.register(Book)
