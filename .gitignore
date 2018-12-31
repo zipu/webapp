@@ -1,4 +1,4 @@
-/uploads
+media_dev/
 *.pyc
 
 */*/__pycache__/

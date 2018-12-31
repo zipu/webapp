@@ -12,6 +12,6 @@
 # below:
 .git
 .gitignore
-
+media_dev/
 # Python pycache:
 __pycache__/

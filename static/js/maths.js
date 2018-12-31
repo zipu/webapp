@@ -60,38 +60,40 @@ $(document).ready(function () {
             className: 'dt-right'
         }]
     });
+    //Upload key file to the doc obj('ver2')
+    $(".key-icon").click(function(en){
+        //append hidden file upload input
+        var obj = $(this);
+        var fupload = $("<input type='file' style='display: none'>");
+        $(this).after(fupload);
 
-    //Upload key file to the doc object
-    $(".key").on('input', function (e) {
-        e.preventDefault();
-
-        if ($(this).val()) {
+        fupload.click().change(function(e){
             var csrftoken = $("[name=csrfmiddlewaretoken]").val();
             var form_data = new FormData();
-            var pk = $(this).attr('pk');
-            var media_url = $(this).attr('mediaurl');
-            form_data.append('file', $(this)[0].files[0]);
-            form_data.append('pk', pk);
+            var pk = obj.attr('pk')
+            form_data.append('file', e.target.files[0]);
+            form_data.append('pk', obj.attr('pk'))
             form_data.append('csrfmiddlewaretoken', csrftoken);
-
-            $('#key-icon_'+pk).hide()
-            $('#loader_'+pk).show()
-
+            
+            var loader = $("<div class='loader' style='margin: 0 auto'></div>") 
+            obj.hide();
+            obj.after(loader);
 
             $.ajax({
-                url: $('.documents').attr('url'),
+                url: $('.document').attr('url'),
                 type: 'POST',
                 data: form_data,
                 success: function (data) {
-                    $('#key-icon_'+pk).show()
-                    $('#loader_'+pk).hide()
+                    
+                    loader.hide()
                     if (data.success == true) {
-                        let keyurl = media_url+data.keyurl;
-                        let dom =  "<a href='"+keyurl+"' target='_blank' style='text-decoration: none'><i class='fas fa-download'></i></a> </td>"
-                        $('#td_'+pk).html(dom)
-                        console.log("File upload succeeded")
+                        let keyurl = $('.document').attr('mediaurl')+data.keyurl;
+                        let dom =  "<a href='"+keyurl+"' target='_blank' style='text-decoration: none'><i class='fas fa-download'></i></a> </td>";
+                        obj.after(dom)
+                        console.log("File upload succeeded");
                     } else {
-                        console.error("error has occured")
+                        obj.show();
+                        console.error("error has occured");
                     }
                 },
                 cache: false,
@@ -99,11 +101,11 @@ $(document).ready(function () {
                 processData: false
             });
             return false;
-        }
+        })
     });
 
     //delete the document object
-    $(".document").click(function () {
+    $(".delete-doc").click(function () {
         title = $(this).parents('tr').find('.doc-title').text();
         var val = confirm("Are you sure to delete\n\"" + title + "\"?")
         if (val == true) {
@@ -111,7 +113,7 @@ $(document).ready(function () {
             var dom = $(this).parents('tr');
             $.ajax({
                 type: "GET",
-                url: $('.documents').attr('url'),
+                url: $('.document').attr('url'),
                 data: {
                     'pk': pk,
                     'action': 'delete'

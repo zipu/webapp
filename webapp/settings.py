@@ -209,12 +209,17 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (유저 업로드 파일들)
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR,"credentials.json")
-)
-GS_BUCKET_NAME = 'choiyosep.appspot.com'
-MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
+if os.getenv('GAE_APPLICATION', None):
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        os.path.join(BASE_DIR,"credentials.json")
+    )
+    GS_BUCKET_NAME = 'choiyosep.appspot.com'
+    MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
+
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media_dev') #local media folder for dev
+    MEDIA_URL = '/media/'
 
 #login
 LOGIN_URL = '/login'
@@ -222,4 +227,4 @@ LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
 #version
-MATH_APP_VERSION = '1.14' 
+MATH_APP_VERSION = '1.12' 
