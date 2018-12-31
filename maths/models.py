@@ -90,15 +90,16 @@ class Document(models.Model):
     def __str__(self):
         return f"{self.title}/{self.course}/{self.category}/{self.difficulty}"
 
-class Lecture(models.Model):
+class Course(models.Model):
     """ This class represents the lectures """
     name = models.CharField(max_length=255)
-    pub_date = models.DateField(auto_now_add=True)
+    pub_date = models.DateField()
     course = models.CharField(max_length=16, choices=COURSES)
     lecture_note = models.ManyToManyField(Document, related_name='notes', blank=True)
     homework = models.ManyToManyField(Document, related_name='homeworks', blank=True)
     test = models.ManyToManyField(Document, related_name='tests', blank=True)
     note = models.TextField(max_length=256, blank=True)
+    status = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.name}"

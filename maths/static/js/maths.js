@@ -46,9 +46,11 @@ $.ajaxSetup({
 });
 // 여기서 부터 Main
 $(document).ready(function () {
+   
     //문서 테이블 세팅
-    $('#documents-table').DataTable({
+    $('#data-table').DataTable({
         dom: '<"wrapper"frtip>',
+        "ordering": false,
         language: {
             "search": '<i class="fa fa-search" aria-hidden="true"></i>',
             "searchPlaceholder": "Search"

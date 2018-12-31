@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.forms.widgets import CheckboxSelectMultiple, TextInput, RadioSelect
 from django.db import models
-from maths.models import Document, Lecture, PastExamPaper, Topic
+from maths.models import Document, Course, PastExamPaper, Topic
 
 
 
@@ -20,9 +20,9 @@ class FileAdmin(admin.ModelAdmin):
         "difficulty": admin.HORIZONTAL,
     }
 
-@admin.register(Lecture)
-class LectureAdmin(admin.ModelAdmin):
-    model = Lecture
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    model = Course
     filter_horizontal = ('lecture_note','homework','test')
 
 @admin.register(PastExamPaper)

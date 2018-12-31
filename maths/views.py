@@ -5,14 +5,15 @@ from django.views.generic import TemplateView
 from django.core import serializers
 from django.http import JsonResponse
 
-from maths.models import Document
+from maths.models import Document, Course
 # Create your views here.
 
 class DocumentView(TemplateView):
-    template_name = "documents.html"
+    template_name = "document.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["documents"] = Document.objects.all()
+        context['activate'] = 'document'
         return context
     
     
@@ -46,5 +47,11 @@ class DocumentView(TemplateView):
 
 
 
-
+class CourseView(TemplateView):
+    template_name = "course.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["courses"] = Course.objects.all().order_by('-status','-pub_date')
+        context['activate'] = 'course'
+        return context
     
