@@ -30,9 +30,9 @@ COURSES = [
     ("IBSL", "IB Standard"),
     ("APAB", "AP Calculus AB"),
     ("APBC", "AP Calculus BC"),
-    ("PC", "Pre Calculus"),
-    ("AL2", "Algebra 2"),
-    ("GEO", "Geometry"),
+    ("PreCal", "Pre Calculus"),
+    ("Algebra2", "Algebra 2"),
+    ("Geometry", "Geometry"),
     ("Y9", "Year 9"),
     ("Y10", "Year 10"),
     ("Y11", "Year 11"),
@@ -68,6 +68,7 @@ class Document(models.Model):
         ('Test', 'Test'),
         ('Worksheet', 'Worksheet'),
         ('Lecture Note', 'Lecture Note'),
+        ('Quiz', 'Quiz'),
         ('Book', 'Book')
     ]
     DIFFICULTIES = [
@@ -81,7 +82,7 @@ class Document(models.Model):
     course = models.CharField(max_length=16, choices=COURSES)
     topic = models.ManyToManyField(Topic, related_name='files', blank=True)
     category = models.CharField(max_length=16, choices=CATEGORIES)
-    difficulty = models.CharField(max_length=4, choices=DIFFICULTIES)
+    difficulty = models.CharField(max_length=16, choices=DIFFICULTIES)
     file = models.FileField(upload_to=set_file_name)
     key = models.FileField(upload_to=set_key_name, null=True, blank=True)
     pub_date = models.DateField(auto_now_add=True)
@@ -95,9 +96,6 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     pub_date = models.DateField()
     course = models.CharField(max_length=16, choices=COURSES)
-    lecture_note = models.ManyToManyField(Document, related_name='notes', blank=True)
-    homework = models.ManyToManyField(Document, related_name='homeworks', blank=True)
-    test = models.ManyToManyField(Document, related_name='tests', blank=True)
     note = models.TextField(max_length=256, blank=True)
     status = models.BooleanField(default=True)
 

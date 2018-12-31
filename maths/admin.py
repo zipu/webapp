@@ -23,7 +23,6 @@ class FileAdmin(admin.ModelAdmin):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     model = Course
-    filter_horizontal = ('lecture_note','homework','test')
 
 @admin.register(PastExamPaper)
 class ExamAdmin(admin.ModelAdmin):
