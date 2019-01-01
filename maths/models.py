@@ -11,7 +11,7 @@
     4. Category (exam, worksheet, lecture note) |                              -----------------------------------------
     5. Difficulty (Hard, Medium, Easy)          |                                      
     6. Note                                     |
-    7. file directory                           |
+    7. file directory                           |admin/maths/course/
     8. file with key directory                  |
     9. Tag (can be search by tags)              |
     10. publication date                        |
@@ -91,13 +91,25 @@ class Document(models.Model):
     def __str__(self):
         return f"{self.title}/{self.course}/{self.category}/{self.difficulty}"
 
+
+class Lecture(models.Model):
+    """ This class represents the lectrues on each course """
+    name = models.CharField(max_length=255)
+    lecture_note = models.ManyToManyField(Document, related_name='lecture_note', blank=True)
+    worksheet = models.ManyToManyField(Document, related_name='worksheet', blank=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Course(models.Model):
-    """ This class represents the lectures """
+    """ This class represents the course description """
     name = models.CharField(max_length=255)
     pub_date = models.DateField()
     course = models.CharField(max_length=16, choices=COURSES)
     note = models.TextField(max_length=256, blank=True)
     status = models.BooleanField(default=True)
+    lecture = models.ManyToManyField(Lecture, blank=True) 
 
     def __str__(self):
         return f"{self.name}"
