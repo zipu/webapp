@@ -1,7 +1,7 @@
 {% extends "base_generic.html"%}
 
 {% block maths %}
-<div class="coures">
+<div class="klass">
     <table id="data-table" class="table table-hover table-bordered" style="text-align: center">
         <thead class="thead-dark">
             <tr>
@@ -13,13 +13,13 @@
             </tr>
         </thead>
         <tbody>
-            {% for course in courses %}
-            <tr style="cursor:default !important" pk={{course.id}} onclick="location.href = '/maths/course/{{course.id}}';">
-                <td > {{course.pub_date | date:'Y' }} </td>
-                <td> {{course.pub_date | date:'M'}} </td>
-                <td> {{course.course}} </td>
-                <td style="text-align: left"> {{course.name}} </td>
-                <td> {% if course.status %}<i class="fas fa-lock-open text-info"></i> 
+            {% for klass in klasses %}
+            <tr style="cursor:default !important" pk={{klass.id}} onclick="location.href = '/maths/klass/{{klass.id}}';">
+                <td > {{klass.pub_date | date:'Y' }} </td>
+                <td> {{klass.pub_date | date:'M'}} </td>
+                <td> {{klass.course}} </td>
+                <td style="text-align: left"> {{klass.name}} </td>
+                <td> {% if klass.status %}<i class="fas fa-lock-open text-info"></i> 
                      {% else %}<i class="fas fa-lock" style='color:grey'></i>
                      {% endif %}</td>
             </tr>

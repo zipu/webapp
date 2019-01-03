@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 from django.core import serializers
 from django.http import JsonResponse
 
-from maths.models import Document, Course
+from maths.models import Document, Klass
 # Create your views here.
 
 class DocumentView(TemplateView):
@@ -20,11 +20,20 @@ class DocumentView(TemplateView):
     def get(self, request, *args, **kwargs):
         # 페이지 로딩 후 ajax로 문서정보 전달
         if request.GET and request.is_ajax():
+            pk = int(request.GET.get('pk'))
             if request.GET.get('action') == 'delete':
-                pk = int(request.GET.get('pk'))
                 try:
                     Document.objects.get(pk=pk).delete()
                     data = {'success': True}
+                except:
+                    data = {'success': False}
+
+            elif request.GET.get('action') == 'reputation':
+                try:
+                    obj = Document.objects.get(pk=pk)
+                    obj.reputation = obj.reputation + int(request.GET.get('value'))
+                    obj.save()
+                    data = {'success':True, 'reputation': obj.reputation}
                 except:
                     data = {'success': False}
 
@@ -47,11 +56,11 @@ class DocumentView(TemplateView):
 
 
 
-class CourseView(TemplateView):
-    template_name = "course.html"
+class KlassView(TemplateView):
+    template_name = "klass.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["courses"] = Course.objects.all().order_by('-status','-pub_date')
-        context['activate'] = 'course'
+        context["klasses"] = Klass.objects.all().order_by('-status','-pub_date')
+        context['activate'] = 'klass'
         return context
     

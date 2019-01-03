@@ -1,10 +1,11 @@
 from django.contrib import admin
 
 # Register your models here.
-from django.forms.widgets import CheckboxSelectMultiple, TextInput, RadioSelect
+from django import forms
+from django.forms.widgets import Textarea, CheckboxSelectMultiple, TextInput, RadioSelect
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
-from maths.models import Document, Course, PastExamPaper, Topic, Lecture
-
+from maths.models import Document, PastExamPaper, Topic, Lecture, Klass
 
 
 @admin.register(Document)
@@ -20,9 +21,15 @@ class FileAdmin(admin.ModelAdmin):
         "difficulty": admin.HORIZONTAL,
     }
 
-@admin.register(Course)
-class CourseAdmin(admin.ModelAdmin):
-    model = Course
+@admin.register(Klass)
+class KlassAdmin(admin.ModelAdmin):
+    model = Klass
+    #inlines = (SortedKlassLectureInline,)
+    filter_horizontal = ('lecture',)
+    formfield_overrides = {
+        models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':60})},
+    }
+
 
 @admin.register(PastExamPaper)
 class ExamAdmin(admin.ModelAdmin):
@@ -32,7 +39,6 @@ class ExamAdmin(admin.ModelAdmin):
 @admin.register(Lecture)
 class LectureAdmin(admin.ModelAdmin):
     model = Lecture
-    filter_horizontal = ('course', 'lecture_note','worksheet')
-
+    filter_horizontal = ('lecture_note','worksheet')
 
 admin.site.register(Topic)

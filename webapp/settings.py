@@ -36,6 +36,9 @@ def get_secret(setting, secrets=secrets):
 SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 60 * 60 #
+
 DEBUG = False if os.getenv('GAE_APPLICATION', None) else True
 if DEBUG == False:
     SECURE_SSL_REDIRECT = True
@@ -148,7 +151,7 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': '3306',
+            'PORT': '3307', #local: 3306, remote: 3307
             'NAME': 'webapp',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -156,7 +159,7 @@ else:
         'maths' :{
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': '3306',
+            'PORT': '3307',#local: 3306, remote: 3307
             'NAME': 'maths',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -227,4 +230,4 @@ LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
 #version
-MATH_APP_VERSION = '1.12' 
+MATH_APP_VERSION = '1.22' 

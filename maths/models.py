@@ -67,7 +67,7 @@ class Document(models.Model):
     CATEGORIES = [
         ('Test', 'Test'),
         ('Worksheet', 'Worksheet'),
-        ('Lecture Note', 'Lecture Note'),
+        ('Note', 'Note'),
         ('Quiz', 'Quiz'),
         ('Book', 'Book')
     ]
@@ -85,6 +85,7 @@ class Document(models.Model):
     difficulty = models.CharField(max_length=16, choices=DIFFICULTIES)
     file = models.FileField(upload_to=set_file_name)
     key = models.FileField(upload_to=set_key_name, null=True, blank=True)
+    reputation = models.IntegerField(default=0)
     pub_date = models.DateField(auto_now_add=True)
     note = models.CharField(max_length=256, blank=True)
 
@@ -102,15 +103,15 @@ class Lecture(models.Model):
         return f"{self.name}"
 
 
-class Course(models.Model):
+class Klass(models.Model):
     """ This class represents the course description """
     name = models.CharField(max_length=255)
     pub_date = models.DateField()
     course = models.CharField(max_length=16, choices=COURSES)
-    note = models.TextField(max_length=256, blank=True)
+    lecture = models.ManyToManyField(Lecture) 
     status = models.BooleanField(default=True)
-    lecture = models.ManyToManyField(Lecture, blank=True) 
-
+    note = models.TextField(max_length=256, blank=True)
+    
     def __str__(self):
         return f"{self.name}"
 

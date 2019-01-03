@@ -50,15 +50,21 @@ $(document).ready(function () {
     //문서 테이블 세팅
     $('#data-table').DataTable({
         dom: '<"wrapper"frtip>',
-        "ordering": false,
+        //"ordering": false,
+        //bSort : false,
+        "order": [[ 0, "desc" ]],
         language: {
             "search": '<i class="fa fa-search" aria-hidden="true"></i>',
             "searchPlaceholder": "Search"
         },
-        columnDefs: [{
-            targets: -1,
-            className: 'dt-right'
-        }]
+        columnDefs: [
+            {
+                orderable: false, "targets": '_all'
+            },{
+                targets: -1,
+                className: 'dt-right',
+            }
+        ]
     });
     //Upload key file to the doc obj('ver2')
     $(".key-icon").click(function(en){
@@ -66,13 +72,13 @@ $(document).ready(function () {
         var obj = $(this);
         var fupload = $("<input type='file' style='display: none'>");
         $(this).after(fupload);
-
         fupload.click().change(function(e){
             var csrftoken = $("[name=csrfmiddlewaretoken]").val();
             var form_data = new FormData();
-            var pk = obj.attr('pk')
+            var pk = obj.parents('tr').attr('id');
+
             form_data.append('file', e.target.files[0]);
-            form_data.append('pk', obj.attr('pk'))
+            form_data.append('pk', pk)
             form_data.append('csrfmiddlewaretoken', csrftoken);
             
             var loader = $("<div class='loader' style='margin: 0 auto'></div>") 
@@ -109,7 +115,7 @@ $(document).ready(function () {
         title = $(this).parents('tr').find('.doc-title').text();
         var val = confirm("Are you sure to delete\n\"" + title + "\"?")
         if (val == true) {
-            var pk = $(this).attr('value');
+            var pk = $(this).parents('tr').attr('id');
             var dom = $(this).parents('tr');
             $.ajax({
                 type: "GET",
@@ -128,4 +134,30 @@ $(document).ready(function () {
             })
         }
     })
+
+    //reputation increasment
+    $(".reputation").contextmenu(function(e){e.preventDefault();});
+    $('.reputation').mousedown(function(event) {
+        var num = event.which == 1? 1 : -1;
+        var obj = $(this);
+        var pk = $(this).parents('tr').attr('id');
+
+        $.ajax({
+            type: "GET",
+            url: $('.document').attr('url'),
+            data: {
+                'pk': pk,
+                'action': 'reputation',
+                'value': num
+            },
+            success: function (response) {
+                if (response.success == true) {
+                    console.info('reputation successfully increased to '+response.reputation)
+                    obj.text(response.reputation)
+                } else {
+                    alert("Could not give a reputation")
+                }
+            },
+        })
+    })   
 });

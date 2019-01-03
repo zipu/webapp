@@ -29,9 +29,9 @@
                         {% else %} class="nav-item" {% endif %}>
                       <a class="nav-link" href="{% url 'document' %}">Document</a>
                     </li>
-                    <li {% if activate == 'course' %} class="nav-item active"
+                    <li {% if activate == 'klass' %} class="nav-item active"
                         {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'course' %}">Course</a>
+                      <a class="nav-link" href="{% url 'klass' %}">Klass</a>
                     </li>
                   </ul>
                   <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
