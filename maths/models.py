@@ -96,6 +96,7 @@ class Document(models.Model):
 class Lecture(models.Model):
     """ This class represents the lectrues on each course """
     name = models.CharField(max_length=255)
+    course = models.CharField(max_length=16, choices=COURSES)
     lecture_note = models.ManyToManyField(Document, related_name='lecture_note', blank=True)
     worksheet = models.ManyToManyField(Document, related_name='worksheet', blank=True)
 
@@ -108,7 +109,7 @@ class Klass(models.Model):
     name = models.CharField(max_length=255)
     pub_date = models.DateField()
     course = models.CharField(max_length=16, choices=COURSES)
-    lecture = models.ManyToManyField(Lecture) 
+    lecture = models.ManyToManyField(Lecture, blank=True) 
     status = models.BooleanField(default=True)
     note = models.TextField(max_length=256, blank=True)
     

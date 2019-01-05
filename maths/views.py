@@ -1,18 +1,18 @@
 import json
 
 from django.shortcuts import render, redirect
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 from django.core import serializers
 from django.http import JsonResponse
 
-from maths.models import Document, Klass
+from maths.models import Document, Klass, Lecture
 # Create your views here.
 
 class DocumentView(TemplateView):
     template_name = "document.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["documents"] = Document.objects.all()
+        context["documents"] = Document.objects.order_by('-reputation')
         context['activate'] = 'document'
         return context
     
@@ -64,3 +64,47 @@ class KlassView(TemplateView):
         context['activate'] = 'klass'
         return context
     
+
+class KlassDetailView(DetailView):
+    template_name = "klassdetail.html"
+    model=Klass
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lectures = kwargs['object'].lecture.through.objects\
+                   .filter(klass_id=kwargs['object'].id).order_by('id')
+        context['selected_lectures'] = [lecture.lecture for lecture in lectures]
+        context['lectures'] = Lecture.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        # 페이지 로딩 후 ajax로 문서정보 전달
+        if request.GET and request.is_ajax():
+            klass = Klass.objects.get(pk=kwargs['pk'])
+            if 'lecture_id' in request.GET:
+                lecture = Lecture.objects.get(pk=request.GET.get('lecture_id'))
+            
+            data = {'success': False}
+            if request.GET.get('action') == 'delete':
+                try:
+                    klass.lecture.remove(lecture)
+                    data['success'] = True
+                except:
+                    pass
+
+            elif request.GET.get('action') == 'close':
+                try:
+                    klass.status = False
+                    klass.save()
+                    data['success'] = True
+                except:
+                    pass
+
+            elif request.GET.get('action') == 'add_lecture':
+                try:
+                    klass.lecture.add(lecture)
+                    data['success'] = True
+                except:
+                    pass
+
+            return JsonResponse(data)
+        return super(KlassDetailView, self).get(request, *args, **kwargs)

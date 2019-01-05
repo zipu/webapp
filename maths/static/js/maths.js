@@ -45,14 +45,22 @@ $.ajaxSetup({
     }
 });
 // 여기서 부터 Main
+function doajax(action,e){
+    console.log(action);
+    console.log(e)
+    switch(action){
+        case 'closelecture':
+            console.log('test')
+    }
+}
+
 $(document).ready(function () {
    
     //문서 테이블 세팅
     $('#data-table').DataTable({
         dom: '<"wrapper"frtip>',
-        //"ordering": false,
-        //bSort : false,
-        "order": [[ 0, "desc" ]],
+        ordering: false,
+        //"order": [[ 0, "desc" ]],
         language: {
             "search": '<i class="fa fa-search" aria-hidden="true"></i>',
             "searchPlaceholder": "Search"
@@ -66,6 +74,8 @@ $(document).ready(function () {
             }
         ]
     });
+
+
     //Upload key file to the doc obj('ver2')
     $(".key-icon").click(function(en){
         //append hidden file upload input
@@ -160,4 +170,81 @@ $(document).ready(function () {
             },
         })
     })   
+
+
+    /* Here goes klass here */
+    //delete the lecture object
+    $(".delete-lec").click(function () {
+        var val = confirm("Are you sure to delete ?")
+        if (val == true) {
+            var pk = $(this).parents('tr').attr('id');
+            var dom = $(this).parents('tr');
+            $.ajax({
+                type: "GET",
+                url: window.location.pathname,
+                data: {
+                    'lecture_id': pk,
+                    'action': 'delete'
+                },
+                success: function (response) {
+                    if (response.success == true) {
+                        dom.remove();
+                        window.location.reload();
+                        console.info('The lecture successfully removed')
+
+                    } else {
+                        alert("Could not delete the object")
+                    }
+                },
+            })
+        }
+    })
+
+    //close the klass
+    $("#close-btn").click(function () {
+        var val = confirm("Are you sure to close ?")
+        if (val == true) {
+            $.ajax({
+                type: "GET",
+                url: window.location.pathname,
+                data: {
+                    //'klass_id': $('.klassdetail').attr('pk'),
+                    'action': 'close'
+                },
+                success: function (response) {
+                    if (response.success == true) {
+                        window.location.reload();
+                        console.info('The klass closed')
+                    } else {
+                        alert("Could not close the klass")
+                    }
+                },
+            })
+        }
+    })
+
+    //add new lecture
+    $(".new-lecture").click(function () {
+        var obj = $(this);
+        var lecture_id = obj.parents('tr').attr('id');
+        $.ajax({
+                type: "GET",
+                url: window.location.pathname,
+                data: {
+                    //'klass_id': $('.klassdetail').attr('pk'),
+                    'action': 'add_lecture',
+                    'lecture_id': lecture_id
+                },
+                success: function (response) {
+                    if (response.success == true) {
+                        console.info('The klass closed')
+                        obj.replaceWith("<i class='fas fa-check text-success'></i>")
+                    } else {
+                        alert("Could not close the klass")
+                    }
+                },
+        })
+    })
+
+
 });

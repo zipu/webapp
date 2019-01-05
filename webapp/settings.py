@@ -151,7 +151,7 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': '3307', #local: 3306, remote: 3307
+            'PORT': '3306', #local: 3306, remote: 3307
             'NAME': 'webapp',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -159,7 +159,7 @@ else:
         'maths' :{
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': '3307',#local: 3306, remote: 3307
+            'PORT': '3306',#local: 3306, remote: 3307
             'NAME': 'maths',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -230,4 +230,4 @@ LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
 #version
-MATH_APP_VERSION = '1.22' 
+MATH_APP_VERSION = '1.23' 
