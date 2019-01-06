@@ -33,6 +33,10 @@
                         {% else %} class="nav-item" {% endif %}>
                       <a class="nav-link" href="{% url 'klass' %}">Klass</a>
                     </li>
+                    <li {% if activate == 'exam' %} class="nav-item active"
+                        {% else %} class="nav-item" {% endif %}>
+                      <a class="nav-link" href="{% url 'exam' %}">Past Exam</a>
+                    </li>
                   </ul>
                   <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
                 </div>

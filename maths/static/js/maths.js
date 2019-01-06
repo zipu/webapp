@@ -237,10 +237,33 @@ $(document).ready(function () {
                 },
                 success: function (response) {
                     if (response.success == true) {
-                        console.info('The klass closed')
+                        console.info('The lecture added')
                         obj.replaceWith("<i class='fas fa-check text-success'></i>")
                     } else {
-                        alert("Could not close the klass")
+                        alert("Could not close the lecture")
+                    }
+                },
+        })
+    })
+
+    //add new paper
+    $(".new-paper").click(function () {
+        var obj = $(this);
+        var paper_id = obj.parents('tr').attr('id');
+        $.ajax({
+                type: "GET",
+                url: window.location.pathname,
+                data: {
+                    //'klass_id': $('.klassdetail').attr('pk'),
+                    'action': 'add_paper',
+                    'paper_id': paper_id
+                },
+                success: function (response) {
+                    if (response.success == true) {
+                        console.info('The paper added')
+                        obj.replaceWith("<i class='fas fa-check text-success'></i>")
+                    } else {
+                        alert("Could not add the paper")
                     }
                 },
         })

@@ -69,7 +69,8 @@ class Document(models.Model):
         ('Worksheet', 'Worksheet'),
         ('Note', 'Note'),
         ('Quiz', 'Quiz'),
-        ('Book', 'Book')
+        ('Book', 'Book'),
+        ('Exam', 'Exam')
     ]
     DIFFICULTIES = [
         ('H', 'Hard'),
@@ -118,19 +119,21 @@ class Klass(models.Model):
 
 class PastExamPaper(models.Model):
     """ This class represents the past examination papers"""
-    SCHOOLS = [
-        ("SASH", "SAS"),
-        ("SHID", "SHID")
+    EXAMS = [
+        ("IB Standard", "IBSL"),
+        ("IB Highlevel", "IBHL"),
+        ("AP Calculus AB", "APAB"),
+        ("AP Calculus BC", "APBC"),
+        ("AP Statistics", "AP STAT"),
+        ("SAT Math", "SAT"),
+        ("SAT2 Math", "SAT2")
     ]
-    
-    name = models.CharField(max_length=255)
-    school = models.CharField(max_length=16, choices=SCHOOLS)
-    course = models.CharField(max_length=16, choices=COURSES)
-    topic = models.ManyToManyField(Topic, related_name='exams')
-    paper = models.ManyToManyField(Document, related_name='exams')
+    pub_year = models.DateField()
+    exam = models.CharField(max_length=32, choices=EXAMS)
+    paper = models.ManyToManyField(Document, blank=True)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.exam} at year {self.pub_year}"
 
 # delete model instance associated files
 def post_delete_file(sender, instance, *args, **kwargs):

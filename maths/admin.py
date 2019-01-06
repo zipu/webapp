@@ -34,7 +34,7 @@ class KlassAdmin(admin.ModelAdmin):
 @admin.register(PastExamPaper)
 class ExamAdmin(admin.ModelAdmin):
     model = PastExamPaper
-    #filter_horizontal = ('course', 'lecture_note','homework','test')
+    filter_horizontal = ('paper',)
 
 @admin.register(Lecture)
 class LectureAdmin(admin.ModelAdmin):

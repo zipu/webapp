@@ -27,17 +27,17 @@
                     <td > {{ forloop.counter }}  </td>
                     <td > {{ lecture.name }}  </td>
                     <td>{% for note in lecture.lecture_note.all %}
-                        <a href= '{{MEDIA_URL}}{{note.file}}'>note </a>
-                          {% if note.key %}<a href= "{{MEDIA_URL}}{{note.key}}">(key)  </a>{% endif %}
+                        <a href= '{{MEDIA_URL}}{{note.file}}' target='_blank' >note </a>
+                          {% if note.key %}<a href= "{{MEDIA_URL}}{{note.key}}" target='_blank' >(key)  </a>{% endif %}
                         {% endfor %}
                     </td>
                     <td>{% for wc in lecture.worksheet.all %}
-                              {% if wc.file %}<a href= '{{MEDIA_URL}}{{wc.file}}'>note </a>{% endif %}
-                              {% if wc.key %}<a href= "{{MEDIA_URL}}{{wc.key}}">(key)  </a>{% endif %}
+                              {% if wc.file %}<a href= '{{MEDIA_URL}}{{wc.file}}' target='_blank' >note </a>{% endif %}
+                              {% if wc.key %}<a href= "{{MEDIA_URL}}{{wc.key}}" target='_blank' >(key)  </a>{% endif %}
                             {% endfor %}
                         </td>
                     {% if klass.status %}
-                    <td><i class="far fa-trash-alt delete-lec doajax" style='cursor: pointer;'></i></td>
+                    <td><i class="fa fa-trash-alt delete-lec" style='cursor: pointer;'></i></td>
                     {% endif %}    
                 </tr>
                 {% endfor %}
@@ -45,13 +45,13 @@
         </table>
         {% if klass.status %}
         <div style="float:right;">
-            <button class="btn btn-dark" data-toggle="modal" data-target="#new-lecture">add</button>
+            <button class="btn btn-dark" data-toggle="modal" data-target="#add-lecture">add</button>
             <button class="btn btn-dark" id="close-btn">close</button>
         </div>
         {% endif %}
     </div>
     <!-- Modal window for adding new lecture-->
-    <div id="new-lecture" class="modal" tabindex="-1" role="dialog">
+    <div id="add-lecture" class="modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">

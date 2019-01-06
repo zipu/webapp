@@ -5,7 +5,7 @@ from django.views.generic import TemplateView, DetailView
 from django.core import serializers
 from django.http import JsonResponse
 
-from maths.models import Document, Klass, Lecture
+from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
 
 class DocumentView(TemplateView):
@@ -70,6 +70,7 @@ class KlassDetailView(DetailView):
     model=Klass
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['activate'] = 'klass'
         lectures = kwargs['object'].lecture.through.objects\
                    .filter(klass_id=kwargs['object'].id).order_by('id')
         context['selected_lectures'] = [lecture.lecture for lecture in lectures]
@@ -108,3 +109,42 @@ class KlassDetailView(DetailView):
 
             return JsonResponse(data)
         return super(KlassDetailView, self).get(request, *args, **kwargs)
+
+class ExamView(TemplateView):
+    template_name = "pastexam.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["exams"] = PastExamPaper.objects.all().order_by('exam')
+        context['activate'] = 'exam'
+        return context
+
+class ExamDetailView(DetailView):
+    template_name = "pastexamdetail.html"
+    model=PastExamPaper
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['activate'] = 'exam'
+        papers = kwargs['object'].paper.through.objects\
+                   .filter(pastexampaper_id=kwargs['object'].id).order_by('id')
+        context['selected_papers'] = [paper.document for paper in papers]
+        context['papers'] = Document.objects.filter(category='Exam')
+        return context
+
+    def get(self, request, *args, **kwargs):
+        # 페이지 로딩 후 ajax로 문서정보 전달
+        if request.GET and request.is_ajax():
+            exam = PastExamPaper.objects.get(pk=kwargs['pk'])
+            if 'paper_id' in request.GET:
+                paper = Document.objects.get(pk=request.GET.get('paper_id'))
+            data = {'success': False}
+            
+            if request.GET.get('action') == 'add_paper':
+                try:
+                    exam.paper.add(paper)
+                    data['success'] = True
+                except:
+                    pass
+
+            return JsonResponse(data)
+        return super(ExamDetailView, self).get(request, *args, **kwargs)
+    
