@@ -75,7 +75,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'maths.apps.MathsConfig' #수학자료
+    'django.contrib.humanize', #humanize app like 'intcomma'
+    'maths.apps.MathsConfig', #수학자료
+    'asset.apps.AssetConfig' #asset
 ]
 
 MIDDLEWARE = [
@@ -147,11 +149,12 @@ else:
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
+    PORT = '3307'
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': '3306', #local: 3306, remote: 3307
+            'PORT': PORT, #local: 3306, remote: 3307
             'NAME': 'webapp',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -159,8 +162,16 @@ else:
         'maths' :{
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': '3306',#local: 3306, remote: 3307
+            'PORT': PORT,#local: 3306, remote: 3307
             'NAME': 'maths',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'asset' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '127.0.0.1',
+            'PORT': PORT,#local: 3306, remote: 3307
+            'NAME': 'asset',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
         }

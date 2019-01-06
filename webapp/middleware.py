@@ -21,6 +21,7 @@ class LoginRequiredMiddleware:
             if path == 'login/':
                 return self.get_response(request)
             else:
-                return HttpResponseRedirect(settings.LOGIN_URL) 
+                print(request.path_info)
+                return HttpResponseRedirect(settings.LOGIN_URL+f"?next=/{path}") 
         else:
             return self.get_response(request)

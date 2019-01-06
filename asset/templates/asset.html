@@ -1,0 +1,142 @@
+{% extends "base_asset.html"%}
+{% load humanize %}
+
+{% block asset %}
+<div class="asset">
+    <div id="asset-chart"></div>
+</div>
+<table class="table" style="text-align: center;">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col">Currency</th>
+            <th scope="col">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">KRW</th>
+            <td>&#8361; {{ cur_krw | intcomma}}</td>
+          </tr>
+          <tr>
+            <th scope="row">CNY</th>
+            <td>&#165; {{ cur_cny | intcomma}}</td>
+          </tr>
+          <tr>
+            <th scope="row">USD</th>
+            <td>&#36; {{ cur_usd | intcomma}}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+{% endblock asset%}
+
+
+{% block script %}
+<script>
+    Highcharts.setOptions({
+		lang: {
+			thousandsSep: ','
+		}
+	});
+    Highcharts.chart('asset-chart', {
+            chart: {
+                type: 'area'
+            },
+            title: {
+                text: 'Total Assets in Cash'
+            },
+            xAxis: {
+                type: 'datetime',
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: null,
+                },
+                min: 0
+            },
+            plotOptions: {
+                series:{
+                    events: {
+                        show: function () {
+                            var chart = this.chart,
+                                series = chart.series,
+                                i = series.length,
+                                otherSeries;
+                            while (i--) {
+                                otherSeries = series[i];
+                                if (otherSeries != this && otherSeries.visible) {
+                                    otherSeries.hide();
+                                }
+                            }
+                        },
+                        legendItemClick: function() {
+                            if(this.visible){
+                                 return false;   
+                            }
+                        }
+                    }
+                },
+                area: {
+                    fillColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    marker: {
+                        radius: 2
+                    },
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+        
+            colors: ['#6CF', '#39F', '#06C', '#036', '#000'],
+        
+            // Define the data points. All series have a dummy year
+            // of 1970/71 in order to be compared on the same x axis. Note
+            // that in JavaScript, months start at 0 for January, 1 for February etc.
+            series: [
+                {
+                    name: "KRW",
+                    data: [ 
+                        {% for krw in krws %}
+                        [Date.UTC({{krw.date | date:'Y'}}, {{krw.date | date:'m'}}, {{krw.date | date:'d'}}), parseInt({{krw.cash}}/10000)],
+                        {% endfor %}
+                    ],
+                    
+                },{
+                    name: "CNY",
+                    data: [ 
+                        {% for cny in cnys %}
+                        [Date.UTC({{cny.date | date:'Y'}}, {{cny.date | date:'m'}}, {{cny.date | date:'d'}}), parseInt({{cny.cash}})],
+                        {% endfor %}
+                    ],
+                    visible:false
+                },{
+                    name: "USD",
+                    data: [ 
+                        {% for usd in usds %}
+                        [Date.UTC({{usd.date | date:'Y'}}, {{usd.date | date:'m'}}, {{usd.date | date:'d'}}), parseInt({{usd.cash}})],
+                        {% endfor %}
+                    ],
+                    visible:false
+                }
+            ], 
+        });
+        </script>
+{% endblock script%}
