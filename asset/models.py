@@ -5,34 +5,37 @@ from django.db import models
 from django.db.models.signals import post_delete
 from datetime import datetime
 
-class KRW(models.Model):
-    """ This class represents my korean won asset """
+from forex_python.converter import CurrencyRates
+
+class Cash(models.Model):
 
     date = models.DateField()
-    cash = models.IntegerField(default=0)
-    stock = models.IntegerField(default=0)
-    
+    krw = models.IntegerField(null=True, blank=True)
+    cny = models.IntegerField(null=True, blank=True)
+    usd = models.IntegerField(null=True, blank=True)
+    total = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if Cash.objects.count():
+            last = Cash.objects.latest('id')
+        
+        if self.krw is None:
+            self.krw = last.krw
+
+        if self.cny is None:
+            self.cny = last.cny
+
+        if self.usd is None:
+            self.usd = last.usd
+
+        c = CurrencyRates()
+        self.total = c.convert('USD','KRW',self.usd)+\
+                     c.convert('CNY','KRW',self.cny)+\
+                     self.krw
+
+        super(Cash, self).save(*args, **kwargs)
+
+
     def __str__(self):
-        return f"Cash: {format(self.cash,',d')} WON | Stock: {format(self.stock,',d')} WON"
-
-class CNY(models.Model):
-    """ This class represents my chinese yuan asset """
-
-    date = models.DateField()
-    cash = models.IntegerField(default=0)
-    stock = models.IntegerField(default=0)
-    
-    def __str__(self):
-        return f"Cash: {format(self.cash,',d')} CNY | Stock: {format(self.stock,',d')} CNY"
-
-class USD(models.Model):
-    """ This class represents my usd asset """
-
-    date = models.DateField()
-    cash = models.IntegerField(default=0)
-    stock = models.IntegerField(default=0)
-    
-    def __str__(self):
-        return f"Cash: {format(self.cash,',d')}$ | Stock: {format(self.stock,',d')}$"
-
+        return f"You have {self.total} won at {self.date}"
 

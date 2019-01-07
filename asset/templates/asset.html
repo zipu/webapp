@@ -2,9 +2,13 @@
 {% load humanize %}
 
 {% block asset %}
+{% for obj in cash %}
+{% endfor %}
+<!-- Daily Asset Chart-->
 <div class="asset">
     <div id="asset-chart"></div>
 </div>
+<!-- Current Asset -->
 <table class="table" style="text-align: center;">
         <thead class="thead-light">
           <tr>
@@ -25,14 +29,33 @@
             <th scope="row">USD</th>
             <td>&#36; {{ cur_usd | intcomma}}</td>
           </tr>
+          <tr>
+            <th scope="row">Total</th>
+            <td>&#8361; {{ total | intcomma}}</td>
+          </tr>
         </tbody>
-      </table>
+</table>
       
 {% endblock asset%}
 
 
 {% block script %}
 <script>
+    var data = {
+        total:[],
+        krw:[],
+        usd:[],
+        cny:[]
+    }
+    let date;
+    {% for obj in cash %}
+       date = new Date('{{obj.date | date:"Y-m-d"}}').getTime();
+       data.total.push([date, parseInt({{obj.total}})]);
+       data.krw.push([date, parseInt({{obj.krw}})]);
+       data.cny.push([date, parseInt({{obj.cny}})]);
+       data.usd.push([date, parseInt({{obj.usd}})]);
+    {% endfor %} 
+
     Highcharts.setOptions({
 		lang: {
 			thousandsSep: ','
@@ -112,28 +135,21 @@
             // that in JavaScript, months start at 0 for January, 1 for February etc.
             series: [
                 {
+                    name: "Total",
+                    data: data.total,
+                    
+                },{
                     name: "KRW",
-                    data: [ 
-                        {% for krw in krws %}
-                        [Date.UTC({{krw.date | date:'Y'}}, {{krw.date | date:'m'}}, {{krw.date | date:'d'}}), parseInt({{krw.cash}}/10000)],
-                        {% endfor %}
-                    ],
+                    data: data.krw,
+                    visible:false
                     
                 },{
                     name: "CNY",
-                    data: [ 
-                        {% for cny in cnys %}
-                        [Date.UTC({{cny.date | date:'Y'}}, {{cny.date | date:'m'}}, {{cny.date | date:'d'}}), parseInt({{cny.cash}})],
-                        {% endfor %}
-                    ],
+                    data: data.cny,
                     visible:false
                 },{
                     name: "USD",
-                    data: [ 
-                        {% for usd in usds %}
-                        [Date.UTC({{usd.date | date:'Y'}}, {{usd.date | date:'m'}}, {{usd.date | date:'d'}}), parseInt({{usd.cash}})],
-                        {% endfor %}
-                    ],
+                    data: data.usd,
                     visible:false
                 }
             ], 
