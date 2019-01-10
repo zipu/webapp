@@ -125,6 +125,7 @@ class PastExamPaper(models.Model):
         ("AP Calculus AB", "APAB"),
         ("AP Calculus BC", "APBC"),
         ("AP Statistics", "AP STAT"),
+        ("A-Level Maths", "A-Level"),
         ("SAT Math", "SAT"),
         ("SAT2 Math", "SAT2")
     ]

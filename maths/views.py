@@ -81,8 +81,8 @@ class KlassDetailView(DetailView):
         # 페이지 로딩 후 ajax로 문서정보 전달
         if request.GET and request.is_ajax():
             klass = Klass.objects.get(pk=kwargs['pk'])
-            if 'lecture_id' in request.GET:
-                lecture = Lecture.objects.get(pk=request.GET.get('lecture_id'))
+            if 'id' in request.GET:
+                lecture = Lecture.objects.get(pk=request.GET.get('id'))
             
             data = {'success': False}
             if request.GET.get('action') == 'delete':
@@ -114,13 +114,13 @@ class ExamView(TemplateView):
     template_name = "pastexam.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["exams"] = PastExamPaper.objects.all().order_by('exam')
+        context["exams"] = PastExamPaper.objects.all().order_by('exam', '-pub_year')
         context['activate'] = 'exam'
         return context
 
 class ExamDetailView(DetailView):
     template_name = "pastexamdetail.html"
-    model=PastExamPaper
+    model = PastExamPaper
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['activate'] = 'exam'
@@ -134,8 +134,8 @@ class ExamDetailView(DetailView):
         # 페이지 로딩 후 ajax로 문서정보 전달
         if request.GET and request.is_ajax():
             exam = PastExamPaper.objects.get(pk=kwargs['pk'])
-            if 'paper_id' in request.GET:
-                paper = Document.objects.get(pk=request.GET.get('paper_id'))
+            if 'id' in request.GET:
+                paper = Document.objects.get(pk=request.GET.get('id'))
             data = {'success': False}
             
             if request.GET.get('action') == 'add_paper':

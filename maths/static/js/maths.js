@@ -75,7 +75,6 @@ $(document).ready(function () {
         ]
     });
 
-
     //Upload key file to the doc obj('ver2')
     $(".key-icon").click(function(en){
         //append hidden file upload input
@@ -223,51 +222,34 @@ $(document).ready(function () {
         }
     })
 
-    //add new lecture
-    $(".new-lecture").click(function () {
+    //add new lecture or new paper on modal window
+    $(".doc-search-table tbody").on('click', 'tr td i', function () {
         var obj = $(this);
-        var lecture_id = obj.parents('tr').attr('id');
+        var id = obj.parents('tr').attr('id');
+        if ($(this).hasClass('new-lecture')){
+            var action = 'add_lecture'; 
+        } else if ($(this).hasClass('new-paper')){
+            var action = 'add_paper';
+        } else {
+            return;
+        }
+        
         $.ajax({
                 type: "GET",
                 url: window.location.pathname,
                 data: {
                     //'klass_id': $('.klassdetail').attr('pk'),
-                    'action': 'add_lecture',
-                    'lecture_id': lecture_id
+                    'action': action,
+                    'id': id
                 },
                 success: function (response) {
                     if (response.success == true) {
-                        console.info('The lecture added')
+                        console.info('The item successfully added')
                         obj.replaceWith("<i class='fas fa-check text-success'></i>")
                     } else {
-                        alert("Could not close the lecture")
+                        alert("I was not able to add new item")
                     }
                 },
         })
     })
-
-    //add new paper
-    $(".new-paper").click(function () {
-        var obj = $(this);
-        var paper_id = obj.parents('tr').attr('id');
-        $.ajax({
-                type: "GET",
-                url: window.location.pathname,
-                data: {
-                    //'klass_id': $('.klassdetail').attr('pk'),
-                    'action': 'add_paper',
-                    'paper_id': paper_id
-                },
-                success: function (response) {
-                    if (response.success == true) {
-                        console.info('The paper added')
-                        obj.replaceWith("<i class='fas fa-check text-success'></i>")
-                    } else {
-                        alert("Could not add the paper")
-                    }
-                },
-        })
-    })
-
-
 });
