@@ -94,10 +94,25 @@ class Document(models.Model):
         return f"{self.title}/{self.course}/{self.category}/{self.difficulty}"
 
 
+
+class Klass(models.Model):
+    """ This class represents the course description """
+    name = models.CharField(max_length=255)
+    pub_date = models.DateField()
+    course = models.CharField(max_length=16, choices=COURSES)
+    #lecture = models.ManyToManyField(Lecture, blank=True) 
+    status = models.BooleanField(default=True)
+    note = models.TextField(max_length=256, blank=True)
+    
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Lecture(models.Model):
     """ This class represents the lectrues on each course """
+    unit = models.IntegerField(default=0)
     name = models.CharField(max_length=255)
-    course = models.CharField(max_length=16, choices=COURSES)
+    klass = models.ForeignKey(Klass, on_delete=models.CASCADE)
     lecture_note = models.ManyToManyField(Document, related_name='lecture_note', blank=True)
     worksheet = models.ManyToManyField(Document, related_name='worksheet', blank=True)
 
@@ -105,17 +120,6 @@ class Lecture(models.Model):
         return f"{self.name}"
 
 
-class Klass(models.Model):
-    """ This class represents the course description """
-    name = models.CharField(max_length=255)
-    pub_date = models.DateField()
-    course = models.CharField(max_length=16, choices=COURSES)
-    lecture = models.ManyToManyField(Lecture, blank=True) 
-    status = models.BooleanField(default=True)
-    note = models.TextField(max_length=256, blank=True)
-    
-    def __str__(self):
-        return f"{self.name}"
 
 class PastExamPaper(models.Model):
     """ This class represents the past examination papers"""

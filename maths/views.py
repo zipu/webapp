@@ -71,23 +71,35 @@ class KlassDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['activate'] = 'klass'
-        lectures = kwargs['object'].lecture.through.objects\
-                   .filter(klass_id=kwargs['object'].id).order_by('id')
-        context['selected_lectures'] = [lecture.lecture for lecture in lectures]
-        context['lectures'] = Lecture.objects.all()
+        context['lectures'] = kwargs['object'].lecture_set.order_by('unit')
+        context['notes'] = {}
+        context['worksheets'] = {}
+        for lecture in context['lectures']:
+            notes_intermediate = lecture.lecture_note.through.objects.\
+                                 filter(lecture_id=lecture.id).order_by('id')
+            context['notes'][lecture.id]=[lecture.document for lecture in notes_intermediate]
+
+            ws_intermediate = lecture.worksheet.through.objects.\
+                                 filter(lecture_id=lecture.id).order_by('id')
+            context['worksheets'][lecture.id]=[ws.document for ws in ws_intermediate]
+        
+        
+        #lectures = kwargs['object'].lecture.through.objects\
+        #           .filter(klass_id=kwargs['object'].id).order_by('id')
+        #context['selected_lectures'] = [lecture.lecture for lecture in lectures]
+        #context['lectures'] = Lecture.objects.all()
         return context
 
     def get(self, request, *args, **kwargs):
         # 페이지 로딩 후 ajax로 문서정보 전달
         if request.GET and request.is_ajax():
+
             klass = Klass.objects.get(pk=kwargs['pk'])
-            if 'id' in request.GET:
-                lecture = Lecture.objects.get(pk=request.GET.get('id'))
-            
             data = {'success': False}
             if request.GET.get('action') == 'delete':
                 try:
-                    klass.lecture.remove(lecture)
+                    lecture = Lecture.objects.get(pk=request.GET.get('id'))
+                    lecture.delete()
                     data['success'] = True
                 except:
                     pass
@@ -100,15 +112,29 @@ class KlassDetailView(DetailView):
                 except:
                     pass
 
-            elif request.GET.get('action') == 'add_lecture':
+            elif request.GET.get('action') == 'unit':
                 try:
-                    klass.lecture.add(lecture)
-                    data['success'] = True
+                    print(request.GET.get('id'))
+                    lecture = Lecture.objects.get(pk=request.GET.get('id'))
+                    lecture.unit = lecture.unit + int(request.GET.get('value'))
+                    lecture.save()
+                    data = {'success':True, 'unit': lecture.unit}
                 except:
-                    pass
+                    data = {'success': False}
 
             return JsonResponse(data)
+
+
+            
         return super(KlassDetailView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        data = request.POST
+        if data['title']:
+            klass = Klass.objects.get(pk=kwargs['pk'])
+            lecture = Lecture(unit=data['unit'], name=data['title'], klass=klass)
+            lecture.save()
+        return redirect(request.path_info)
 
 class ExamView(TemplateView):
     template_name = "pastexam.html"

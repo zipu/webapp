@@ -25,7 +25,6 @@ class FileAdmin(admin.ModelAdmin):
 class KlassAdmin(admin.ModelAdmin):
     model = Klass
     #inlines = (SortedKlassLectureInline,)
-    filter_horizontal = ('lecture',)
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows':2, 'cols':60})},
     }

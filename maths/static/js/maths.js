@@ -76,8 +76,9 @@ $(document).ready(function () {
     });
 
     //Upload key file to the doc obj('ver2')
-    $(".key-icon").click(function(en){
+    $(".document-table tbody").on("click", "tr td .key-icon", function(en){
         //append hidden file upload input
+        
         var obj = $(this);
         var fupload = $("<input type='file' style='display: none'>");
         $(this).after(fupload);
@@ -120,7 +121,7 @@ $(document).ready(function () {
     });
 
     //delete the document object
-    $(".delete-doc").click(function () {
+    $(".document-table tbody").on("click", "tr td .delete-doc", function () {
         title = $(this).parents('tr').find('.doc-title').text();
         var val = confirm("Are you sure to delete\n\"" + title + "\"?")
         if (val == true) {
@@ -145,8 +146,8 @@ $(document).ready(function () {
     })
 
     //reputation increasment
-    $(".reputation").contextmenu(function(e){e.preventDefault();});
-    $('.reputation').mousedown(function(event) {
+    $(".document-table tbody").on("contextmenu", "tr .reputation", function(e){e.preventDefault();});
+    $(".document-table tbody").on("mousedown", "tr .reputation", function(event) {
         var num = event.which == 1? 1 : -1;
         var obj = $(this);
         var pk = $(this).parents('tr').attr('id');
@@ -173,16 +174,16 @@ $(document).ready(function () {
 
     /* Here goes klass here */
     //delete the lecture object
-    $(".delete-lec").click(function () {
+    $(".lecture-table tbody ").on("click","tr td .delete-lec", function () {
         var val = confirm("Are you sure to delete ?")
         if (val == true) {
-            var pk = $(this).parents('tr').attr('id');
+            var pk = $(this).parents('tr').attr('pk');
             var dom = $(this).parents('tr');
             $.ajax({
                 type: "GET",
                 url: window.location.pathname,
                 data: {
-                    'lecture_id': pk,
+                    'id': pk,
                     'action': 'delete'
                 },
                 success: function (response) {
@@ -198,6 +199,36 @@ $(document).ready(function () {
             })
         }
     })
+
+    //unit increasement
+    $(".lecture-unit").contextmenu(function(e){e.preventDefault();});
+    $('.lecture-unit').mousedown(function(event) {
+        if ($('.klassdetail').attr('status')!='True'){
+            return;
+        }
+
+        var num = event.which == 1? 1 : -1;
+        var obj = $(this);
+        var pk = $(this).parents('tr').attr('pk');
+
+        $.ajax({
+            type: "GET",
+            url: $('.document').attr('url'),
+            data: {
+                'id': pk,
+                'action': 'unit',
+                'value': num
+            },
+            success: function (response) {
+                if (response.success == true) {
+                    console.log("unit changed to "+response.unit);
+                    obj.text(response.unit);
+                } else {
+                    alert("Could not change unit")
+                }
+            },
+        })
+    });
 
     //close the klass
     $("#close-btn").click(function () {
@@ -226,9 +257,7 @@ $(document).ready(function () {
     $(".doc-search-table tbody").on('click', 'tr td i', function () {
         var obj = $(this);
         var id = obj.parents('tr').attr('id');
-        if ($(this).hasClass('new-lecture')){
-            var action = 'add_lecture'; 
-        } else if ($(this).hasClass('new-paper')){
+        if ($(this).hasClass('new-paper')){
             var action = 'add_paper';
         } else {
             return;
@@ -252,4 +281,11 @@ $(document).ready(function () {
                 },
         })
     })
+
+    //lecture-detail title
+    $(".lecture-title").click(function(){
+        $(this).attr("data-target","#lecture-detail-"+$(this).parent("tr").attr("pk"));
+    })
+
+    
 });

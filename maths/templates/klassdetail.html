@@ -1,7 +1,7 @@
 {% extends "base_generic.html"%}
 
 {% block maths %}
-<div class="klassdetail" pk='{{klass.id}}'>
+<div class="klassdetail" pk='{{klass.id}}' status='{{klass.status}}'>
     <h1 style="text-align:center;">{{ klass.name }}</h1>
     <h5> Start date : {{klass.pub_date | date:'Y-m-d'}}</h5>
     <h5> Course : {{klass.course}}</h5>
@@ -9,33 +9,22 @@
     <h5> Description: <span>{{ klass.note }}</span> </h5>
     {% endif %}
     <div class="lecture">
-        <table class="table table-hover table-bordered" style="text-align: center">
+        <table class="table table-hover table-bordered lecture-table">
             <thead class="thead-dark">
                 <tr>
-                    <th>#</th>
+                    <th style="width:10%">Unit</th>
                     <th>Title</th>
-                    <th>Note</th>
-                    <th>Worksheet</th>
                     {% if klass.status %}
-                    <th></th>
+                    <th style="width:10%"></th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% for lecture in selected_lectures  %}
-                <tr id="{{lecture.id}}">
-                    <td > {{ forloop.counter }}  </td>
-                    <td > {{ lecture.name }}  </td>
-                    <td>{% for note in lecture.lecture_note.all %}
-                        <a href= '{{MEDIA_URL}}{{note.file}}' target='_blank' >note </a>
-                          {% if note.key %}<a href= "{{MEDIA_URL}}{{note.key}}" target='_blank' >(key)  </a>{% endif %}
-                        {% endfor %}
-                    </td>
-                    <td>{% for wc in lecture.worksheet.all %}
-                              {% if wc.file %}<a href= '{{MEDIA_URL}}{{wc.file}}' target='_blank' >note </a>{% endif %}
-                              {% if wc.key %}<a href= "{{MEDIA_URL}}{{wc.key}}" target='_blank' >(key)  </a>{% endif %}
-                            {% endfor %}
-                        </td>
+                {% for lecture in lectures  %}
+                <tr pk="{{lecture.id}}">
+                    <td class='lecture-unit' style='cursor:pointer;'> {{ lecture.unit }}  </td>
+                    <td class='lecture-title' style='cursor:default' 
+                        data-toggle="modal" data-target="#lecture-detail"> {{ lecture.name }}  </td>
                     {% if klass.status %}
                     <td><i class="fa fa-trash-alt delete-lec" style='cursor: pointer;'></i></td>
                     {% endif %}    
@@ -56,41 +45,103 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Add New Lecture</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
             </div>
             <div class="modal-body">
-                <table id="data-table" class="table table-striped table-bordered doc-search-table" style="text-align: center">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Title</th>
-                            <th>Course</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for lecture in lectures  %}
-                    <tr id="{{lecture.id}}">
-                        <td style="text-align: left;" class='doc-title'> {{lecture.name}} </td>
-                        <td> {{lecture.course }} </td>
-                        <td> 
-                            {% if lecture in selected_lectures %}
-                            <i class="fas fa-check text-success"></i>
-                            {% else %}
-                            <i class="fas fa-plus new-lecture"></i>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-            </table>
-            </div>
-            <div class="modal-footer">
-              <button type="button" onclick='window.location.reload();' class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <form action="{% url 'klass'%}{{ klass.id}}" method="post">
+                            {% csrf_token %}
+                            <div class="form-row">
+                                    <div class="col-2">
+                                      <input type="number" min="1" name='unit' class="form-control">
+                                    </div>
+                                    <div class="col">
+                                      <input type="text" name='title' class="form-control" placeholder="Title">
+                                    </div>
+                                  </div>
+                            <button type="submit" class="btn btn-secondary" style="float:right;margin-top:8px">Submit</button>
+                    </form>
             </div>
           </div>
         </div>
       </div>
+
+
+      <!-- Modal window for lecture detail-->
+      {% for lecture in lectures  %}
+      <div id="lecture-detail-{{lecture.id}}" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 id="modal-lecture-title" class="modal-title">Unit {{lecture.unit}}. {{lecture.name}}</h5>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <table id="note-table" class="table table-sm table-striped table-bordered lecture-detail-table">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th style="width:10%;">#</th>
+                                <th>Note</th>
+                                <th style="width: 15%;">File</th>
+                                <th style="width: 15%;">Key</th>
+
+                            </tr>
+                        </thead>
+                        <tbody id="modal-lecture-tbody">
+                        {% for key, value in notes.items  %}
+                            {% if key == lecture.id  %}
+                            {% for note in value %}
+                            <tr>
+                                <th style="width:10%;">{{forloop.counter}}</th>
+                                <th>{{note.title}}</th>
+                                <th><a href='{{MEDIA_URL}}{{note.file}}' target='_blank' style="text-decoration: none"><i class="fas fa-download"></i></a> </th>
+                                <th>
+                                    {% if note.key %}
+                                    <a href='{{MEDIA_URL}}{{note.key}}' target='_blank' style="text-decoration: none"><i class="fas fa-download"></i></a>   
+                                    {% endif %}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}                         
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <br>
+                    <table id="worksheet-table" class="table table-sm table-striped table-bordered lecture-detail-table">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th style="width:10%;">#</th>
+                                    <th>Worksheet</th>
+                                    <th style="width: 15%;">File</th>
+                                    <th style="width: 15%;">Key</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-lecture-tbody">
+                            {% for key, value in worksheets.items  %}
+                                {% if key == lecture.id %}
+                                {% for ws in value %}
+                                <tr>
+                                    <th style="width:10%;">{{forloop.counter}}</th>
+                                    <th>{{ws.title}}</th>
+                                    <th><a href='{{MEDIA_URL}}{{ws.file}}' target='_blank' style="text-decoration: none"><i class="fas fa-download"></i></a> </th>
+                                    <th>
+                                            {% if ws.key %}
+                                            <a href='{{MEDIA_URL}}{{ws.key}}' target='_blank' style="text-decoration: none"><i class="fas fa-download"></i></a>   
+                                            {% endif %}
+                                    </th>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}                             
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+
+    
+    <!-- hidden table for lectures-->
 </div>
 {% endblock maths%}
