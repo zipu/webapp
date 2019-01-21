@@ -27,4 +27,6 @@
   /* table style */
   table {
       text-align: center;
+      table-layout: fixed;
+      word-wrap: break-word;
   }

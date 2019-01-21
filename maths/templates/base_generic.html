@@ -25,10 +25,6 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                   <ul class="navbar-nav mr-auto">
-                    <li {% if activate == 'document' %} class="nav-item active"
-                        {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'document' %}">Document</a>
-                    </li>
                     <li {% if activate == 'klass' %} class="nav-item active"
                         {% else %} class="nav-item" {% endif %}>
                       <a class="nav-link" href="{% url 'klass' %}">Klass</a>
@@ -36,6 +32,10 @@
                     <li {% if activate == 'exam' %} class="nav-item active"
                         {% else %} class="nav-item" {% endif %}>
                       <a class="nav-link" href="{% url 'exam' %}">Past Exam</a>
+                    </li>
+                    <li {% if activate == 'document' %} class="nav-item active"
+                        {% else %} class="nav-item" {% endif %}>
+                      <a class="nav-link" href="{% url 'document' %}">Document</a>
                     </li>
                   </ul>
                   <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>

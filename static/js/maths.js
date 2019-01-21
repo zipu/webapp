@@ -201,6 +201,7 @@ $(document).ready(function () {
     })
 
     //unit increasement
+    $(".lecture-unit").contextmenu(function(e){e.preventDefault();});
     $('.lecture-unit').mousedown(function(event) {
         if ($('.klassdetail').attr('status')!='True'){
             return;

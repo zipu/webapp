@@ -75,19 +75,14 @@ class KlassDetailView(DetailView):
         context['notes'] = {}
         context['worksheets'] = {}
         for lecture in context['lectures']:
-            notes_intermediate = lecture.lecture_note.through.objects.\
-                                 filter(lecture_id=lecture.id).order_by('id')
-            context['notes'][lecture.id]=[lecture.document for lecture in notes_intermediate]
+            #notes_intermediate = lecture.lecture_note.through.objects.\
+            #                     filter(lecture_id=lecture.id).order_by('id')
+            context['notes'][lecture.id]=lecture.lecture_note.all()#[lecture.document for lecture in notes_intermediate]
 
-            ws_intermediate = lecture.worksheet.through.objects.\
-                                 filter(lecture_id=lecture.id).order_by('id')
-            context['worksheets'][lecture.id]=[ws.document for ws in ws_intermediate]
+            #ws_intermediate = lecture.worksheet.through.objects.\
+            #                     filter(lecture_id=lecture.id).order_by('id')
+            context['worksheets'][lecture.id]=lecture.worksheet.all()#[ws.document for ws in ws_intermediate]
         
-        
-        #lectures = kwargs['object'].lecture.through.objects\
-        #           .filter(klass_id=kwargs['object'].id).order_by('id')
-        #context['selected_lectures'] = [lecture.lecture for lecture in lectures]
-        #context['lectures'] = Lecture.objects.all()
         return context
 
     def get(self, request, *args, **kwargs):
