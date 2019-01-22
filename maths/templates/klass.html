@@ -17,7 +17,10 @@
             <tr style="cursor:default !important" pk={{klass.id}} onclick="location.href = '/maths/klass/{{klass.id}}';">
                 <td > {{klass.pub_date | date:'Y' }} </td>
                 <td> {{klass.pub_date | date:'M'}} </td>
-                <td> {{klass.course}} </td>
+                <td> {% if klass.course == 'APAB' %} AP Calculus AB 
+                     {% elif klass.course == 'APBC' %} AP Calculus BC
+                     {% else %} {{klass.course}} 
+                     {% endif %} </td>
                 <td style="text-align: left"> {{klass.name}} </td>
                 <td> {% if klass.status %}<i class="fas fa-lock-open text-info"></i> 
                      {% else %}<i class="fas fa-lock" style='color:grey'></i>

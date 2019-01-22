@@ -27,6 +27,10 @@
   /* table style */
   table {
       text-align: center;
-      table-layout: fixed;
-      word-wrap: break-word;
+      
+  }
+
+  .lecture-detail-table {
+    table-layout: fixed;
+    word-wrap: break-word;
   }

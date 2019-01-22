@@ -5,7 +5,7 @@ from .views import DocumentView, KlassView, KlassDetailView, ExamView, ExamDetai
 
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='document', permanent=False)),
+    path('', RedirectView.as_view(url='klass', permanent=False)),
     path('document/', DocumentView.as_view(), name='document'),
     path('klass/', KlassView.as_view(), name='klass'),
     path('klass/<int:pk>', KlassDetailView.as_view(), name='klassdetail'),

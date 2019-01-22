@@ -91,7 +91,7 @@ class Document(models.Model):
     note = models.CharField(max_length=256, blank=True)
 
     def __str__(self):
-        return f"{self.title}/{self.course}/{self.category}/{self.difficulty}"
+        return f"{self.id}/{self.title}/{self.course}/{self.category}"
 
 
 
