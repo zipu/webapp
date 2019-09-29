@@ -149,12 +149,12 @@ else:
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    PORT = '3307'
+    PORT = '3306' #local: 3306, remote: 3307
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': PORT, #local: 3306, remote: 3307
+            'PORT': PORT,
             'NAME': 'webapp',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -162,7 +162,7 @@ else:
         'maths' :{
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': PORT,#local: 3306, remote: 3307
+            'PORT': PORT,
             'NAME': 'maths',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
@@ -170,7 +170,7 @@ else:
         'asset' : {
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
-            'PORT': PORT,#local: 3306, remote: 3307
+            'PORT': PORT,
             'NAME': 'asset',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
