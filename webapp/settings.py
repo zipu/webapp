@@ -119,7 +119,8 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 DATABASE_ROUTERS = [
-    'maths.dbRouter.MathsDBRouter'
+    'maths.dbRouter.MathsDBRouter',
+    'asset.dbRouter.AssetDBRouter'
 ]
 
 # [START db_setup]
@@ -140,6 +141,13 @@ if os.getenv('GAE_APPLICATION', None):
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'maths',
+        },
+        'asset' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+            'NAME': 'asset'
         }
     }
 else:
