@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 
-from asset.models import Cash
+from asset.models import Cash, Stock, Futures
 # Create your views here.
 
 class AssetView(TemplateView):
@@ -10,11 +10,11 @@ class AssetView(TemplateView):
        context = super().get_context_data(**kwargs)
        context['activate'] = 'asset'
        context['cash'] = Cash.objects.all()
-       
-       last = Cash.objects.latest('id')
-       context['cur_usd'] = last.usd
-       context['cur_krw'] = last.krw
-       context['cur_cny']= last.cny
-       context['total'] = last.total
+       context['equity'] = Stock.objects.all()
+       context['futures'] = Futures.objects.all()
+       cash = Cash.objects.latest('id').total if Cash.objects.count() else 0
+       equity = Stock.objects.latest('id').total if Stock.objects.count() else 0
+       futures = Futures.objects.latest('id').total if Futures.objects.count() else 0
+       context['total'] = cash+equity+futures
 
        return context

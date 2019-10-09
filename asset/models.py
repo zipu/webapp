@@ -35,7 +35,64 @@ class Cash(models.Model):
 
         super(Cash, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.total:,} won - {self.date}"
+    
+    class Meta:
+        verbose_name_plural = 'Cash'
+
+
+
+class Stock(models.Model):
+    date = models.DateField()
+    stocks = models.IntegerField(null=True, blank=True)
+    etfs = models.IntegerField(null=True, blank=True)
+    total = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if Stock.objects.count():
+            last = Stock.objects.latest('id')
+        
+        if self.stocks is None:
+            self.stocks = last.stocks if last.stocks else 0
+
+        if self.etfs is None:
+            self.etfs = last.etfs if last.etfs else 0
+
+        self.total = self.stocks + self.etfs
+
+        super(Stock, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"You have {self.total} won at {self.date}"
+        return f"{self.stocks:,} won - {self.date}"
 
+    class Meta:
+        verbose_name_plural = 'Equities'
+
+class Futures(models.Model):
+    date = models.DateField()
+    futures_in_krw = models.IntegerField(null=True, blank=True)
+    futures_in_usd = models.IntegerField(null=True, blank=True)
+    total = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if Futures.objects.count():
+            last = Futures.objects.latest('id')
+        
+        if self.futures_in_krw is None:
+            self.futures_in_krw = last.futures_in_krw if last.futures_in_krw else 0 
+
+        if self.futures_in_usd is None:
+            self.futures_in_usd = last.futures_in_usd if last.futures_in_usd else 0
+
+        c = CurrencyRates()
+        self.total = c.convert('USD','KRW',self.futures_in_usd) +\
+                     self.futures_in_krw
+
+        super(Futures, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Derivative'
+
+    def __str__(self):
+        return f"{self.total:,} - {self.date}"
