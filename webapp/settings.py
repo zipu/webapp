@@ -77,7 +77,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize', #humanize app like 'intcomma'
     'maths.apps.MathsConfig', #수학자료
-    'asset.apps.AssetConfig' #asset
+    'asset.apps.AssetConfig', #asset
+    'trading.apps.TradingConfig' #트레이딩 
 ]
 
 MIDDLEWARE = [
@@ -120,7 +121,8 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 DATABASE_ROUTERS = [
     'maths.dbRouter.MathsDBRouter',
-    'asset.dbRouter.AssetDBRouter'
+    'asset.dbRouter.AssetDBRouter',
+    'trading.dbRouter.TradingDBRouter'
 ]
 
 # [START db_setup]
@@ -148,6 +150,13 @@ if os.getenv('GAE_APPLICATION', None):
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'asset'
+        },
+        'trading' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+            'NAME': 'trading'
         }
     }
 else:
@@ -157,7 +166,7 @@ else:
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    PORT = '3307' #local: 3306, remote: 3307
+    PORT = '3306' #local: 3306, remote: 3307
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -182,6 +191,13 @@ else:
             'NAME': 'asset',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'trading' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+            'NAME': 'trading'
         }
     }
 # [END db_setup]
