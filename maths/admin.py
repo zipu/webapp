@@ -1,5 +1,14 @@
 from django.contrib import admin
 
+
+# admin site에서 디폴트로 설정된 사용자 등록 섹션 삭제
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
+
+admin.site.unregister(User)
+admin.site.unregister(Group)
+
+
 # Register your models here.
 from django import forms
 from django.forms.widgets import Textarea, CheckboxSelectMultiple, TextInput, RadioSelect
