@@ -1,0 +1,103 @@
+  <table class="table table-sm table-bordered" style="text-align: center; font-size: small;">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">진입일</th>
+        <th scope="col">상품</th>
+        <th scope="col">진입가</th>
+        <th scope="col">포지션</th>
+        <th scope="col">계약수</th>
+        <th scope="col">청산예정가</th>
+        <th scope="col">리스크</th>
+        <th scope="col">청산가</th>
+        <th scope="col">계약수</th>
+        <th scope="col">손익</th>
+        <th scope="col">누적손익</th>
+        <th scope="col">손익비</th>
+        <th scope="col">보유기간</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for entry in entries %}
+      {% if entry.exits.count > 0 %}
+      <tr>
+        <td rowspan="{{entry.exits.count}}"> {{entry.id}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.date | date:"y/m/d"}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.instrument.name}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.price}} </td>
+        <td rowspan="{{entry.exits.count}}"> {% if entry.position == 1 %} Long {% else %} Short {% endif %} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.quantity}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.stopprice}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.entryrisk}} </td>
+        {% for exit in entry.exits.all reversed%}
+          {% if forloop.counter > 1%}</tr><tr>{% endif %}
+            <td>{{exit.price}}</td>
+            <td>{{exit.quantity}}</td>
+            <td>{{exit.profit}}</td>
+            <td>{{exit.cum_profit}}</td>
+            <td>{{exit.ptr |floatformat:1 }}</td>
+            <td>{{exit.duration.days}}일</td>
+        {% endfor %}
+      </tr>
+       {% else %}
+       <tr>
+        <td>{{entry.id}} </td>
+        <td>{{entry.date | date:"y/m/d"}} </td>
+        <td>{{entry.instrument.name}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.instrument.price}} </td>
+        <td>{% if entry.position == 1 %} Long {% else %} Short {% endif %}</td>
+        <td>{{entry.quantity}} </td>
+        <td>{{entry.stopprice}} </td>
+        <td>{{entry.entryrisk}} </td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+       </tr>
+       {% endif %}
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+ {% if is_paginated %}
+ <nav aria-label="Page navigator">
+  <ul class="pagination pagination-sm justify-content-center">
+      <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+        <a class="page-link" href="javascript:;movePage(1);" aria-label="First">
+          <span aria-hidden="true">&laquo;</span>
+          <span class="sr-only">First</span>
+        </a>
+      </li>
+      <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+        <a class="page-link" href="{% if page_obj.has_previous %}javascript:;movePage({{page_obj.previous_page_number}});{% endif %}" aria-label="Previous">
+          <span aria-hidden="true">&lt;</span>
+          <span class="sr-only">Previous</span>
+        </a>
+      </li>
+    {% for i in range %}
+      {% if page_obj.number == i %}
+        <li class="page-item active">
+         <a class="page-link" href="#">{{i}} <span class="sr-only">(current)</span></a>
+        </li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="javascript:;movePage({{i}});">{{i}}</a></li>
+      {% endif %}
+    {% endfor %}
+      <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{% if page_obj.has_next %}javascript:;movePage({{page_obj.next_page_number}});{% endif %}" aria-label="Previous">
+          <span aria-hidden="true">&gt;</span>
+          <span class="sr-only">Next</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="javascript:;movePage({{paginator.num_pages}});" aria-label="Next">
+         <span aria-hidden="true">&raquo;</span>
+         <span class="sr-only">Last</span>
+        </a>
+      </li>
+  </ul>
+  </nav>
+{% endif %}

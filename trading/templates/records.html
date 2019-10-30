@@ -1,0 +1,54 @@
+{% extends "base_trading.html"%}
+{% load humanize %}
+{% block trading %}
+
+<div class="row" id="chart">
+  <div id="trading-chart"></div>
+</div>
+<div class="row" id="summary">
+  <table class="table table-bordered" style="text-align: center;">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:20%">원금</th>
+            <th scope="col" style="width:20%">수익</th>
+            <th scope="col" style="width:20%">수익률</th>
+            <th scope="col" style="width:20%">평균손익비</th>
+            <th scope="col" style="width:20%">승률</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>&#8361; {{ system.principal | intcomma}}</td>
+            <td>&#8361; {{ system.gross_return | intcomma}}</td>
+            <td>{{ system.gross_return_ratio | floatformat:2 }}</td>
+            <td>{{ system.average_ptr | floatformat:2 }} : 1</td>
+            <td>{{ system.winning_rate | floatformat:1 }} %</td>
+          </tr>
+        </tbody>
+    </table>
+  
+  <table class="table table-bordered" style="text-align: center;">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:16.6%">평균수익</th>
+            <th scope="col" style="width:16.6%">표준편차</th>
+            <th scope="col" style="width:16.6%">Draw Down</th>
+            <th scope="col" style="width:16.6%">MDD</th>
+            <th scope="col" style="width:16.6%">매매수</th>
+            <th scope="col" style="width:16.6%">평균보유기간</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>&#8361; {{ system.average_profit | intcomma}}</td>
+            <td>&#8361; {{ system.std | floatformat:2}}</td>
+            <td>{{ system.dd | floatformat:1 }} %</td>
+            <td>{{ system.mdd | floatformat:1 }} %</td>
+            <td>{{ system.count}}</td>
+            <td>{{ system.duration}} 일</td>
+          </tr>
+        </tbody>
+    </table>
+</div>
+<div class="row" id="records"></div>
+{% endblock trading%}
