@@ -26,13 +26,13 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                   <ul class="navbar-nav mr-auto">
-                    <li {% if activate == 'records' %} class="nav-item active"
+                    <li {% if activate == 'futures' %} class="nav-item active"
                         {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'records' %}">Futures</a>
+                      <a class="nav-link" href="{% url 'futures' system=1 %}">Futures</a>
                     </li>
                     <li {% if activate == '' %} class="nav-item active"
                         {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'records' %}">임시</a>
+                      <a class="nav-link" href="{% url 'futures' 1 %}">임시</a>
                     </li>
                   </ul>
                   <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
@@ -45,7 +45,5 @@
 
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://code.highcharts.com/highcharts.src.js" crossorigin="anonymous"></script>
-{% csrf_token %}
-<script src="{% static 'js/trading.js' %}?v={{MATH_APP_VERSION}}"></script>
 </body>
 </html>

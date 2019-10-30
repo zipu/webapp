@@ -1,0 +1,143 @@
+{% extends "base_trading.html"%}
+{% load humanize %}
+{% block trading %}
+
+<div class="container">
+  <ul class="nav nav-tabs">
+  
+    <li class="nav-item">
+      <a class="nav-link active" href="{% url 'futures' system=1 %}">System 1</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'futures' system=2 %}">System 2</a>
+    </li>
+  </ul>
+</div>
+</br>
+<div class="container" id="system">
+  <div class="row" id="chart">
+    <div id="profit-chart"></div>
+  </div>
+  <div class="row" id="summary">
+    <table class="table table-bordered" style="text-align: center;">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" style="width:20%">원금</th>
+          <th scope="col" style="width:20%">수익</th>
+          <th scope="col" style="width:20%">수익률</th>
+          <th scope="col" style="width:20%">평균손익비</th>
+          <th scope="col" style="width:20%">승률</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>&#8361; {{ system.principal | intcomma}}</td>
+          <td>&#8361; {{ system.gross_return | intcomma}}</td>
+          <td>{{ system.gross_return_ratio | floatformat:2 }}</td>
+          <td>{{ system.average_ptr | floatformat:2 }} : 1</td>
+          <td>{{ system.winning_rate | floatformat:1 }} %</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="table table-bordered" style="text-align: center;">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" style="width:16.6%">평균수익</th>
+          <th scope="col" style="width:16.6%">표준편차</th>
+          <th scope="col" style="width:16.6%">Draw Down</th>
+          <th scope="col" style="width:16.6%">MDD</th>
+          <th scope="col" style="width:16.6%">매매수</th>
+          <th scope="col" style="width:16.6%">평균보유기간</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>&#8361; {{ system.average_profit | intcomma}}</td>
+          <td>&#8361; {{ system.std | floatformat:2}}</td>
+          <td>{{ system.dd | floatformat:1 }} %</td>
+          <td>{{ system.mdd | floatformat:1 }} %</td>
+          <td>{{ system.count}}</td>
+          <td>{{ system.duration}} 일</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="row" id="history"></div>
+</div>
+<script>
+//매매내역 페이징
+var movePage
+(movePage = function (num) {
+   $('#history').load("{% url 'futureshistory' system=system.id %}?page=" + num);
+})(1)
+
+//차트 그리기
+$(window).on('load',function(){
+  
+  Highcharts.setOptions({
+		lang: {
+			thousandsSep: ','
+		}
+	});
+  var chart = Highcharts.chart('profit-chart', {
+            chart: {
+               type: 'area'
+            },
+            title: {
+                text: '수익 차트'
+            },
+            xAxis: {
+                type: 'datetime',
+                title: {
+                    text: 'Date'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: '백만원',
+                },
+                labels: {
+                    formatter: function () {
+                        return this.value / 1000000;
+                    }
+                },
+                min: 0
+            },
+            tooltip: {
+                xDateFormat: '%Y-%m-%d',
+                shared: true,
+                formatter: function() {
+                    var s = Highcharts.dateFormat('%Y-%m-%d', new Date(this.x));
+                    var sum = 0
+                    $.each(this.points, function(i, point) {
+                        s += '<br/><span style="color:' + point.color + '">\u25CF</span> ' + point.series.name + ': <b>' + point.y.toLocaleString()+'원</b>';
+                        sum += point.y
+                    });
+                    s+= '<br/><span style="color: red ">\u25CF</span> 합계: <b>' + sum.toLocaleString() + '원</b></br>'
+                    return s;
+                },
+            },
+            plotOptions: {
+                area: {
+                    stacking: 'normal',
+                    linecolor: '#666666',
+                    lineWidth: 1,
+                    marker: {
+                        lineWidth: 1,
+                        linecolor: '#666666'
+                    },
+                }
+            },
+        });
+
+   $.get( "{% url 'futureschart' system=system.id %}", function( data ) {
+     chart.addSeries({ name: "수익", data: data.profit});
+     chart.addSeries({ name: "수수료", data: data.commission});
+   });
+
+});
+
+   
+</script>
+{% endblock trading%}

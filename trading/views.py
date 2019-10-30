@@ -1,20 +1,22 @@
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, ListView, View
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 
 from trading.models import Instrument, FuturesEntry, FuturesExit, FuturesSystem
 # Create your views here.
 
-class RecordsView(TemplateView):
-    template_name = "records.html"
-    
+class FuturesView(TemplateView):
+    template_name = "futures.html"
+
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
-       context['activate'] = 'records'
-       context['system'] = FuturesSystem.objects.all().first()
+       context['system'] = get_object_or_404(FuturesSystem, id=self.kwargs['system'])
+       context['activate'] = 'futures'
        return context
 
-class RecordsListView(ListView):
-   template_name = "recordsdetail.html"
+class FuturesHistoryView(ListView):
+   template_name = "futures_history.html"
    model = FuturesEntry
    queryset = FuturesEntry.objects.filter(system__id=1).order_by('-pk')
    context_object_name = "entries"
@@ -27,15 +29,12 @@ class RecordsListView(ListView):
        context['range'] = range(start, end)
        return context
 
-class ChartView(View):
+class FuturesChartView(View):
+    """ 차트 데이터 반환용 뷰"""
     def get(self, request, *args, **kwargs):
-        if request.GET and request.is_ajax():
-            system = FuturesSystem.objects.filter(id=kwargs['pk'])
-            exits = system.entires.exits.all().order_by('id')
-            profit = []
+        exits = FuturesExit.objects.filter(entry__system__id=self.kwargs['system'])
+        profit = list(exits.all().values_list('date','profit'))
+        commissions = list(exits.all().values_list('date','entry__commission'))
 
-
-        
-        return 'Hello, World!'
-        #if request.GET and request.is_ajax():
+        return JsonResponse({'profit':profit, 'commission':commissions}, safe=False)
 
