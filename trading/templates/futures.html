@@ -15,8 +15,8 @@
 </div>
 </br>
 <div class="container" id="system">
-  <div class="row" id="chart">
-    <div id="profit-chart"></div>
+  <div class="container" id="chart" style="max-width: 800px;">
+    <div class="row" id="profit-chart"></div>
   </div>
   <div class="row" id="summary">
     <table class="table table-bordered" style="text-align: center;">
@@ -31,8 +31,8 @@
       </thead>
       <tbody>
         <tr>
-          <td>&#8361; {{ system.principal | intcomma}}</td>
-          <td>&#8361; {{ system.gross_return | intcomma}}</td>
+          <td>&#8361; {{ system.principal | floatformat:1| intcomma}}</td>
+          <td>&#8361; {{ system.gross_return_krw |floatformat:1| intcomma}}</td>
           <td>{{ system.gross_return_ratio | floatformat:2 }}</td>
           <td>{{ system.average_ptr | floatformat:2 }} : 1</td>
           <td>{{ system.winning_rate | floatformat:1 }} %</td>
@@ -53,8 +53,8 @@
       </thead>
       <tbody>
         <tr>
-          <td>&#8361; {{ system.average_profit | intcomma}}</td>
-          <td>&#8361; {{ system.std | floatformat:2}}</td>
+          <td>&#8361; {{ system.average_profit_krw |floatformat:1 | intcomma}}</td>
+          <td>&#8361; {{ system.std_krw | floatformat:1 | intcomma}}</td>
           <td>{{ system.dd | floatformat:1 }} %</td>
           <td>{{ system.mdd | floatformat:1 }} %</td>
           <td>{{ system.count}}</td>
@@ -81,11 +81,8 @@ $(window).on('load',function(){
 		}
 	});
   var chart = Highcharts.chart('profit-chart', {
-            chart: {
-               type: 'area'
-            },
             title: {
-                text: '수익 차트'
+                text: '매매 차트'
             },
             xAxis: {
                 type: 'datetime',
@@ -102,41 +99,40 @@ $(window).on('load',function(){
                         return this.value / 1000000;
                     }
                 },
-                min: 0
+               // min: 0
+            },
+            legend: {       
+              enabled: false,
             },
             tooltip: {
-                xDateFormat: '%Y-%m-%d',
-                shared: true,
-                formatter: function() {
-                    var s = Highcharts.dateFormat('%Y-%m-%d', new Date(this.x));
-                    var sum = 0
-                    $.each(this.points, function(i, point) {
-                        s += '<br/><span style="color:' + point.color + '">\u25CF</span> ' + point.series.name + ': <b>' + point.y.toLocaleString()+'원</b>';
-                        sum += point.y
-                    });
-                    s+= '<br/><span style="color: red ">\u25CF</span> 합계: <b>' + sum.toLocaleString() + '원</b></br>'
-                    return s;
-                },
-            },
-            plotOptions: {
-                area: {
-                    stacking: 'normal',
-                    linecolor: '#666666',
-                    lineWidth: 1,
-                    marker: {
-                        lineWidth: 1,
-                        linecolor: '#666666'
-                    },
-                }
-            },
+              valueDecimals: 0,
+              valueSuffix: ' 원',
+              xDateFormat: '%Y-%m-%d',
+              crosshairs: true,
+              split: true,
+            }
         });
 
    $.get( "{% url 'futureschart' system=system.id %}", function( data ) {
-     chart.addSeries({ name: "수익", data: data.profit});
-     chart.addSeries({ name: "수수료", data: data.commission});
+     profit = [];
+     commission = [];
+     for (item of data){
+       date = new Date(item[0]).getTime();
+       profit.push([date, item[1] + {{system.principal}}]);
+       commission.push([date, item[2]]);
+     }
+     chart.addSeries({ 
+       name: "누적수익",
+       data: profit,
+       marker: { enabled: false}
+      });
+     chart.addSeries({
+       name: "누적수수료",
+       data: commission,
+       marker: { enabled: false}
+     });
    });
-
-});
+  });
 
    
 </script>

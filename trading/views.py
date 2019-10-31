@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
 from trading.models import Instrument, FuturesEntry, FuturesExit, FuturesSystem
+
+from datetime import datetime, time
 # Create your views here.
 
 class FuturesView(TemplateView):
@@ -32,9 +34,8 @@ class FuturesHistoryView(ListView):
 class FuturesChartView(View):
     """ 차트 데이터 반환용 뷰"""
     def get(self, request, *args, **kwargs):
-        exits = FuturesExit.objects.filter(entry__system__id=self.kwargs['system'])
-        profit = list(exits.all().values_list('date','profit'))
-        commissions = list(exits.all().values_list('date','entry__commission'))
-
-        return JsonResponse({'profit':profit, 'commission':commissions}, safe=False)
+        exits = FuturesExit.objects.filter(entry__system__id=self.kwargs['system']).order_by('date')
+        data = list(exits.all().values_list('date', 'cum_profit_krw', 'entry__cum_commission_krw'))
+        
+        return JsonResponse(data, safe=False)
 
