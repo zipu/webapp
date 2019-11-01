@@ -31,9 +31,9 @@
       </thead>
       <tbody>
         <tr>
-          <td>&#8361; {{ system.principal | floatformat:1| intcomma}}</td>
-          <td>&#8361; {{ system.gross_return_krw |floatformat:1| intcomma}}</td>
-          <td>{{ system.gross_return_ratio | floatformat:2 }}</td>
+          <td>&#8361; {{ system.principal | intcomma}}</td>
+          <td>&#8361; {{ system.gross_return_krw| intcomma}}</td>
+          <td>{{ system.gross_return_ratio | floatformat:2 }} %</td>
           <td>{{ system.average_ptr | floatformat:2 }} : 1</td>
           <td>{{ system.winning_rate | floatformat:1 }} %</td>
         </tr>
@@ -53,8 +53,8 @@
       </thead>
       <tbody>
         <tr>
-          <td>&#8361; {{ system.average_profit_krw |floatformat:1 | intcomma}}</td>
-          <td>&#8361; {{ system.std_krw | floatformat:1 | intcomma}}</td>
+          <td>&#8361; {{ system.average_profit_krw | intcomma}}</td>
+          <td>&#8361; {{ system.std_krw | intcomma}}</td>
           <td>{{ system.dd | floatformat:1 }} %</td>
           <td>{{ system.mdd | floatformat:1 }} %</td>
           <td>{{ system.count}}</td>
@@ -65,6 +65,9 @@
   </div>
   <div class="row" id="history"></div>
 </div>
+{% endblock trading%}
+
+{% block script %}
 <script>
 //매매내역 페이징
 var movePage
@@ -73,24 +76,22 @@ var movePage
 })(1)
 
 //차트 그리기
-$(window).on('load',function(){
-  
-  Highcharts.setOptions({
-		lang: {
-			thousandsSep: ','
-		}
-	});
-  var chart = Highcharts.chart('profit-chart', {
-            title: {
-                text: '매매 차트'
+Highcharts.setOptions({
+		lang: { thousandsSep: ',' }
+});
+var chart = Highcharts.stockChart('profit-chart', {
+            title: { text: '해외선물 수동' },
+            rangeSelector: {
+              enabled:false
             },
-            xAxis: {
+            xAxis: { 
                 type: 'datetime',
                 title: {
                     text: 'Date'
                 }
             },
             yAxis: {
+                opposite: false,
                 title: {
                     text: '백만원',
                 },
@@ -101,7 +102,7 @@ $(window).on('load',function(){
                 },
                // min: 0
             },
-            legend: {       
+            legend: {    
               enabled: false,
             },
             tooltip: {
@@ -113,14 +114,23 @@ $(window).on('load',function(){
             }
         });
 
-   $.get( "{% url 'futureschart' system=system.id %}", function( data ) {
+$.get( "{% url 'futureschart' system=system.id %}", function( data ) {
+     console.log(data)
      profit = [];
      commission = [];
+     last_date = 0;
      for (item of data){
        date = new Date(item[0]).getTime();
-       profit.push([date, item[1] + {{system.principal}}]);
-       commission.push([date, item[2]]);
+       if (date != last_date){
+         profit.push([date, parseInt(item[1]) + parseInt({{system.principal}})]);
+         commission.push([date, parseInt(item[2])]);
+       } else {
+         profit[profit.length - 1] = [date, parseInt(item[1]) + parseInt({{system.principal}})]
+       }
+       last_date = date;
      }
+     console.log(profit)
+
      chart.addSeries({ 
        name: "누적수익",
        data: profit,
@@ -131,9 +141,6 @@ $(window).on('load',function(){
        data: commission,
        marker: { enabled: false}
      });
-   });
-  });
-
-   
+});
 </script>
-{% endblock trading%}
+{% endblock script %}

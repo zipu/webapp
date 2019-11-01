@@ -13,7 +13,6 @@
         <th scope="col">계약수</th>
         <th scope="col">손익</th>
         <th scope="col">누적손익</th>
-        <th scope="col">손익비</th>
         <th scope="col">보유기간</th>
       </tr>
     </thead>
@@ -24,18 +23,17 @@
         <td rowspan="{{entry.exits.count}}"> {{entry.id}} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.date | date:"y/m/d"}} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.instrument.name}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.price}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.price.normalize}} </td>
         <td rowspan="{{entry.exits.count}}"> {% if entry.position == 1 %} Long {% else %} Short {% endif %} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.quantity}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.stopprice}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.entryrisk}} </td>
-        {% for exit in entry.exits.all reversed%}
+        <td rowspan="{{entry.exits.count}}"> {{entry.stopprice.normalize}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.entryrisk.normalize}} </td>
+        {% for exit in entry.exits.all%}
           {% if forloop.counter > 1%}</tr><tr>{% endif %}
-            <td>{{exit.price}}</td>
+            <td>{{exit.price.normalize}}</td>
             <td>{{exit.quantity}}</td>
-            <td>{{exit.profit}}</td>
-            <td>{{exit.cum_profit}}</td>
-            <td>{{exit.ptr |floatformat:1 }}</td>
+            <td>{{exit.profit.normalize}}</td>
+            <td>{{exit.cum_profit.normalize}}</td>
             <td>{{exit.duration.days}}일</td>
         {% endfor %}
       </tr>
@@ -44,12 +42,11 @@
         <td>{{entry.id}} </td>
         <td>{{entry.date | date:"y/m/d"}} </td>
         <td>{{entry.instrument.name}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.instrument.price}} </td>
+        <td> {{entry.price.normalize}} </td>
         <td>{% if entry.position == 1 %} Long {% else %} Short {% endif %}</td>
         <td>{{entry.quantity}} </td>
-        <td>{{entry.stopprice}} </td>
-        <td>{{entry.entryrisk}} </td>
-        <td></td>
+        <td>{{entry.stopprice.normalize}} </td>
+        <td>{{entry.entryrisk.normalize}} </td>
         <td></td>
         <td></td>
         <td></td>

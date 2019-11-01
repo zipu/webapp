@@ -3,6 +3,7 @@ from django.views.generic import TemplateView, ListView, View
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
+from django.db.models import Sum, Window, F
 from trading.models import Instrument, FuturesEntry, FuturesExit, FuturesSystem
 
 from datetime import datetime, time
@@ -20,9 +21,13 @@ class FuturesView(TemplateView):
 class FuturesHistoryView(ListView):
    template_name = "futures_history.html"
    model = FuturesEntry
-   queryset = FuturesEntry.objects.filter(system__id=1).order_by('-pk')
+   #queryset = FuturesEntry.objects.filter(system__id=1).order_by('-pk')
    context_object_name = "entries"
    paginate_by = 10
+
+   def get_queryset(self):
+        return FuturesSystem.objects.get(id=self.kwargs['system']).entries.order_by('-id')
+            
 
    def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
