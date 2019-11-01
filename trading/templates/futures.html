@@ -18,6 +18,7 @@
   <div class="container" id="chart" style="max-width: 800px;">
     <div class="row" id="profit-chart"></div>
   </div>
+  </br>
   <div class="row" id="summary">
     <table class="table table-bordered" style="text-align: center;">
       <thead class="thead-light">
@@ -63,6 +64,7 @@
       </tbody>
     </table>
   </div>
+  </br>
   <div class="row" id="history"></div>
 </div>
 {% endblock trading%}
@@ -103,7 +105,7 @@ var chart = Highcharts.stockChart('profit-chart', {
                // min: 0
             },
             legend: {    
-              enabled: false,
+              enabled: true,
             },
             tooltip: {
               valueDecimals: 0,

@@ -36,7 +36,7 @@ class Cash(models.Model):
         super(Cash, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.total:,} won - {self.date}"
+        return f"{self.total} won - {self.date}"
     
     class Meta:
         verbose_name_plural = 'Cash'
@@ -64,7 +64,7 @@ class Stock(models.Model):
         super(Stock, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.stocks:,} won - {self.date}"
+        return f"{self.total:,} won - {self.date}"
 
     class Meta:
         verbose_name_plural = 'Equities'

@@ -7,6 +7,9 @@ from django.dispatch import receiver
 from decimal import Decimal as D
 from forex_python.converter import CurrencyRates
 
+##############################################
+# 선물 거래 관련 모델                         #
+##############################################
 class Instrument(models.Model):
     """
     상품 정보 모델
@@ -79,7 +82,6 @@ class FuturesSystem(models.Model):
     def save(self, *args, **kwargs):
         c = CurrencyRates()
         self.principal_usd = c.convert('KRW', 'USD', self.principal)
-        print(self.principal_usd)
         self.gross_return_krw = c.convert('USD', 'KRW', self.gross_return)
         self.average_profit_krw =  c.convert('USD', 'KRW', self.average_profit)
         self.std_krw = c.convert('USD', 'KRW', self.std)
@@ -213,6 +215,130 @@ def update_futures_system_summary(sender, instance, **kwargs):
     system.average_ptr = abs(avg_gain/avg_loss)
     
     system.save()
+
+
+
+##############################################
+# 주식/ETF 거래 관련 모델                     #
+##############################################
+class StockSummary(models.Model):
+    date = models.DateField("날짜", auto_now_add=True)
+    principal = models.DecimalField("투자원금", max_digits=10, decimal_places=0)
+    cash = models.DecimalField("보유현금", max_digits=10, decimal_places=0)
+    stock = models.DecimalField("주식가치", max_digits=10, decimal_places=0)
+    profit = models.DecimalField("누적수익", max_digits=10, decimal_places=0, default=0)
+    rate_of_return = models.FloatField("수익률", default=0)
+
+class StockStatement(models.Model):
+    """ 주식 거래 명세"""
+    date = models.DateField("매매시작일")
+    name = models.CharField("종목명", max_length=50)
+    current_price = models.DecimalField("현재가", max_digits=10, decimal_places=0) 
+    stop_price = models.DecimalField("청산예정가", max_digits=10, decimal_places=0)
+    purchase_money = models.DecimalField("총매입금", max_digits=10, decimal_places=0, default=0)
+    buy_quantity = models.PositiveIntegerField("총매입주식수", default=0)
+    sell_quantity = models.PositiveIntegerField("총청산주식수", default=0)
+    quantity = models.PositiveIntegerField("보유주식수", default=0)
+    average_purchase_price = models.DecimalField("평균매수단가", max_digits=10, decimal_places=0, default=0)
+    average_sell_price = models.DecimalField("평균매도단가", max_digits=10, decimal_places=0, default=0)
+    stock_value = models.DecimalField("주식가치", max_digits=10, decimal_places=0, default=0)
+    liquidation = models.DecimalField("총청산금", max_digits=10, decimal_places=0, default=0)
+    dividends = models.DecimalField("배당금", max_digits=10, decimal_places=0, default=0)
+    is_open = models.BooleanField("매매상태", default=True)
+
+    def save(self, *args, **kwargs):
+        if self.buys.count() > 0:
+            agg = self.buys.aggregate(Sum('quantity'), Sum('purchase_money'))
+            self.buy_quantity = agg['quantity__sum']
+            self.purchase_money = agg['purchase_money__sum']
+            self.average_purchase_price = self.purchase_money / self.buy_quantity
+        
+        if self.sells.count() > 0:
+            agg = self.sells.aggregate(Sum('quantity'), Sum('liquidation'))
+            self.sell_quantity = agg['quantity__sum']
+            self.liquidation = agg['liquidation__sum']
+            self.average_sell_price = self.liquidation / self.sell_quantity
+
+        self.quantity = self.buy_quantity - self.sell_quantity
+        self.stock_value = self.quantity * self.current_price
+        self.is_open = False if self.quantity == 0 else True
+
+        super(StockStatement, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return(f"{self.date}/{self.name}")
+    
+    class Meta:
+        ordering = ('-id',)
+    
+class StockBuy(models.Model):
+    trade = models.ForeignKey(
+        StockStatement,
+        verbose_name="매매",
+        related_name="buys",
+        on_delete=models.CASCADE)
+    date = models.DateField("진입일")
+    quantity = models.PositiveIntegerField("매수수량")
+    price = models.DecimalField("매수가격", max_digits=10,decimal_places=0)
+    purchase_money = models.DecimalField("매입금액", max_digits=10, decimal_places=0, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.purchase_money = self.quantity * self.price
+        super(StockBuy, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return(f"{self.date}/{self.trade.name}")
+
+
+class StockSell(models.Model):
+    trade = models.ForeignKey(
+        StockStatement,
+        verbose_name="매매",
+        related_name="sells",
+        on_delete=models.CASCADE)
+    date = models.DateField("청산일")
+    quantity = models.PositiveIntegerField("청산수량")
+    price = models.DecimalField("청산가격", max_digits=10, decimal_places=0)
+    liquidation = models.DecimalField("청산금액", max_digits=10, decimal_places=0, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.liquidation = self.price * self.quantity
+        super(StockSell, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return(f"{self.date}/{self.trade.name}")
+
+
+@receiver(post_save, sender=StockBuy, dispatch_uid="update_stock_statement")
+@receiver(post_save, sender=StockSell, dispatch_uid="update_stock_statement")
+def update_stock_statement(sender, instance, **kwargs):
+    instance.trade.save()
+
+@receiver(post_save, sender=StockStatement, dispatch_uid="update_stock_summary")
+def update_stock_statement_at_entry(sender, instance, **kwargs):
+    principal = StockSummary.objects.all().first().principal
+    summary = StockSummary()
+
+    
+    agg = StockStatement.objects.all().aggregate(
+        Sum('purchase_money'),
+        Sum('stock_value'),
+        Sum('liquidation'))
+    summary.principal = principal
+    summary.cash = principal + agg['liquidation__sum'] - agg['purchase_money__sum']
+    summary.stock = agg['stock_value__sum']
+    summary.profit = summary.cash + summary.stock - summary.principal
+    summary.rate_of_return = (summary.profit/ summary.principal) * 100
+    summary.save()
+
+
+
+
+
+
+
+
+    
 
 
 
