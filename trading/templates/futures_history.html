@@ -1,4 +1,4 @@
-  <table class="table table-sm table-bordered" style="text-align: center; font-size: small;">
+  <table class="table table-sm table-bordered" id="history">
     <thead class="thead-light">
       <tr>
         <th scope="col">#</th>
@@ -12,8 +12,7 @@
         <th scope="col">청산가</th>
         <th scope="col">계약수</th>
         <th scope="col">손익</th>
-        <th scope="col">누적손익</th>
-        <th scope="col">보유기간</th>
+        <th  scope="col">보유기간</th>
       </tr>
     </thead>
     <tbody>
@@ -21,37 +20,35 @@
       {% if entry.exits.count > 0 %}
       <tr>
         <td rowspan="{{entry.exits.count}}"> {{entry.id}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.date | date:"y/m/d"}} </td>
+        <td  rowspan="{{entry.exits.count}}"> {{entry.date | date:"y/m/d"}} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.instrument.name}} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.price.normalize}} </td>
         <td rowspan="{{entry.exits.count}}"> {% if entry.position == 1 %} Long {% else %} Short {% endif %} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.quantity}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.stopprice.normalize}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.entryrisk.normalize}} </td>
+        <td  rowspan="{{entry.exits.count}}"> {{entry.stopprice.normalize}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.entry_risk.normalize}} </td>
         {% for exit in entry.exits.all%}
           {% if forloop.counter > 1%}</tr><tr>{% endif %}
             <td>{{exit.price.normalize}}</td>
             <td>{{exit.quantity}}</td>
             <td>{{exit.profit.normalize}}</td>
-            <td>{{exit.cum_profit.normalize}}</td>
-            <td>{{exit.duration.days}}일</td>
+            <td >{{exit.duration.days}}일</td>
         {% endfor %}
       </tr>
        {% else %}
        <tr>
         <td>{{entry.id}} </td>
-        <td>{{entry.date | date:"y/m/d"}} </td>
+        <td >{{entry.date | date:"y/m/d"}} </td>
         <td>{{entry.instrument.name}} </td>
         <td> {{entry.price.normalize}} </td>
         <td>{% if entry.position == 1 %} Long {% else %} Short {% endif %}</td>
         <td>{{entry.quantity}} </td>
-        <td>{{entry.stopprice.normalize}} </td>
-        <td>{{entry.entryrisk.normalize}} </td>
+        <td >{{entry.stopprice.normalize}} </td>
+        <td >{{entry.entry_risk.normalize}} </td>
         <td></td>
         <td></td>
         <td></td>
-        <td></td>
-        <td></td>
+        <td ></td>
        </tr>
        {% endif %}
       {% endfor %}

@@ -194,10 +194,11 @@ else:
         },
         'trading' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
+            'HOST': '127.0.0.1',
+            'PORT': PORT,
+            'NAME': 'trading',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
-            'NAME': 'trading'
         }
     }
 # [END db_setup]

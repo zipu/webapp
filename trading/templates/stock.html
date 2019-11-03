@@ -3,13 +3,13 @@
 {% block trading %}
 
 
-<div class="container" id="system">
-  <div class="container" id="chart" style="max-width: 800px;">
-    <div class="row" id="profit-chart"></div>
+<div class="row" id="system">
+  <div style="width: 100%;">
+    <div id="profit-chart" style="width:90%; margin: auto;"></div>
   </div>
   </br>
-  <div class="row" id="summary">
-    <table class="table table-bordered" style="text-align: center;">
+  <div id="summary", style="width:100%">
+    <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
           <th scope="col" style="width:20%">원금</th>
@@ -32,7 +32,7 @@
 
   </div>
   </br>
-  <div class="row" id="history"></div>
+  <div id="history" style="width:100%"></div>
 </div>
 {% endblock trading%}
 

@@ -4,47 +4,41 @@
 <html lang="en">
 
 <head>
-    {% block title %}<title>Trading</title>{% endblock %}
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% block title %}<title>Trading</title>{% endblock %}
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  
 
-    <!-- Add additional CSS in static file -->
-    <link rel="shortcut icon" href="">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/navbar-top-fixed.css' %}">
-    <link rel="stylesheet" href="{% static 'css/trading.css' %}">
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
-            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-            crossorigin="anonymous"></script>
+  <!-- Add additional CSS in static file -->
+  <link rel="shortcut icon" href="">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'css/trading.css' %}">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 </head>
 
 <body class="container" style="max-width: 900px;">
-        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                  <ul class="navbar-nav mr-auto">
-                    <li {% if activate == 'futures' %} class="nav-item active"
-                        {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'futures' system=1 %}">Futures</a>
-                    </li>
-                    <li {% if activate == 'stock' %} class="nav-item active"
-                        {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'stock' %}">Stock/ETF</a>
-                    </li>
-                  </ul>
-                  <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
-                </div>
-              </nav>
-              <main role="main" class="container">
-                {% block trading %}{% endblock trading %}
-              </main>
-<!-- css and js-->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-<script src="https://code.highcharts.com/stock/highstock.js" ></script>
+  <nav class="navbar fixed-top bg-dark">
+    <div style="width:100%">
+    <ul class="nav" style="display:inline-flex">
+      <li class="nav-item {% if activate == 'futures' %}active {% endif %}">
+        <a class="nav-link" href="{% url 'futures' system=1 %}">Futures</a>
+      </li>
+      <li class="nav-item {% if activate == 'stock' %}active {% endif %}">
+        <a class="nav-link" href="{% url 'stock' %}">Stock/ETF</a>
+      </li>
+       </ul>
+        <a class="btn btn-outline-success" href="/logout" style="float:right">Logout</a>
+    </div>
+  </nav>
+  <main role="main" class="container-fluid">
+    {% block trading %}{% endblock trading %}
+  </main>
+  <!-- css and js-->
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
 
 </body>
 {% block script %}{% endblock script%}
+
 </html>

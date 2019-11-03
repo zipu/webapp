@@ -12,36 +12,27 @@
     <!-- Add additional CSS in static file -->
     <link rel="shortcut icon" href="">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/navbar-top-fixed.css' %}">
+    <link rel="stylesheet" href="{% static 'css/asset.css' %}">
 </head>
 
 <body>
-        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                  <ul class="navbar-nav mr-auto">
-                    <li {% if activate == 'asset' %} class="nav-item active"
-                        {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'asset' %}">Asset</a>
-                    </li>
-                    <li {% if activate == '' %} class="nav-item active"
-                        {% else %} class="nav-item" {% endif %}>
-                      <a class="nav-link" href="{% url 'asset' %}"></a>
-                    </li>
-                  </ul>
-                  <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
-                </div>
-              </nav>
-              <main role="main" class="container">
+     <nav class="navbar fixed-top bg-dark">
+         <div style="width:100%">
+         <ul class="nav" style="display:inline-flex">
+           <li class="nav-item {% if activate == 'asset' %}active {% endif %}">
+             <a class="nav-link" href="{% url 'asset' %}">Asset</a>
+           </li>
+          </ul>
+             <a class="btn btn-outline-success" href="/logout" style="float:right">Logout</a>
+          
+         </div>
+       </nav>
+       <main role="main" class="container-fluid" style="max-width:900px">
                 {% block asset %}{% endblock asset %}
-              </main>
+       </main>
 <!-- css and js-->
 
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://code.highcharts.com/highcharts.src.js"></script>
 {% block script %}{% endblock script %}
 </body>

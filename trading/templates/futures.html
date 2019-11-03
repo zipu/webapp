@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block trading %}
 
-<div class="container">
+<div class="row">
   <ul class="nav nav-tabs">
   
     <li class="nav-item">
@@ -14,58 +14,62 @@
   </ul>
 </div>
 </br>
-<div class="container" id="system">
-  <div class="container" id="chart" style="max-width: 800px;">
-    <div class="row" id="profit-chart"></div>
+<div class="row" id="system">
+  <div style="width:100%">
+    <div id="profit-chart" style="max-width: 680px; margin: auto;"></div>
   </div>
   </br>
-  <div class="row" id="summary">
-    <table class="table table-bordered" style="text-align: center;">
+  <div id="summary" style="width:100%">
+    <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
-          <th scope="col" style="width:20%">원금</th>
-          <th scope="col" style="width:20%">수익</th>
-          <th scope="col" style="width:20%">수익률</th>
-          <th scope="col" style="width:20%">평균손익비</th>
-          <th scope="col" style="width:20%">승률</th>
+          <th scope="col" style="width:16.6%">원금</th>
+          <th scope="col" style="width:16.6%">수익</th>
+          <th scope="col" style="width:16.6%">수익률</th>
+          <th scope="col" style="width:16.6%">평균수익</th>
+          <th scope="col" style="width:16.6%">표준편차</th>
+          <th scope="col" style="width:16.6%">손익비</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>&#8361; {{ system.principal | intcomma}}</td>
-          <td>&#8361; {{ system.gross_return_krw| intcomma}}</td>
-          <td>{{ system.gross_return_ratio | floatformat:2 }} %</td>
-          <td>{{ system.average_ptr | floatformat:2 }} : 1</td>
-          <td>{{ system.winning_rate | floatformat:1 }} %</td>
+          <td style="width:16.6%">{{ system.system.principal_krw | intcomma}}</td>
+          <td style="width:16.6%">{{ system.gross_return_krw| intcomma}}</td>
+          <td style="width:16.6%">{{ system.gross_return_ratio | floatformat:2 }} %</td>
+          <td style="width:16.6%">{{ system.average_profit_krw | intcomma}}</td>
+          <td style="width:16.6%">{{ system.std | intcomma }} </td>
+          <td style="width:16.6%">{{ system.average_ptr | floatformat:2 }} : 1</td>
         </tr>
       </tbody>
     </table>
 
-    <table class="table table-bordered" style="text-align: center;">
+    <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
-          <th scope="col" style="width:16.6%">평균수익</th>
-          <th scope="col" style="width:16.6%">표준편차</th>
-          <th scope="col" style="width:16.6%">Draw Down</th>
-          <th scope="col" style="width:16.6%">MDD</th>
-          <th scope="col" style="width:16.6%">매매수</th>
-          <th scope="col" style="width:16.6%">평균보유기간</th>
+          <th scope="col" style="width:14.3%">리스크</th>
+          <th scope="col" style="width:14.3%">평균리스크</th>
+          <th scope="col" style="width:14.3%">Draw Down</th>
+          <th scope="col" style="width:14.3%">MDD</th>
+          <th scope="col" style="width:14.3%">매매수</th>
+          <th scope="col" style="width:14.3%">승률</th>
+          <th scope="col" style="width:14.3%">보유기간</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>&#8361; {{ system.average_profit_krw | intcomma}}</td>
-          <td>&#8361; {{ system.std_krw | intcomma}}</td>
+          <td>{{ system.risk_krw | intcomma}}</td>
+          <td>{{ system.risk_per_trade_krw | intcomma}}</td>
           <td>{{ system.dd | floatformat:1 }} %</td>
           <td>{{ system.mdd | floatformat:1 }} %</td>
           <td>{{ system.count}}</td>
+          <td>{{ system.winning_rate | floatformat:1}} %</td>
           <td>{{ system.duration}} 일</td>
         </tr>
       </tbody>
     </table>
   </div>
   </br>
-  <div class="row" id="history"></div>
+  <div id="history" style="width:100%"></div>
 </div>
 {% endblock trading%}
 
@@ -74,7 +78,7 @@
 //매매내역 페이징
 var movePage
 (movePage = function (num) {
-   $('#history').load("{% url 'futureshistory' system=system.id %}?page=" + num);
+   $('#history').load("{% url 'futureshistory' system=system.system.id %}?page=" + num);
 })(1)
 
 //차트 그리기
@@ -116,31 +120,43 @@ var chart = Highcharts.stockChart('profit-chart', {
             }
         });
 
-$.get( "{% url 'futureschart' system=system.id %}", function( data ) {
-     console.log(data)
-     profit = [];
-     commission = [];
+$.get( "{% url 'futureschart' system=system.system.id %}", function( data ) {
+     profits = [];
+     commissions = [];
+     risks= [];
      last_date = 0;
      for (item of data){
        date = new Date(item[0]).getTime();
+       profit = parseInt(item[1]) + parseInt({{system.system.principal_krw}})
+       commission = parseInt(item[2])
+       risk = profit - parseInt(item[3])
+
        if (date != last_date){
-         profit.push([date, parseInt(item[1]) + parseInt({{system.principal}})]);
-         commission.push([date, parseInt(item[2])]);
+         profits.push([date, profit]);
+         commissions.push([date, commission]);
+         risks.push([date, risk]);
        } else {
-         profit[profit.length - 1] = [date, parseInt(item[1]) + parseInt({{system.principal}})]
+         idx = profit.length - 1;
+         profits[idx] = [date, profit];
+         commissions[idx] = [date, commission];
+         risks[idx] = [date, risk]
        }
        last_date = date;
      }
-     console.log(profit)
 
      chart.addSeries({ 
        name: "누적수익",
-       data: profit,
+       data: profits,
        marker: { enabled: false}
       });
      chart.addSeries({
        name: "누적수수료",
-       data: commission,
+       data: commissions,
+       marker: { enabled: false}
+     });
+     chart.addSeries({
+       name: "위험제거수익",
+       data: risks,
        marker: { enabled: false}
      });
 });

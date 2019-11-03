@@ -1,4 +1,53 @@
-.table > * {
-    text-align: center;
-    vertical-align: middle;
+
+@media only screen and (max-width: 800px) {
+    table * {
+      font-size: 0.9em !important;
+    }
+    nav * {
+      font-size: 0.9 em !important;
+    }
+}
+@media only screen and (max-width: 600px) {
+  table * {
+    font-size: 0.85em !important;
+  }
+  nav * {
+    font-size: 0.85 em !important;
+  }
+}
+@media only screen and (max-width: 400px) {
+  table * {
+    font-size: 0.80em !important;
+  }
+  nav * {
+    font-size: 0.80em !important;
+  }
+}
+  
+
+
+.active * {
+  color: white;
+}
+
+nav a {
+  color: grey;
+}
+
+nav a:hover {
+  color: white;
+}
+
+
+table thead, table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+#history {
+    font-size: small;
+}
+
+thead {
+  font-size: .85em;
 }

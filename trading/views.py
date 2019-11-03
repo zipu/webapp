@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
 from django.db.models import Sum, Window, F
-from trading.models import Instrument, FuturesEntry, FuturesExit, FuturesSystem
+from trading.models import Instrument, FuturesEntry, FuturesExit, FuturesSystem, FuturesTrackRecord
 from trading.models import StockSummary, StockStatement, StockBuy, StockSell
 
 from datetime import datetime, time
@@ -15,7 +15,7 @@ class FuturesView(TemplateView):
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
-       context['system'] = get_object_or_404(FuturesSystem, id=self.kwargs['system'])
+       context['system'] = FuturesTrackRecord.objects.filter(system__id=self.kwargs['system']).first()
        context['activate'] = 'futures'
        return context
 
@@ -27,8 +27,7 @@ class FuturesHistoryView(ListView):
    paginate_by = 10
 
    def get_queryset(self):
-        return FuturesSystem.objects.get(id=self.kwargs['system']).entries.order_by('-id')
-            
+       return FuturesSystem.objects.get(id=self.kwargs['system']).entries.order_by('-id')
 
    def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
@@ -40,9 +39,9 @@ class FuturesHistoryView(ListView):
 class FuturesChartView(View):
     """ 차트 데이터 반환용 뷰"""
     def get(self, request, *args, **kwargs):
-        exits = FuturesExit.objects.filter(entry__system__id=self.kwargs['system']).order_by('date')
-        data = list(exits.all().values_list('date', 'cum_profit_krw', 'entry__cum_commission_krw'))
-        
+        records = FuturesTrackRecord.objects.filter(system__id=self.kwargs['system']).order_by('date')
+        data = list(records.all().values_list('date', 'gross_return_krw', 'commission_krw', 'risk_krw'))
+
         return JsonResponse(data, safe=False)
 
 
