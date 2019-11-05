@@ -10,6 +10,7 @@ class LoginRequiredMiddleware:
     def __call__(self, request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
+        
         assert hasattr(request, 'user'), "The Login Required middleware\
              requires authentication middleware to be installed. Edit your\
              MIDDLEWARE_CLASSES setting to insert\
