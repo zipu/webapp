@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('maths/', include('maths.urls')),
-    path('asset/', include('asset.urls')),
+    #path('asset/', include('asset.urls')),
     path('trading/', include('trading.urls'))
 ]
 

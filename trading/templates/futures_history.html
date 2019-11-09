@@ -4,6 +4,7 @@
         <th scope="col">#</th>
         <th scope="col">진입일</th>
         <th scope="col">상품</th>
+        <th scope="col">현재가</th>
         <th scope="col">진입가</th>
         <th scope="col">포지션</th>
         <th scope="col">계약수</th>
@@ -18,32 +19,34 @@
     <tbody>
     {% for entry in entries %}
       {% if entry.exits.count > 0 %}
-      <tr>
+      <tr {% if entry.is_open %}bgcolor="#FFF8DC"{% endif %}>
         <td rowspan="{{entry.exits.count}}"> {{entry.id}} </td>
         <td  rowspan="{{entry.exits.count}}"> {{entry.date | date:"y/m/d"}} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.instrument.name}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.price.normalize}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.current_price.normalize}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.entry_price.normalize}} </td>
         <td rowspan="{{entry.exits.count}}"> {% if entry.position == 1 %} Long {% else %} Short {% endif %} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.quantity}} </td>
-        <td  rowspan="{{entry.exits.count}}"> {{entry.stopprice.normalize}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.num_cons}} </td>
+        <td  rowspan="{{entry.exits.count}}"> {{entry.stop_price.normalize}} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.entry_risk.normalize}} </td>
         {% for exit in entry.exits.all%}
-          {% if forloop.counter > 1%}</tr><tr>{% endif %}
+          {% if forloop.counter > 1%}</tr><tr {% if entry.is_open %}bgcolor="#FFF8DC"{% endif %}>{% endif %}
             <td>{{exit.price.normalize}}</td>
-            <td>{{exit.quantity}}</td>
+            <td>{{exit.num_cons}}</td>
             <td>{{exit.profit.normalize}}</td>
-            <td >{{exit.duration.days}}일</td>
+            <td >{{exit.duration}}일</td>
         {% endfor %}
       </tr>
        {% else %}
-       <tr>
+       <tr {% if entry.is_open %}bgcolor="#FFF8DC"{% endif %}>
         <td>{{entry.id}} </td>
         <td >{{entry.date | date:"y/m/d"}} </td>
         <td>{{entry.instrument.name}} </td>
-        <td> {{entry.price.normalize}} </td>
+        <td> {{entry.current_price.normalize}} </td>
+        <td> {{entry.entry_price.normalize}} </td>
         <td>{% if entry.position == 1 %} Long {% else %} Short {% endif %}</td>
-        <td>{{entry.quantity}} </td>
-        <td >{{entry.stopprice.normalize}} </td>
+        <td>{{entry.num_cons}} </td>
+        <td >{{entry.stop_price.normalize}} </td>
         <td >{{entry.entry_risk.normalize}} </td>
         <td></td>
         <td></td>

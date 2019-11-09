@@ -2,63 +2,30 @@
 {% load humanize %}
 {% block trading %}
 
-
 <div class="row" id="system">
-  <div style="width: 100%;">
-    <div id="profit-chart" style="width:90%; margin: auto;"></div>
+  <div style="width:100%">
+    <div id="profit-chart" style="max-width: 680px; margin: auto;"></div>
   </div>
   </br>
   <div id="summary" style="width:100%">
     <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
-          <th scope="col" style="width:16.6%">원금</th>
-          <th scope="col" style="width:16.6%">총자산</th>
-          <th scope="col" style="width:16.6%">주식가치</th>
-          <th scope="col" style="width:16.6%">잔고</th>
-          <th scope="col" style="width:16.6%">수익</th>
-          <th scope="col" style="width:16.6%">수익률</th>
+          <th scope="col" style="width:25%">원화</th>
+          <th scope="col" style="width:25%">위안화</th>
+          <th scope="col" style="width:25%">달러</th>
+          <th scope="col" style="width:25%">합계</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>{{ account.principal | intcomma}}</td>
-          <td>{{ account.value| intcomma}}</td>
-          <td>{{ account.value_stock | intcomma }}</td>
-          <td>{{ account.balance | intcomma }}</td>
-          <td>{{ record.gross_profit | intcomma}}</td>
-          <td>{{ record.rate_profit | floatformat:1 }} %</td>
+          <td>{{ account.krw | intcomma}}</td>
+          <td>{{ account.cny| intcomma}}</td>
+          <td>{{ account.usd | intcomma }}</td>
+          <td>{{ account.total | intcomma}}</td>
         </tr>
       </tbody>
     </table>
-    <table class="table table-bordered">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" style="width:14.3%">자본인하율</th>
-          <th scope="col" style="width:14.3%">MDD</th>
-          <th scope="col" style="width:14.3%">리스크</th>
-          <th scope="col" style="width:14.3%">리스크율</th>
-          <th scope="col" style="width:14.3%">변동성</th>
-          <th scope="col" style="width:14.3%">배당금</th>
-          <th scope="col" style="width:14.3%">수수료</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{ record.drawdown| floatformat:1}} %</td>
-          <td>{{ record.mdd| floatformat:1}} %</td>
-          <td>{{ account.risk | intcomma }}</td>
-          <td>{{ record.rate_risk | floatformat:1 }} %</td>
-          <td>{{ record.volatility | floatformat:1}} %</td>
-          <td>{{ account.dividends | intcomma }}</td>
-          <td>{{ account.commission | intcomma }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    
-
-
   </div>
   </br>
   <div id="history" style="width:100%"></div>
@@ -67,15 +34,6 @@
 
 {% block script %}
 <script>
-//매매내역 페이징
-var movePage
-(movePage = function (num) {
-   $('#history').load("{% url 'stockhistory' %}?page=" + num);
-})(1)
-
-
-//차트 그리기
-
 //차트 그리기
 Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
@@ -92,12 +50,7 @@ var chart = Highcharts.chart('profit-chart', {
                         return this.value / 1000000;
                     }
                 },
-                height: '80%',
-            },{
-                  title: {text:"변동성(%)"},
-                  top: '80%',
-                  height: '20%',
-                  offset: 0
+                
             }],
             tooltip: {
               valueDecimals: 0,

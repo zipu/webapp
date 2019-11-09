@@ -1,7 +1,6 @@
 {% extends "base_trading.html"%}
 {% load humanize %}
 {% block trading %}
-
 <div class="row">
   <ul class="nav nav-tabs">
   
@@ -24,21 +23,21 @@
       <thead class="thead-light">
         <tr>
           <th scope="col" style="width:16.6%">원금</th>
+          <th scope="col" style="width:16.6%">총자산</th>
           <th scope="col" style="width:16.6%">수익</th>
           <th scope="col" style="width:16.6%">수익률</th>
-          <th scope="col" style="width:16.6%">평균수익</th>
-          <th scope="col" style="width:16.6%">표준편차</th>
-          <th scope="col" style="width:16.6%">손익비</th>
+          <th scope="col" style="width:16.6%">리스크</th>
+          <th scope="col" style="width:16.6%">리스크율</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="width:16.6%">{{ system.system.principal_krw | intcomma}}</td>
-          <td style="width:16.6%">{{ system.gross_return_krw| intcomma}}</td>
-          <td style="width:16.6%">{{ system.gross_return_ratio | floatformat:2 }} %</td>
-          <td style="width:16.6%">{{ system.average_profit_krw | intcomma}}</td>
-          <td style="width:16.6%">{{ system.std | intcomma }} </td>
-          <td style="width:16.6%">{{ system.average_ptr | floatformat:2 }} : 1</td>
+          <td>{{ account.principal | intcomma}}</td>
+          <td>{{ account.value| intcomma}}</td>
+          <td>{{ account.gross_profit | intcomma }}</td>
+          <td>{{ record.rate_profit | floatformat:1}} %</td>
+          <td>{{ record.risk | intcomma }}</td>
+          <td>{{ record.rate_risk | floatformat:1 }} %</td>
         </tr>
       </tbody>
     </table>
@@ -46,24 +45,42 @@
     <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
-          <th scope="col" style="width:14.3%">리스크</th>
-          <th scope="col" style="width:14.3%">평균리스크</th>
-          <th scope="col" style="width:14.3%">Draw Down</th>
-          <th scope="col" style="width:14.3%">MDD</th>
-          <th scope="col" style="width:14.3%">매매수</th>
-          <th scope="col" style="width:14.3%">승률</th>
-          <th scope="col" style="width:14.3%">보유기간</th>
+          <th scope="col" style="width:16.6%">CAGR</th>
+          <th scope="col" style="width:16.6%">변동성</th>
+          <th scope="col" style="width:16.6%">평균수익</th>
+          <th scope="col" style="width:16.6%">수익표준편차</th>
+          <th scope="col" style="width:16.6%">진입리스크</th>
+          <th scope="col" style="width:16.6%">평균리스크</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>{{ system.risk_krw | intcomma}}</td>
-          <td>{{ system.risk_per_trade_krw | intcomma}}</td>
-          <td>{{ system.dd | floatformat:1 }} %</td>
-          <td>{{ system.mdd | floatformat:1 }} %</td>
-          <td>{{ system.count}}</td>
-          <td>{{ system.winning_rate | floatformat:1}} %</td>
-          <td>{{ system.duration}} 일</td>
+          <td>{{ record.cagr | floatformat:1}} %</td>
+          <td>{{ record.volatility| floatformat:1}} %</td>
+          <td>{{ account.avg_profit | intcomma }}</td>
+          <td>{{ account.std | intcomma }}</td>
+          <td>{{ account.avg_entry_risk | intcomma}}</td>
+          <td>{{ record.avg_risk | intcomma}}</td>
+        </tr>
+      </tbody>
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" style="width:16.6%">손익비</th>
+          <th scope="col" style="width:16.6%">자본인하율</th>
+          <th scope="col" style="width:16.6%">MDD</th>
+          <th scope="col" style="width:16.6%">승률</th>
+          <th scope="col" style="width:16.6%">매매횟수</th>
+          <th scope="col" style="width:16.6%">평균보유기간</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ account.avg_ptr | floatformat:1}} : 1</td>
+          <td>{{ record.drawdown | floatformat:1}} %</td>
+          <td>{{ record.mdd | floatformat:1}} %</td>
+          <td>{{ account.winning_rate | floatformat:1 }} %</td>
+          <td>{{ account.count }}</td>
+          <td>{{ account.duration }} 일</td>
         </tr>
       </tbody>
     </table>
@@ -78,85 +95,78 @@
 //매매내역 페이징
 var movePage
 (movePage = function (num) {
-   $('#history').load("{% url 'futureshistory' system=system.system.id %}?page=" + num);
+   $('#history').load("{% url 'futureshistory' system=account.id %}?page=" + num);
 })(1)
 
 //차트 그리기
 Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
 });
-var chart = Highcharts.stockChart('profit-chart', {
-            title: { text: '해외선물 수동' },
-            rangeSelector: {
-              enabled:false
-            },
+var chart = Highcharts.chart('profit-chart', {
+            title: { text: '{{account.account_name}}' },
             xAxis: { 
                 type: 'datetime',
-                title: {
-                    text: 'Date'
-                }
             },
-            yAxis: {
-                opposite: false,
-                title: {
-                    text: '백만원',
-                },
-                labels: {
-                    formatter: function () {
+            yAxis: [{
+                title: {text:"자산(원)"},
+                lables: {
+                  formatter: function () {
                         return this.value / 1000000;
                     }
                 },
-               // min: 0
-            },
-            legend: {    
-              enabled: true,
-            },
+                height: '80%',
+            },{
+                  title: {text:"변동성(%)"},
+                  top: '80%',
+                  height: '20%',
+                  offset: 0
+            }],
             tooltip: {
               valueDecimals: 0,
-              valueSuffix: ' 원',
+              
               xDateFormat: '%Y-%m-%d',
               crosshairs: true,
               split: true,
             }
         });
 
-$.get( "{% url 'futureschart' system=system.system.id %}", function( data ) {
-     profits = [];
-     commissions = [];
-     risks= [];
-     last_date = 0;
+$.get( "{% url 'chart' account=record.account_symbol %}", function( data ) {
+     value= [];
+     r_value=[]; //리스크 제거 자산가치
+     volatility=[] //변동성
      for (item of data){
-       date = new Date(item[0]).getTime();
-       profit = parseInt(item[1]) + parseInt({{system.system.principal_krw}})
-       commission = parseInt(item[2])
-       risk = profit - parseInt(item[3])
-
-       if (date != last_date){
-         profits.push([date, profit]);
-         commissions.push([date, commission]);
-         risks.push([date, risk]);
-       } else {
-         idx = profit.length - 1;
-         profits[idx] = [date, profit];
-         commissions[idx] = [date, commission];
-         risks[idx] = [date, risk]
-       }
-       last_date = date;
+       date = new Date(item[0].slice(0,10)).getTime();
+       value.push([date, parseInt(item[1])]);
+       r_value.push([date,parseInt(item[2])]);
+       volatility.push([date, parseInt(item[3])]);
      }
-
      chart.addSeries({ 
-       name: "누적수익",
-       data: profits,
+       name: "자산",
+       data: value,
+       yAxis: 0,
+       tooltip: {valueSuffix: ' 원'},
+       type: 'area',
+       lineColor:'#ADD8E6',
+
+       color: '#B0E0E6',
        marker: { enabled: false}
       });
      chart.addSeries({
-       name: "누적수수료",
-       data: commissions,
+       name: "위험제거자산",
+       data: r_value,
+       yAxis: 0,
+       tooltip: {valueSuffix: ' 원'},
+       type:'area',
+       color:'#FFFFE0',
+       lineColor: '#ADD8E6',
        marker: { enabled: false}
      });
      chart.addSeries({
-       name: "위험제거수익",
-       data: risks,
+       name: "변동성",
+       data: volatility,
+       yAxis:1,
+       type: 'column',
+       color: 'black',
        marker: { enabled: false}
      });
 });

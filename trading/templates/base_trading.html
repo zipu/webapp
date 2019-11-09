@@ -22,11 +22,17 @@
   <nav class="navbar fixed-top bg-dark">
     <div style="width:100%">
     <ul class="nav" style="display:inline-flex">
+      <li class="nav-item {% if activate == 'asset' %}active {% endif %}">
+        <a class="nav-link" href="{% url 'asset'%}">Asset</a>
+      </li>
       <li class="nav-item {% if activate == 'futures' %}active {% endif %}">
         <a class="nav-link" href="{% url 'futures' system=1 %}">Futures</a>
       </li>
       <li class="nav-item {% if activate == 'stock' %}active {% endif %}">
         <a class="nav-link" href="{% url 'stock' %}">Stock/ETF</a>
+      </li>
+      <li class="nav-item {% if activate == 'cash' %}active {% endif %}">
+        <a class="nav-link" href="{% url 'cash' %}">Cash</a>
       </li>
        </ul>
         <a class="btn btn-outline-success" href="/logout" style="float:right">Logout</a>
@@ -36,7 +42,7 @@
     {% block trading %}{% endblock trading %}
   </main>
   <!-- css and js-->
-  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/highcharts.src.js"></script>
 
 </body>
 {% block script %}{% endblock script%}

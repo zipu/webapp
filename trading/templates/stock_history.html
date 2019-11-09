@@ -17,20 +17,20 @@
       </tr>
     </thead>
     <tbody>
-    {% for statement in statements %}
-      <tr {% if statement.is_open %}bgcolor="#FFF8DC"{% endif %}>
-        <td> {{statement.id}} </td>
-        <td> {{statement.name}} </td>
-        <td> {{statement.current_price.normalize | intcomma}} </td>
-        <td> {{statement.average_purchase_price.normalize | intcomma}} </td>
-        <td > {{statement.stop_price.normalize | intcomma}} </td>
-        <td> {{statement.quantity | intcomma}} </td>
-        <td > {{statement.purchase_money.normalize | intcomma}} </td>
-        <td > {{statement.buy_quantity | intcomma}} </td>
-        <td > {{statement.average_sell_price.normalize | intcomma}} </td>
-        <td > {{statement.sell_quantity | intcomma}} </td>
-        <td> {{statement.stock_value.normalize | intcomma}} </td>
-        <td> {{statement.liquidation.normalize | intcomma}} </td>
+    {% for trade in trades %}
+      <tr {% if trade.is_open %}bgcolor="#FFF8DC"{% endif %}>
+        <td> {{trade.id}} </td>
+        <td> {{trade.name}} </td>
+        <td> {{trade.cur_stock_price.normalize | intcomma}} </td>
+        <td> {{trade.avg_buy_price.normalize | intcomma}} </td>
+        <td > {{trade.stop_price.normalize | intcomma}} </td>
+        <td> {{trade.num_hold}} </td>
+        <td > {{trade.purchase_amount.normalize | intcomma}} </td>
+        <td > {{trade.num_buy}} </td>
+        <td > {{trade.avg_sell_price.normalize | intcomma}} </td>
+        <td > {{trade.num_sell}} </td>
+        <td> {{trade.value_stock.normalize | intcomma}} </td>
+        <td> {{trade.liquidation.normalize | intcomma}} </td>
 
       </tr>
       {% endfor %}

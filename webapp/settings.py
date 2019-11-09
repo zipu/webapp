@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize', #humanize app like 'intcomma'
     'maths.apps.MathsConfig', #수학자료
-    'asset.apps.AssetConfig', #asset
+    #'asset.apps.AssetConfig', #asset
     'trading.apps.TradingConfig' #트레이딩 
 ]
 
@@ -121,7 +121,7 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 DATABASE_ROUTERS = [
     'maths.dbRouter.MathsDBRouter',
-    'asset.dbRouter.AssetDBRouter',
+    #'asset.dbRouter.AssetDBRouter',
     'trading.dbRouter.TradingDBRouter'
 ]
 
@@ -144,13 +144,6 @@ if os.getenv('GAE_APPLICATION', None):
             'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'maths',
         },
-        'asset' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-            'NAME': 'asset'
-        },
         'trading' : {
             'ENGINE': 'django.db.backends.mysql',
             'HOST': get_secret('DB_HOST'),
@@ -166,7 +159,7 @@ else:
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    PORT = '3306' #local: 3306, remote: 3307
+    PORT = '3307' #local: 3306, remote: 3307
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -181,14 +174,6 @@ else:
             'HOST': '127.0.0.1',
             'PORT': PORT,
             'NAME': 'maths',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-        },
-        'asset' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': PORT,
-            'NAME': 'asset',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
         },
@@ -228,13 +213,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Shanghai'#'UTC'
+TIME_ZONE = 'Asia/Seoul'#'UTC'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
