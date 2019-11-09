@@ -49,7 +49,7 @@ class ChartView(View):
     def get(self, request, *args, **kwargs):
         records = Record.objects.filter(account_symbol=kwargs['account']).order_by('date')
         data = list(records.all().values_list(
-            'date', 'value', 'risk_excluded_value','volatility')) 
+            'date', 'value', 'risk_excluded_value','volatility_day', 'volatility')) 
         return JsonResponse(data, safe=False)
 
 

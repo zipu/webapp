@@ -6,8 +6,7 @@
   <div style="width: 100%;">
     <div id="profit-chart" style="margin: auto;"></div>
   </div>
-  </br>
-  <div id="summary" style="width:100%">
+  <div id="summary" style="width:100%; margin-top: 40px">
     <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
@@ -68,6 +67,7 @@ Highcharts.setOptions({
 
 
 var chart = Highcharts.chart('profit-chart', {
+            legend: { enabled: false},
             chart: { animation: false},
             title: { text: '자산' },
             xAxis: { type: 'datetime' },
@@ -96,7 +96,7 @@ var chart = Highcharts.chart('profit-chart', {
             plotOptions: {
               series: {
                 animation: false,
-                
+                marker: {enabled: false},
                 states: {
                   inactive: { opacity: 1  }
                 }
@@ -129,13 +129,16 @@ var chart = Highcharts.chart('profit-chart', {
 $.get( "{% url 'chart' account='A'  %}", function( data ) {
      value= [];
      r_value=[]; //리스크 제거 자산가치
-     volatility=[] //변동성
+     volatility=[] //평균변동성
+     volatility_day=[] //일변동성
      for (item of data){
        date = new Date(item[0].slice(0,10)).getTime();
        value.push([date, parseInt(item[1])]);
        r_value.push([date,parseInt(item[2])]);
-       volatility.push([date, parseInt(item[3])]);
+       volatility_day.push([date, parseInt(item[3])]);
+       volatility.push([date, parseInt(item[4])]);
      }
+     console.log(volatility)
      chart.addSeries({ 
        name: "자산",
        data: value,
@@ -143,7 +146,7 @@ $.get( "{% url 'chart' account='A'  %}", function( data ) {
        type: 'area',
        lineColor:'#ADD8E6',
        color: '#B0E0E6',
-       marker: { enabled: false},
+       //marker: { enabled: false},
        tooltip: { valueSuffix: ' 원'}
       });
      chart.addSeries({
@@ -153,16 +156,24 @@ $.get( "{% url 'chart' account='A'  %}", function( data ) {
        type:'area',
        color:'#FFFFE0',
        lineColor: '#ADD8E6',
-       marker: { enabled: false},
+       //marker: { enabled: false},
        tooltip: { valueSuffix: ' 원'}
      });
      chart.addSeries({
-       name: "변동성",
-       data: volatility,
+       name: "일변동성",
+       data: volatility_day,
        yAxis:1,
        type: 'column',
        color: 'black',
-       marker: { enabled: false},
+       //marker: { enabled: false}
+     });
+     chart.addSeries({
+       name: "평균 변동성",
+       data: volatility,
+       yAxis:1,
+       type: 'line',
+       color: 'tomato',
+       //marker: { enabled: false}
      });
 });
 </script>
