@@ -4,7 +4,7 @@
 
 <div class="row" id="system">
   <div style="width: 100%;">
-    <div id="profit-chart" style="width:90%; margin: auto;"></div>
+    <div id="profit-chart" style="margin: auto;"></div>
   </div>
   </br>
   <div id="summary" style="width:100%">
@@ -65,32 +65,66 @@
 Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
 });
+
+
 var chart = Highcharts.chart('profit-chart', {
-            title: { text: '{{account.account_name}}' },
-            xAxis: { 
-                type: 'datetime',
-            },
+            chart: { animation: false},
+            title: { text: '자산' },
+            xAxis: { type: 'datetime' },
             yAxis: [{
-                title: {text:"자산(원)"},
-                lables: {
-                  formatter: function () {
-                        return this.value / 1000000;
-                    }
-                },
-                height: '80%',
-            },{
-                  title: {text:"변동성(%)"},
-                  top: '80%',
-                  height: '20%',
-                  offset: 0
+                      title: {text:"자산(원)"},
+                      opposite: true,
+                      lables: {
+                          formatter: function () {
+                            return this.value / 1000000;
+                          }
+                      },
+                      height: '80%',
+                    },{
+                        title: {text:"변동성(%)"},
+                        top: '80%',
+                        height: '20%',
+                        offset: 0
             }],
             tooltip: {
               valueDecimals: 0,
               xDateFormat: '%Y-%m-%d',
               crosshairs: true,
-              split: true,
-            }
-        });
+              //split: true,
+            },
+            
+            plotOptions: {
+              series: {
+                animation: false,
+                
+                states: {
+                  inactive: { opacity: 1  }
+                }
+              },
+              
+              pie: {
+                    center: [100, 10],
+                    size: 90,
+                    allowPointSelect: true,
+                    dataLabels: { padding: 0 },
+                    enableMouseTracking: false,
+                }
+            },
+            series: [{
+              type: 'pie',
+              name: '비중',
+              data: [{
+                      name: 'Cash',
+                      y: {{cash}},
+                     }, {
+                      name: 'Stock',
+                      y: {{stock}},
+                     }, {
+                      name: 'Futures',
+                      y: {{futures}},
+              }],
+            }]
+});
 
 $.get( "{% url 'chart' account='A'  %}", function( data ) {
      value= [];

@@ -59,6 +59,9 @@ class AssetView(TemplateView):
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
        context['record'] = Record.objects.filter(account_symbol='A').latest('date')
+       context['cash'] = CashAccount.objects.all().latest('date').total
+       context['stock'] = StockAccount.objects.all().first().principal
+       context['futures'] = FuturesAccount.objects.all().aggregate(Sum('principal'))['principal__sum']
        context['activate'] = 'asset'
        return context
 
