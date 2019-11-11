@@ -85,7 +85,7 @@ class FuturesHistoryView(ListView):
    paginate_by = 10
 
    def get_queryset(self):
-       return FuturesAccount.objects.all().first().entries.order_by('-id')
+       return FuturesAccount.objects.all().first().entries.order_by('-is_open','-id')
 
    def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
