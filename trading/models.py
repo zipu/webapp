@@ -131,8 +131,17 @@ class Record(models.Model):
             self.drawdown = 100 * (max_value - self.value)/max_value
             self.mdd = max(self.drawdown, last_mdd)
 
-            days = (self.date - records.earliest('date').date).days
+            #계좌오픈일 찾기
+            if self.account_symbol == 'A':
+                first_date = CashAccount.objects.all().earliest('date').date
+            elif self.account_symbol == 'C':
+                first_date = CashAccount.objects.all().earliest('date').date
+            elif self.account_symbol == 'S':
+                first_date = StockAccount.objects.first().date
+            else:
+                first_date = FuturesAccount.objects.get(symbol=self.account_symbol).date
 
+            days = (self.date.date() - first_date).days
             if days > 1:
                 n = days/365
                 self.cagr = (pow(float(self.value/self.principal), 1/n) - 1)*100
