@@ -4,6 +4,7 @@ from django.contrib import admin
 from trading.models import FuturesInstrument, FuturesAccount, FuturesEntry, FuturesExit
 from trading.models import Record, CashAccount, Asset
 from trading.models import StockAccount, StockBuy, StockSell, StockTradeUnit
+from trading.models import Transfer
 
 admin.site.register(
  [FuturesInstrument, FuturesAccount, FuturesEntry, FuturesExit])
@@ -12,6 +13,9 @@ admin.site.register(
 )
 admin.site.register(
  [StockAccount, StockBuy, StockSell, StockTradeUnit]
+)
+admin.site.register(
+ [Transfer]
 )
 
 #admin.site.register(System)

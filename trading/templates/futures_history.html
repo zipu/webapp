@@ -28,7 +28,7 @@
         <td rowspan="{{entry.exits.count}}"> {% if entry.position == 1 %} Long {% else %} Short {% endif %} </td>
         <td rowspan="{{entry.exits.count}}"> {{entry.num_cons}} </td>
         <td  rowspan="{{entry.exits.count}}"> {{entry.stop_price.normalize}} </td>
-        <td rowspan="{{entry.exits.count}}"> {{entry.entry_risk.normalize}} </td>
+        <td rowspan="{{entry.exits.count}}"> {{entry.current_risk.normalize}} </td>
         {% for exit in entry.exits.all%}
           {% if forloop.counter > 1%}</tr><tr {% if entry.is_open %}bgcolor="#FFF8DC"{% endif %}>{% endif %}
             <td>{{exit.price.normalize}}</td>
@@ -47,7 +47,7 @@
         <td>{% if entry.position == 1 %} Long {% else %} Short {% endif %}</td>
         <td>{{entry.num_cons}} </td>
         <td >{{entry.stop_price.normalize}} </td>
-        <td >{{entry.entry_risk.normalize}} </td>
+        <td >{{entry.current_risk.normalize}} </td>
         <td></td>
         <td></td>
         <td></td>

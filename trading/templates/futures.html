@@ -18,6 +18,7 @@
     <div id="profit-chart" style="max-width: 680px; margin: auto;"></div>
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
+    <div style="float: right;"> 업데이트: {{record.date | date:"Y-m-d H:i"}}</div> 
     <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
@@ -83,6 +84,7 @@
         </tr>
       </tbody>
     </table>
+    
   </div>
   </br>
   <div id="history" style="width:100%"></div>
@@ -145,12 +147,14 @@ $.get( "{% url 'chart' account=record.account_symbol %}", function( data ) {
      r_value=[]; //리스크 제거 자산가치
      volatility=[] //평균변동성
      volatility_day=[] //일변동성
+     principal = [] //원금
      for (item of data){
        date = new Date(item[0].slice(0,10)).getTime();
        value.push([date, parseInt(item[1])]);
        r_value.push([date,parseInt(item[2])]);
        volatility_day.push([date, parseInt(item[3])]);
        volatility.push([date, parseInt(item[4])]);
+       principal.push([date, parseInt(item[5])]);
      }
 
      chart.addSeries({ 
@@ -174,6 +178,16 @@ $.get( "{% url 'chart' account=record.account_symbol %}", function( data ) {
        lineColor: '#ADD8E6',
        //marker: { enabled: false}
      });
+     chart.addSeries({ 
+       name: "원금",
+       data: principal,
+       yAxis: 0,
+       enableMouseTracking: false,
+       dashStyle: 'dash',
+       type: 'line',
+       lineColor:'#808080',
+       //marker: { enabled: false}
+      });
      chart.addSeries({
        name: "일변동성",
        data: volatility_day,

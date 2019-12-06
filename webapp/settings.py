@@ -37,7 +37,7 @@ SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 60 * 60 #
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 #
 
 DEBUG = False if os.getenv('GAE_APPLICATION', None) else True
 if DEBUG == False:

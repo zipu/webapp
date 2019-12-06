@@ -41,7 +41,71 @@ class UpdatePriceView(TemplateView):
                 trade.current_price = D(str(price))
                 trade.save()
         create_record('all')
+
         return JsonResponse('done', safe=False)
+
+# slack 으로 매매내역 요약 전송
+class ReportView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        asset = Record.objects.filter(account_symbol='A').latest('date')
+        futures = FuturesAccount.objects.all().first()
+        stock = StockAccount.objects.all().first()
+
+        data={
+            'asset': {
+                'principal': int(asset.principal),
+                'value': int(asset.value),
+                'profit': int(asset.gross_profit),
+                'rate_profit': round(float(asset.rate_profit),2)
+            },
+            'futures': {
+                'principal': int(futures.principal),
+                'value': int(futures.value),
+                'profit': int(futures.gross_profit),
+                'risk': int(futures.risk),
+                'entries': []
+            },
+            'stock': {
+                'principal': int(stock.principal),
+                'value': int(stock.value),
+                'profit': int(stock.value - stock.principal),
+                'value_stock': int(stock.value_stock),
+                'balance': int(stock.balance),
+                'risk': int(stock.risk),
+                'trades': []
+            }
+        }
+
+        entries = futures.entries.filter(is_open=True).all()
+        for entry in entries:
+            e = {
+                'name': entry.instrument.name,
+                'position': entry.position,
+                'contracts': entry.num_open_cons,
+                'entry_price': float(entry.entry_price),
+                'cur_price': float(entry.current_price),
+                'stop_price': float(entry.stop_price),
+                'profit': int(entry.current_profit),
+                'risk': int(entry.current_risk),
+                'remains': (entry.expiration - datetime.today().date()).days
+            }
+            data['futures']['entries'].append(e)
+
+        trades = stock.trades.filter(is_open=True).all()
+        for trade in trades:
+            e = {
+                'name': trade.name,
+                'num': trade.num_hold,
+                'amount': int(trade.purchase_amount),
+                'buy_price': float(trade.avg_buy_price),
+                'cur_price': float(trade.cur_stock_price),
+                'stop_price': float(trade.stop_price),
+                'profit': int(trade.value_stock),
+                'risk': int(trade.risk)
+            }
+            data['stock']['trades'].append(e)
+
+        return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 class ChartView(View):
@@ -49,7 +113,7 @@ class ChartView(View):
     def get(self, request, *args, **kwargs):
         records = Record.objects.filter(account_symbol=kwargs['account']).order_by('date')
         data = list(records.all().values_list(
-            'date', 'value', 'risk_excluded_value','volatility_day', 'volatility')) 
+            'date', 'value', 'risk_excluded_value','volatility_day', 'volatility', 'principal')) 
         return JsonResponse(data, safe=False)
 
 
@@ -63,6 +127,7 @@ class AssetView(TemplateView):
        context['stock'] = StockAccount.objects.all().first().principal
        context['futures'] = FuturesAccount.objects.all().aggregate(Sum('principal'))['principal__sum']
        context['activate'] = 'asset'
+
        return context
 
 class FuturesView(TemplateView):
@@ -85,7 +150,7 @@ class FuturesHistoryView(ListView):
    paginate_by = 10
 
    def get_queryset(self):
-       return FuturesAccount.objects.all().first().entries.order_by('-is_open','-id')
+       return FuturesAccount.objects.all().first().entries.order_by('-is_open','-exits__date')
 
    def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)

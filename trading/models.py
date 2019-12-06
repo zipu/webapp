@@ -116,13 +116,16 @@ class Record(models.Model):
             records = Record.objects.filter(account_symbol=self.account_symbol, id__lt=self.id).all()
         
         if records.count():
-            last_value = records.latest('date').value
+            last_gross_profit = records.latest('date').gross_profit
+            #last_principal = records.latest('date').principal
             last_mdd = records.latest('date').mdd
             last_max = records.aggregate(Max('value'))['value__max']
             
             self.avg_risk = records.aggregate(Avg('risk'))['risk__avg']
-            self.volatility_day = 100*abs(last_value-self.value)/last_value
             
+            
+            self.volatility_day = 100*abs(last_gross_profit-self.gross_profit)\
+                                /(last_gross_profit+self.principal)
             since = self.date - timedelta(days=30)
             self.volatility = records.filter(date__gte=since).all()\
                             .aggregate(Avg('volatility_day'))['volatility_day__avg']
@@ -482,6 +485,7 @@ class  FuturesEntry(models.Model):
                     on_delete=models.PROTECT)
     date = models.DateField("진입 날짜")
     code = models.CharField("종목코드", max_length=20)
+    expiration = models.DateField("만기일", null=True)
     current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6)
     position = models.SmallIntegerField("포지션", choices=POSITIONS)
     num_cons = models.SmallIntegerField("진입계약수")
@@ -548,3 +552,84 @@ def update_entry_after_exit(sender, instance, **kwargs):
           dispatch_uid="update_system_record")
 def update_system_record(sender, instance, **kwargs):
     instance.account.save()
+
+
+###########################################
+# 자금 이체                                #
+###########################################
+class Transfer(models.Model):
+    ACCOUNTS = [
+        ("N", "없음"),
+        ("C", "현금"),
+        ("FM", "선물_1"),
+        ("S", "주식")
+    ]
+    CURRENCIES = [
+        ('KRW', '원'),
+        ('USD', '달러'),
+        ('CNY', '위안'),
+    ]
+    
+    date = models.DateField("날짜")
+    acc_from = models.CharField("출금계좌", choices=ACCOUNTS, max_length=10)
+    currency_from = models.CharField("출금통화", choices=CURRENCIES, max_length=10, blank=True, null=True)
+    amount_from = models.DecimalField("출금액", max_digits=12, decimal_places=0, blank=True, null=True)
+    acc_to = models.CharField("입금계좌", choices=ACCOUNTS, max_length=10)
+    currency_to = models.CharField("입금통화", choices=CURRENCIES, max_length=10)
+    amount_to = models.DecimalField("입금액", max_digits=12, decimal_places=0)
+
+    def save(self, *args, **kwargs):
+        if self.acc_from == "C":
+            latest_acc = CashAccount.objects.latest('date')
+            acc = CashAccount(
+                asset=latest_acc.asset,
+                date=datetime.now().date(),
+                symbol='C'
+            )
+            acc.krw = latest_acc.krw - self.amount_from if self.currency_from == 'KRW' else latest_acc.krw
+            acc.cny = latest_acc.cny - self.amount_from if self.currency_from == 'CNY' else latest_acc.cny
+            acc.usd = latest_acc.usd - self.amount_from if self.currency_from == 'USD' else latest_acc.usd
+            acc.save()
+        
+        elif self.acc_from == "FM":
+            acc = FuturesAccount.objects.get(symbol=self.acc_from)
+            if self.currency_from == 'KRW':
+                acc.principal_krw = acc.principal_krw - self.amount_from
+            elif self.currency_from == 'USD':
+                acc.principal_usd = acc.principal_usd - self.amount_from
+            acc.save()
+
+        elif self.acc_from == "S":
+            acc = StockAccount.objects.get(symbol=self.acc_from)
+            acc.principal = acc.principal - self.amount_from
+            acc.save()
+
+        if self.acc_to == "C":
+            latest_acc = CashAccount.objects.latest('date')
+            acc = CashAccount(
+                asset=latest_acc.asset,
+                date=datetime.now().date(),
+                symbol='C'
+            )
+            acc.krw = latest_acc.krw + self.amount_to if self.currency_to == 'KRW' else latest_acc.krw
+            acc.cny = latest_acc.cny + self.amount_to if self.currency_to == 'CNY' else latest_acc.cny
+            acc.usd = latest_acc.usd + self.amount_to if self.currency_to == 'USD' else latest_acc.usd
+            acc.save()
+
+        elif self.acc_to == "FM":
+            acc = FuturesAccount.objects.get(symbol=self.acc_to)
+            if self.currency_to == 'KRW':
+                acc.principal_krw = acc.principal_krw + self.amount_to
+            elif self.currency_to == 'USD':
+                acc.principal_usd = acc.principal_usd + self.amount_to
+            acc.save()
+
+        elif self.acc_to == "S":
+            acc = StockAccount.objects.get(symbol=self.acc_to)
+            acc.principal = acc.principal + self.amount_to
+            acc.save()
+        
+        super(Transfer, self).save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"({self.acc_from} --> {self.acc_to}) {self.amount_from}"

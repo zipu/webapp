@@ -7,20 +7,38 @@
     <div id="profit-chart" style="margin: auto;"></div>
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
+  <div style="float: right;"> 업데이트: {{record.date | date:"Y-m-d H:i"}}</div> 
     <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
-          <th scope="col" style="width:20%">원금</th>
-          <th scope="col" style="width:20%">총자산</th>
-          <th scope="col" style="width:20%">위험제거자산</th>
-          <th scope="col" style="width:20%">수익</th>
-          <th scope="col" style="width:20%">수익률</th>
+          <th scope="col" style="width:25%">총자산</th>
+          <th scope="col" style="width:25%">현금</th>
+          <th scope="col" style="width:25%%">선물</th>
+          <th scope="col" style="width:25%">주식</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ record.value | intcomma}}</td>
+          <td>{{ cash| intcomma}}</td>
+          <td>{{ futures | intcomma }}</td>
+          <td>{{ stock | intcomma}}</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <table class="table table-bordered">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" style="width:25%">원금</th>
+          <th scope="col" style="width:25%">위험제거자산</th>
+          <th scope="col" style="width:25%">수익</th>
+          <th scope="col" style="width:25%">수익률</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>{{ record.principal | intcomma}}</td>
-          <td>{{ record.value| intcomma}}</td>
           <td>{{ record.risk_excluded_value | intcomma }}</td>
           <td>{{ record.gross_profit | intcomma}}</td>
           <td>{{ record.rate_profit | floatformat:1 }} %</td>
@@ -102,28 +120,7 @@ var chart = Highcharts.chart('profit-chart', {
                 }
               },
               
-              pie: {
-                    center: [100, 10],
-                    size: 90,
-                    allowPointSelect: true,
-                    dataLabels: { padding: 0 },
-                    enableMouseTracking: false,
-                }
             },
-            series: [{
-              type: 'pie',
-              name: '비중',
-              data: [{
-                      name: 'Cash',
-                      y: {{cash}},
-                     }, {
-                      name: 'Stock',
-                      y: {{stock}},
-                     }, {
-                      name: 'Futures',
-                      y: {{futures}},
-              }],
-            }]
 });
 
 $.get( "{% url 'chart' account='A'  %}", function( data ) {
@@ -131,12 +128,14 @@ $.get( "{% url 'chart' account='A'  %}", function( data ) {
      r_value=[]; //리스크 제거 자산가치
      volatility=[] //평균변동성
      volatility_day=[] //일변동성
+     principal = [] //원금
      for (item of data){
        date = new Date(item[0].slice(0,10)).getTime();
        value.push([date, parseInt(item[1])]);
        r_value.push([date,parseInt(item[2])]);
        volatility_day.push([date, parseInt(item[3])]);
        volatility.push([date, parseInt(item[4])]);
+       principal.push([date, parseInt(item[5])]);
      }
      console.log(volatility)
      chart.addSeries({ 
@@ -159,6 +158,16 @@ $.get( "{% url 'chart' account='A'  %}", function( data ) {
        //marker: { enabled: false},
        tooltip: { valueSuffix: ' 원'}
      });
+     chart.addSeries({ 
+       name: "원금",
+       data: principal,
+       yAxis: 0,
+       enableMouseTracking: false,
+       dashStyle: 'dash',
+       type: 'line',
+       lineColor:'#808080',
+       //marker: { enabled: false}
+      });
      chart.addSeries({
        name: "일변동성",
        data: volatility_day,
