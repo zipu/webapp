@@ -20,7 +20,7 @@ def create_record(account):
 
     if account=='asset':
         stock = StockAccount.objects.all().first()
-        cash = CashAccount.objects.all().latest('date')
+        cash = CashAccount.objects.all().latest('date','id')
         futures = FuturesAccount.objects.all()
 
         principal = stock.principal + cash.total\
@@ -37,7 +37,7 @@ def create_record(account):
         ).save()
 
     elif account=='cash':
-        acc = CashAccount.objects.all().latest('date')
+        acc = CashAccount.objects.all().latest('date','id')
         Record(
             date=now,
             account_symbol=acc.symbol,
@@ -450,10 +450,9 @@ class FuturesAccount(models.Model):
             self.count = exits.count()
             if exits.count() > 0: 
                 exit_agg = exits.aggregate(
-                    Avg('duration'), Sum('profit'), Avg('profit'), StdDev('profit'))
-                
+                    Sum('profit'), Avg('profit'), StdDev('profit'))
                 self.avg_profit = c.convert('USD','KRW', exit_agg['profit__avg'])
-                self.duration = exit_agg['duration__avg']
+                self.duration = exits.filter(duration__gt=0).aggregate(Avg('duration'))['duration__avg']
                 self.winning_rate = 100 * exits.filter(profit__gt=0).count()/exits.count()
                 self.std = c.convert('USD','KRW', exit_agg['profit__stddev'])
                 if exits.filter(profit__lte=0).count() > 0:
@@ -632,4 +631,4 @@ class Transfer(models.Model):
         super(Transfer, self).save(*args, **kwargs)
     
     def __str__(self):
-        return f"({self.acc_from} --> {self.acc_to}) {self.amount_from}"
+        return f"({self.acc_from} --> {self.acc_to}) 출금: {self.amount_from},  입금: {self.amount_to}"

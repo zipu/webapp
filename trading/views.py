@@ -15,6 +15,13 @@ from datetime import datetime, time
 import json
 from decimal import Decimal as D
 # Create your views here.
+class CreateRecordView(TemplateView):
+    """ 수동 레코드 업데이트 """
+    def get(self, request, *args, **kwargs):
+        create_record('all')
+        return JsonResponse('done', safe=False)
+
+
 class UpdatePriceView(TemplateView):
     def get(self, request, *args, **kwargs):
         stock_codes = list(StockTradeUnit.objects.filter(is_open=True).values_list('code', flat=True))
@@ -47,7 +54,7 @@ class UpdatePriceView(TemplateView):
 # slack 으로 매매내역 요약 전송
 class ReportView(TemplateView):
     def get(self, request, *args, **kwargs):
-        asset = Record.objects.filter(account_symbol='A').latest('date')
+        asset = Record.objects.filter(account_symbol='A').latest('date','id')
         futures = FuturesAccount.objects.all().first()
         stock = StockAccount.objects.all().first()
 
@@ -111,7 +118,7 @@ class ReportView(TemplateView):
 class ChartView(View):
     """ 차트 데이터 반환용 뷰"""
     def get(self, request, *args, **kwargs):
-        records = Record.objects.filter(account_symbol=kwargs['account']).order_by('date')
+        records = Record.objects.filter(account_symbol=kwargs['account']).order_by('date','id')
         data = list(records.all().values_list(
             'date', 'value', 'risk_excluded_value','volatility_day', 'volatility', 'principal')) 
         return JsonResponse(data, safe=False)
@@ -122,8 +129,8 @@ class AssetView(TemplateView):
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
-       context['record'] = Record.objects.filter(account_symbol='A').latest('date')
-       context['cash'] = CashAccount.objects.all().latest('date').total
+       context['record'] = Record.objects.filter(account_symbol='A').latest('date', 'id')
+       context['cash'] = CashAccount.objects.all().latest('date','id').total
        context['stock'] = StockAccount.objects.all().first().principal
        context['futures'] = FuturesAccount.objects.all().aggregate(Sum('principal'))['principal__sum']
        context['activate'] = 'asset'
@@ -138,7 +145,7 @@ class FuturesView(TemplateView):
        #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
        context['account'] = FuturesAccount.objects.all().first()
        context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-                            .latest('date')
+                            .latest('date','id')
        context['activate'] = 'futures'
        return context
 
@@ -150,7 +157,7 @@ class FuturesHistoryView(ListView):
    paginate_by = 10
 
    def get_queryset(self):
-       return FuturesAccount.objects.all().first().entries.order_by('-is_open','-exits__date')
+       return FuturesAccount.objects.all().first().entries.order_by('-is_open','-exits__date','-date')
 
    def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
@@ -167,7 +174,7 @@ class StockView(TemplateView):
         context['activate'] = 'stock'
         context['account'] = StockAccount.objects.all().order_by('-id').first()
         context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-                            .latest('date')
+                            .latest('date','id')
         return context
 
 class StockHistoryView(ListView):
@@ -190,8 +197,8 @@ class CashView(TemplateView):
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
        #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-       context['account'] = CashAccount.objects.all().latest('date')
+       context['account'] = CashAccount.objects.all().latest('date', 'id')
        context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-                            .latest('date')
+                            .latest('date', 'id')
        context['activate'] = 'cash'
        return context
