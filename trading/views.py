@@ -25,7 +25,7 @@ class CreateRecordView(TemplateView):
 class UpdatePriceView(TemplateView):
     def get(self, request, *args, **kwargs):
         stock_codes = list(StockTradeUnit.objects.filter(is_open=True).values_list('code', flat=True))
-        futures_codes = list(FuturesEntry.objects.filter(is_open=True).values_list('code', flat=True))
+        futures_codes = list(FuturesEntry.objects.filter(is_open=True).values_list('code', 'instrument__number_system'))
         csrftoken = csrf.get_token(request)
         data={
             'stock': stock_codes,

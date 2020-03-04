@@ -10,6 +10,11 @@ from datetime import datetime, timedelta, time
 
 from forex_python.converter import CurrencyRates
 
+def convert_to_decimal(value, system):
+    "8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환"
+    a,b = [float(i) for i in value.split("'")]
+    return a+b/system
+
 def create_record(account):
     now = datetime.now()
     if account=='all':
@@ -388,6 +393,12 @@ class FuturesInstrument(models.Model):
         ('Meat', '육류')
     ]
 
+    NUMBER_SYSTEMS = [
+        (10, '10진법'),
+        (8, '8진법'),
+        (32, '32진법')
+    ]
+
     name = models.CharField("상품명", max_length=64) #상품명
     symbol = models.CharField("상품코드", max_length=16) #상품코드
     currency = models.CharField("거래 통화", max_length=16, choices=CURRENCIES, default='USD') #통화
@@ -397,6 +408,7 @@ class FuturesInstrument(models.Model):
     tickprice = models.DecimalField("호가당 가격", max_digits=5, decimal_places=2) #틱당 가격
     margin = models.DecimalField("증거금", max_digits=5, decimal_places=0) #증거금
     decimal_places = models.SmallIntegerField("소수점 자리수") #소수점 자리수
+    number_system = models.SmallIntegerField("진법", choices=NUMBER_SYSTEMS, default=10)
     current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6, null=True, blank=True)
     opentime = models.TimeField("거래 시작시간") #장 시작시간(한국)
     closetime = models.TimeField("거래 종료시간") #장 종료시간(한국)
@@ -417,9 +429,11 @@ class FuturesAccount(models.Model):
     principal = models.DecimalField("투자원금", max_digits=12, decimal_places=0, blank=True)
     principal_krw = models.DecimalField("투자원금(KRW)", max_digits=9, decimal_places=0)
     principal_usd = models.DecimalField("투자원금(USD)", max_digits=9, decimal_places=0)
+    principal_eur = models.DecimalField("투자원금(EUR)", max_digits=9, decimal_places=0,  default=0)
+    
     value = models.DecimalField("총자산가치", max_digits=12, decimal_places=0, blank=True)
     gross_profit = models.DecimalField("누적수익", max_digits=12, decimal_places=0, blank=True)
-    commission = models.DecimalField("수수료", max_digits=6, decimal_places=0, blank=True)
+    commission = models.DecimalField("수수료", max_digits=9, decimal_places=0, blank=True)
     avg_ptr = models.FloatField("평균손익비", blank=True)
     winning_rate = models.FloatField("승률", blank=True)
     avg_profit = models.DecimalField("평균수익", max_digits=12, decimal_places=0, blank=True)
@@ -432,11 +446,15 @@ class FuturesAccount(models.Model):
     def save(self, *args, **kwargs):
         c = CurrencyRates()
         if not self.id:
-            self.principal = self.principal_krw + c.convert('USD', 'KRW', self.principal_usd)
+            self.principal = self.principal_krw\
+                             + c.convert('USD', 'KRW', self.principal_usd)\
+                             + c.convert('EUR', 'KRW', self.principal_eur)
             self.value = self.principal
         
         else:
-            self.principal = self.principal_krw + c.convert('USD', 'KRW', self.principal_usd)
+            self.principal = self.principal_krw\
+                             + c.convert('USD', 'KRW', self.principal_usd)\
+                             + c.convert('EUR', 'KRW', self.principal_eur)
 
             entry_agg = self.entries.aggregate(Sum('commission'), Avg('entry_risk'))
             opens_agg = self.entries.filter(is_open=True).aggregate(
@@ -452,8 +470,8 @@ class FuturesAccount(models.Model):
                 exit_agg = exits.aggregate(
                     Sum('profit'), Avg('profit'), StdDev('profit'))
                 self.avg_profit = c.convert('USD','KRW', exit_agg['profit__avg'])
-                self.duration = exits.filter(duration__gt=0).aggregate(Avg('duration'))['duration__avg']
-                self.winning_rate = 100 * exits.filter(profit__gt=0).count()/exits.count()
+                self.duration = exits.aggregate(Avg('duration'))['duration__avg']
+                self.winning_rate = 100 * exits.count()/exits.count()
                 self.std = c.convert('USD','KRW', exit_agg['profit__stddev'])
                 if exits.filter(profit__lte=0).count() > 0:
                     self.avg_ptr = abs(exits.filter(profit__gt=0).aggregate(Avg('profit'))['profit__avg']\
@@ -500,17 +518,21 @@ class  FuturesEntry(models.Model):
     is_open = models.BooleanField("상태", default=True)
 
     def save(self, *args, **kwargs):
+        c = CurrencyRates()
         if not self.id:
-            self.entry_risk = ((self.entry_price - self.stop_price)*self.position/self.instrument.tickunit)\
+            entry_risk = ((self.entry_price - self.stop_price)*self.position/self.instrument.tickunit)\
                              *self.instrument.tickprice*self.num_cons
+            self.entry_risk = self.current_risk = c.convert(self.instrument.currency, 'USD', entry_risk)
             
         if self.exits.count() > 0:
             self.num_close_cons = self.exits.aggregate(Sum('num_cons'))['num_cons__sum']
             self.num_open_cons = self.num_cons - self.num_close_cons
-        self.current_risk = ((self.current_price - self.stop_price)*self.position/self.instrument.tickunit)\
+        current_risk = ((self.current_price - self.stop_price)*self.position/self.instrument.tickunit)\
                          *self.instrument.tickprice*self.num_open_cons
-        self.current_profit = ((self.current_price - self.entry_price)*self.position/self.instrument.tickunit)\
+        self.current_risk = c.convert(self.instrument.currency, 'USD', current_risk)
+        current_profit = ((self.current_price - self.entry_price)*self.position/self.instrument.tickunit)\
                          *self.instrument.tickprice*self.num_open_cons
+        self.current_profit = c.convert(self.instrument.currency, 'USD', current_profit)
         self.is_open = True if self.num_open_cons > 0 else False
         super(FuturesEntry, self).save(*args, **kwargs)
 
@@ -532,8 +554,10 @@ class FuturesExit(models.Model):
     duration = models.PositiveIntegerField("보유기간", blank=True)
 
     def save(self, *args, **kwargs):
-        self.profit = ((self.price - self.entry.entry_price)*self.entry.position/self.entry.instrument.tickunit)\
+        c = CurrencyRates()
+        profit = ((self.price - self.entry.entry_price)*self.entry.position/self.entry.instrument.tickunit)\
                        * (self.entry.instrument.tickprice) * self.num_cons
+        self.profit = c.convert(self.entry.instrument.currency, 'USD', profit)
         self.duration = (self.date - self.entry.date).days
         super(FuturesExit, self).save(*args, **kwargs)
 
@@ -567,6 +591,7 @@ class Transfer(models.Model):
         ('KRW', '원'),
         ('USD', '달러'),
         ('CNY', '위안'),
+        ('EUR', '유로')
     ]
     
     date = models.DateField("날짜")
@@ -596,6 +621,8 @@ class Transfer(models.Model):
                 acc.principal_krw = acc.principal_krw - self.amount_from
             elif self.currency_from == 'USD':
                 acc.principal_usd = acc.principal_usd - self.amount_from
+            elif self.currency_from == 'EUR':
+                acc.principal_eur = acc.principal_eur - self.amount_from
             acc.save()
 
         elif self.acc_from == "S":
@@ -621,6 +648,8 @@ class Transfer(models.Model):
                 acc.principal_krw = acc.principal_krw + self.amount_to
             elif self.currency_to == 'USD':
                 acc.principal_usd = acc.principal_usd + self.amount_to
+            elif self.currency_to == 'EUR':
+                acc.principal_eur = acc.principal_eur + self.amount_to
             acc.save()
 
         elif self.acc_to == "S":

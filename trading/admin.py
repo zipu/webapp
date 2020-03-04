@@ -7,7 +7,7 @@ from trading.models import StockAccount, StockBuy, StockSell, StockTradeUnit
 from trading.models import Transfer
 
 admin.site.register(
- [FuturesInstrument, FuturesAccount, FuturesEntry, FuturesExit])
+ [FuturesAccount, FuturesExit])
 admin.site.register(
  [Record, CashAccount, Asset]
 )
@@ -17,6 +17,14 @@ admin.site.register(
 admin.site.register(
  [Transfer]
 )
+
+@admin.register(FuturesInstrument)
+class FuturesInstrumentAdmin(admin.ModelAdmin):
+    search_fields = ["name", "symbol", "exchange"]
+
+@admin.register(FuturesEntry)
+class FuturesEntryAdmin(admin.ModelAdmin):
+    autocomplete_fields = ["instrument"]
 
 #admin.site.register(System)
 #admin.site.register(FuturesEntry)
