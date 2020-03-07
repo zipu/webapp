@@ -428,16 +428,18 @@ class FuturesAccount(models.Model):
     symbol = models.CharField("시스템코드", max_length=16)
     principal = models.DecimalField("투자원금", max_digits=12, decimal_places=0, blank=True)
     principal_krw = models.DecimalField("투자원금(KRW)", max_digits=9, decimal_places=0)
-    principal_usd = models.DecimalField("투자원금(USD)", max_digits=9, decimal_places=0)
-    principal_eur = models.DecimalField("투자원금(EUR)", max_digits=9, decimal_places=0,  default=0)
+    principal_usd = models.DecimalField("투자원금(USD)", max_digits=11, decimal_places=2)
+    principal_eur = models.DecimalField("투자원금(EUR)", max_digits=11, decimal_places=2,  default=0)
     
+    value_usd = models.DecimalField("달러자산가치(USD)", max_digits=11, decimal_places=2, default=0)
+    value_eur = models.DecimalField("유로자산가치(EUR)", max_digits=11, decimal_places=2,  default=0)
     value = models.DecimalField("총자산가치", max_digits=12, decimal_places=0, blank=True)
     gross_profit = models.DecimalField("누적수익", max_digits=12, decimal_places=0, blank=True)
     commission = models.DecimalField("수수료", max_digits=9, decimal_places=0, blank=True)
     avg_ptr = models.FloatField("평균손익비", blank=True)
     winning_rate = models.FloatField("승률", blank=True)
     avg_profit = models.DecimalField("평균수익", max_digits=12, decimal_places=0, blank=True)
-    std = models.DecimalField("수익표준편차", max_digits=12, decimal_places=0, blank=True)
+    #std = models.DecimalField("수익표준편차", max_digits=12, decimal_places=0, blank=True)
     duration = models.PositiveIntegerField("평균보유기간", blank=True)
     avg_entry_risk = models.DecimalField("평균진입리스크", max_digits=12, decimal_places=0, blank=True)
     risk = models.DecimalField("현재총리스크", max_digits=12, decimal_places=0, blank=True)
@@ -456,30 +458,66 @@ class FuturesAccount(models.Model):
                              + c.convert('USD', 'KRW', self.principal_usd)\
                              + c.convert('EUR', 'KRW', self.principal_eur)
 
-            entry_agg = self.entries.aggregate(Sum('commission'), Avg('entry_risk'))
-            opens_agg = self.entries.filter(is_open=True).aggregate(
-                Sum('current_risk'), Sum('current_profit'))
+            usd_entry_agg = self.entries.filter(instrument__currency='USD').aggregate(Sum('commission'), Sum('entry_risk'))
+            eur_entry_agg = self.entries.filter(instrument__currency='EUR').aggregate(Sum('commission'), Sum('entry_risk'))
             exits = FuturesExit.objects.filter(entry__account__id=self.id)
             
-            current_profit = int(c.convert('USD','KRW', opens_agg['current_profit__sum'] or 0))
-            self.risk = c.convert('USD','KRW', opens_agg['current_risk__sum'] or 0)
-            self.commission = c.convert('USD','KRW', entry_agg['commission__sum'])
-            self.avg_entry_risk = c.convert('USD','KRW', entry_agg['entry_risk__avg'])
-            self.count = exits.count()
+            usd_opens_agg = self.entries.filter(is_open=True).filter(instrument__currency='USD').aggregate(
+                Sum('current_risk'), Sum('current_profit'))
+            usd_exits = exits.filter(entry__instrument__currency='USD')
+
+            eur_opens_agg = self.entries.filter(is_open=True).filter(instrument__currency='EUR').aggregate(
+                Sum('current_risk'), Sum('current_profit'))
+            eur_exits = exits.filter(entry__instrument__currency='EUR')
+            
+            
+            current_profit = int(c.convert('USD','KRW', usd_opens_agg['current_profit__sum'] or 0))\
+                            + int(c.convert('EUR','KRW', eur_opens_agg['current_profit__sum'] or 0))
+            self.risk = int(c.convert('USD','KRW', usd_opens_agg['current_risk__sum'] or 0))\
+                        + int(c.convert('EUR','KRW', eur_opens_agg['current_risk__sum'] or 0))\
+            
+            #self.commission = c.convert('USD','KRW', entry_agg['commission__sum'])
+            self.avg_entry_risk = (int(c.convert('USD','KRW', usd_entry_agg['entry_risk__sum'] or 0))\
+                                   +int(c.convert('EUR','KRW', eur_entry_agg['entry_risk__sum'] or 0)))\
+                                   / self.entries.count()
+            
+            self.count = self.entries.count()
             if exits.count() > 0: 
-                exit_agg = exits.aggregate(
-                    Sum('profit'), Avg('profit'), StdDev('profit'))
-                self.avg_profit = c.convert('USD','KRW', exit_agg['profit__avg'])
+                usd_exit_agg = usd_exits.aggregate(Sum('profit'), Sum('commission'))
+                eur_exit_agg = eur_exits.aggregate(Sum('profit'), Sum('commission'))
+                
+                self.avg_profit = (int(c.convert('USD','KRW', usd_exit_agg['profit__sum'] or 0))\
+                                    + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum'] or 0)))\
+                                    / exits.count()
+                                
                 self.duration = exits.aggregate(Avg('duration'))['duration__avg']
-                self.winning_rate = 100 * exits.count()/exits.count()
-                self.std = c.convert('USD','KRW', exit_agg['profit__stddev'])
+                self.winning_rate = 100 * exits.filter(profit__gt=0).count()/exits.count()
+                #self.std = c.convert('USD','KRW', exit_agg['profit__stddev'])
+                # 평균손익비 계산
                 if exits.filter(profit__lte=0).count() > 0:
-                    self.avg_ptr = abs(exits.filter(profit__gt=0).aggregate(Avg('profit'))['profit__avg']\
-                            /exits.filter(profit__lte=0).aggregate(Avg('profit'))['profit__avg'])
-                profit = c.convert('USD','KRW', exit_agg['profit__sum'])
+                    sum_wins_usd = int(c.convert('USD', 'KRW', usd_exits.filter(profit__gt=0).aggregate(Sum('profit'))['profit__sum'] or 0))
+                    sum_wins_eur = int(c.convert('EUR', 'KRW', eur_exits.filter(profit__gt=0).aggregate(Sum('profit'))['profit__sum'] or 0))
+                    sum_loses_usd = int(c.convert('USD', 'KRW', usd_exits.filter(profit__lte=0).aggregate(Sum('profit'))['profit__sum'] or 0))
+                    sum_loses_eur = int(c.convert('EUR', 'KRW', eur_exits.filter(profit__lte=0).aggregate(Sum('profit'))['profit__sum'] or 0))
+                    avg_wins = (sum_wins_usd + sum_wins_eur)/exits.filter(profit__gt=0).count()
+                    avg_loses = (sum_loses_usd + sum_loses_eur)/exits.filter(profit__lte=0).count()
+                    self.avg_ptr = abs(avg_wins/avg_loses)
+                profit = int(c.convert('USD','KRW', usd_exit_agg['profit__sum']))\
+                        + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum']))
             else:
                 profit = 0
+            usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum']))\
+                                + int(c.convert('USD','KRW', usd_exit_agg['commission__sum']))
+
+            eur_commission =  int(c.convert('EUR','KRW', eur_entry_agg['commission__sum']))\
+                                + int(c.convert('EUR','KRW', eur_exit_agg['commission__sum']))
+            self.commission = usd_commission + eur_commission
+
             self.value = self.principal + profit + current_profit - self.commission
+            self.value_usd = self.principal_usd + (usd_opens_agg['current_profit__sum'] or 0)\
+                            + ( usd_exit_agg['profit__sum'] or 0 ) - (usd_entry_agg['commission__sum'] or 0) - (usd_exit_agg['commission__sum'] or 0)
+            self.value_eur = self.principal_eur + (eur_opens_agg['current_profit__sum'] or 0)\
+                            + ( eur_exit_agg['profit__sum'] or 0 ) - (eur_entry_agg['commission__sum'] or 0) - (eur_exit_agg['commission__sum'] or 0)
             self.gross_profit = self.value - self.principal
         super(FuturesAccount, self).save(*args, **kwargs)
 
@@ -551,13 +589,12 @@ class FuturesExit(models.Model):
     num_cons = models.SmallIntegerField("청산계약수")
     price = models.DecimalField("청산가격", max_digits=12, decimal_places=6)
     profit = models.DecimalField("손익", blank=True, max_digits=9, decimal_places=2)
+    commission = models.DecimalField("수수료", max_digits=6, decimal_places=2, default=0)
     duration = models.PositiveIntegerField("보유기간", blank=True)
 
     def save(self, *args, **kwargs):
-        c = CurrencyRates()
-        profit = ((self.price - self.entry.entry_price)*self.entry.position/self.entry.instrument.tickunit)\
+        self.profit = ((self.price - self.entry.entry_price)*self.entry.position/self.entry.instrument.tickunit)\
                        * (self.entry.instrument.tickprice) * self.num_cons
-        self.profit = c.convert(self.entry.instrument.currency, 'USD', profit)
         self.duration = (self.date - self.entry.date).days
         super(FuturesExit, self).save(*args, **kwargs)
 

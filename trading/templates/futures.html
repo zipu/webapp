@@ -25,19 +25,19 @@
           <th scope="col" style="width:16.6%">원금</th>
           <th scope="col" style="width:16.6%">총자산</th>
           <th scope="col" style="width:16.6%">수익</th>
-          <th scope="col" style="width:16.6%">수익률</th>
-          <th scope="col" style="width:16.6%">리스크</th>
-          <th scope="col" style="width:16.6%">리스크율</th>
+          <th scope="col" style="width:16.6%">KRW</th>
+          <th scope="col" style="width:16.6%">USD</th>
+          <th scope="col" style="width:16.6%">EUR</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>{{ account.principal | intcomma}}</td>
           <td>{{ account.value| intcomma}}</td>
-          <td>{{ account.gross_profit | intcomma }}</td>
-          <td>{{ record.rate_profit | floatformat:1}} %</td>
-          <td>{{ record.risk | intcomma }}</td>
-          <td>{{ record.rate_risk | floatformat:1 }} %</td>
+          <td>{{ account.gross_profit | intcomma}}</td>
+          <td>{{ account.principal_krw | intcomma }}</td>
+          <td>&dollar;{{ account.value_usd | intcomma}}</td>
+          <td>&euro;{{ account.value_eur | intcomma }}</td>
         </tr>
       </tbody>
     </table>
@@ -45,41 +45,42 @@
     <table class="table table-bordered">
       <thead class="thead-light">
         <tr>
+          <th scope="col" style="width:16.6%">수익률</th>
+          <th scope="col" style="width:16.6%">리스크</th>
+          <th scope="col" style="width:16.6%">리스크율</th>
           <th scope="col" style="width:16.6%">CAGR</th>
-          <th scope="col" style="width:16.6%">변동성</th>
-          <th scope="col" style="width:16.6%">평균수익</th>
-          <th scope="col" style="width:16.6%">수익표준편차</th>
-          <th scope="col" style="width:16.6%">진입리스크</th>
-          <th scope="col" style="width:16.6%">평균리스크</th>
+          <th scope="col" style="width:16.6%">자본인하율</th>
+          <th scope="col" style="width:16.6%">MDD</th>
         </tr>
       </thead>
       <tbody>
         <tr>
+          <td>{{ record.rate_profit| floatformat:1}} %</td>
+          <td>{{ account.risk | intcomma }}</td>
+          <td>{{ record.rate_risk | floatformat:1 }} %</td>
           <td>{{ record.cagr | floatformat:1}} %</td>
-          <td>{{ record.volatility| floatformat:1}} %</td>
-          <td>{{ account.avg_profit | intcomma }}</td>
-          <td>{{ account.std | intcomma }}</td>
-          <td>{{ account.avg_entry_risk | intcomma}}</td>
-          <td>{{ record.avg_risk | intcomma}}</td>
+          <td>{{ record.drawdown | floatformat:1}} %</td>
+          <td>{{ record.mdd | floatformat:1}} %</td>
+        </tr>
         </tr>
       </tbody>
       <thead class="thead-light">
         <tr>
+          <th scope="col" style="width:16.6%">진입리스크</th>
+          <th scope="col" style="width:16.6%">평균수익</th>
           <th scope="col" style="width:16.6%">손익비</th>
-          <th scope="col" style="width:16.6%">자본인하율</th>
-          <th scope="col" style="width:16.6%">MDD</th>
           <th scope="col" style="width:16.6%">승률</th>
-          <th scope="col" style="width:16.6%">매매횟수</th>
+          <th scope="col" style="width:16.6%">수수료</th>
           <th scope="col" style="width:16.6%">평균보유기간</th>
         </tr>
       </thead>
       <tbody>
         <tr>
+          <td>{{ account.avg_entry_risk  | intcomma }}</td>
+          <td>{{ account.avg_profit | intcomma }}</td>
           <td>{{ account.avg_ptr | floatformat:1}} : 1</td>
-          <td>{{ record.drawdown | floatformat:1}} %</td>
-          <td>{{ record.mdd | floatformat:1}} %</td>
           <td>{{ account.winning_rate | floatformat:1 }} %</td>
-          <td>{{ account.count }}</td>
+          <td>{{ account.commission | intcomma }}</td>
           <td>{{ account.duration }} 일</td>
         </tr>
       </tbody>

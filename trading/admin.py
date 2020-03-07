@@ -7,7 +7,7 @@ from trading.models import StockAccount, StockBuy, StockSell, StockTradeUnit
 from trading.models import Transfer
 
 admin.site.register(
- [FuturesAccount, FuturesExit])
+ [FuturesAccount])
 admin.site.register(
  [Record, CashAccount, Asset]
 )
@@ -25,6 +25,18 @@ class FuturesInstrumentAdmin(admin.ModelAdmin):
 @admin.register(FuturesEntry)
 class FuturesEntryAdmin(admin.ModelAdmin):
     autocomplete_fields = ["instrument"]
+
+
+@admin.register(FuturesExit)
+class FuturesExitAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(FuturesExitAdmin, self).get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields['entry'].initial = obj.entry
+            form.base_fields['entry'].queryset = FuturesEntry.objects
+        else:
+            form.base_fields['entry'].queryset = FuturesEntry.objects.filter(is_open=True)
+        return form
 
 #admin.site.register(System)
 #admin.site.register(FuturesEntry)
