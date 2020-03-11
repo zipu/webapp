@@ -5,11 +5,15 @@
   <ul class="nav nav-tabs">
   
     <li class="nav-item">
-      <a class="nav-link active" href="{% url 'futures' system=1 %}">System 1</a>
+      <a class="nav-link {% if account.id == 0 %}active{% endif %}"
+       href="{% url 'futures' system=0 %}">Overview</a>
     </li>
+    {% for acc in accounts %}
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'futures' system=2 %}">System 2</a>
+      <a class="nav-link {% if acc.id == account.id %}active {% endif %}"
+       href="{% url 'futures' system=acc.id %}">{{ acc.account_name }}</a>
     </li>
+    {% endfor %}
   </ul>
 </div>
 </br>
@@ -19,73 +23,116 @@
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
     <div style="float: right;"> 업데이트: {{record.date | date:"Y-m-d H:i"}}</div> 
-    <table class="table table-bordered">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" style="width:16.6%">원금</th>
-          <th scope="col" style="width:16.6%">총자산</th>
-          <th scope="col" style="width:16.6%">수익</th>
-          <th scope="col" style="width:16.6%">KRW</th>
-          <th scope="col" style="width:16.6%">USD</th>
-          <th scope="col" style="width:16.6%">EUR</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{ account.principal | intcomma}}</td>
-          <td>{{ account.value| intcomma}}</td>
-          <td>{{ account.gross_profit | intcomma}}</td>
-          <td>{{ account.principal_krw | intcomma }}</td>
-          <td>&dollar;{{ account.value_usd | intcomma}}</td>
-          <td>&euro;{{ account.value_eur | intcomma }}</td>
-        </tr>
-      </tbody>
-    </table>
+    {% if account.id == 0 %}
+      <table class="table table-bordered">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:20%">원금</th>
+            <th scope="col" style="width:20%">총자산</th>
+            <th scope="col" style="width:20%">수익</th>
+            <th scope="col" style="width:20%">리스크</th>
+            <th scope="col" style="width:20%">리스크율</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ record.principal | intcomma}}</td>
+            <td>{{ record.value| intcomma}}</td>
+            <td>{{ record.gross_profit | intcomma}}</td>
+            <td>{{ record.risk | intcomma }}</td>
+            <td>{{ record.rate_risk | floatformat:1}} %</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="table table-bordered">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:20%">수익률</th>
+            <th scope="col" style="width:20%">CAGR</th>
+            <th scope="col" style="width:20%">자본인하율</th>
+            <th scope="col" style="width:20%">MDD</th>
+            <th scope="col" style="width:20%">변동성</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ record.rate_profit| floatformat:1}} %</td>
+            <td>{{ record.cagr | intcomma }}</td>
+            <td>{{ record.drawdown | floatformat:1 }} %</td>
+            <td>{{ record.mdd | floatformat:1}} %</td>
+            <td>{{ record.volatility | floatformat:1}} %</td>
+          </tr>
+          </tr>
+        </tbody>
+      </table>
+    {% else %}
+      <table class="table table-bordered">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:16.6%">원금</th>
+            <th scope="col" style="width:16.6%">총자산</th>
+            <th scope="col" style="width:16.6%">수익</th>
+            <th scope="col" style="width:16.6%">KRW</th>
+            <th scope="col" style="width:16.6%">USD</th>
+            <th scope="col" style="width:16.6%">EUR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ account.principal | intcomma}}</td>
+            <td>{{ account.value| intcomma}}</td>
+            <td>{{ account.gross_profit | intcomma}}</td>
+            <td>{{ account.principal_krw | intcomma }}</td>
+            <td>&dollar;{{ account.value_usd | intcomma}}</td>
+            <td>&euro;{{ account.value_eur | intcomma }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-    <table class="table table-bordered">
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" style="width:16.6%">수익률</th>
-          <th scope="col" style="width:16.6%">리스크</th>
-          <th scope="col" style="width:16.6%">리스크율</th>
-          <th scope="col" style="width:16.6%">CAGR</th>
-          <th scope="col" style="width:16.6%">자본인하율</th>
-          <th scope="col" style="width:16.6%">MDD</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{ record.rate_profit| floatformat:1}} %</td>
-          <td>{{ account.risk | intcomma }}</td>
-          <td>{{ record.rate_risk | floatformat:1 }} %</td>
-          <td>{{ record.cagr | floatformat:1}} %</td>
-          <td>{{ record.drawdown | floatformat:1}} %</td>
-          <td>{{ record.mdd | floatformat:1}} %</td>
-        </tr>
-        </tr>
-      </tbody>
-      <thead class="thead-light">
-        <tr>
-          <th scope="col" style="width:16.6%">진입리스크</th>
-          <th scope="col" style="width:16.6%">평균수익</th>
-          <th scope="col" style="width:16.6%">손익비</th>
-          <th scope="col" style="width:16.6%">승률</th>
-          <th scope="col" style="width:16.6%">수수료</th>
-          <th scope="col" style="width:16.6%">평균보유기간</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{ account.avg_entry_risk  | intcomma }}</td>
-          <td>{{ account.avg_profit | intcomma }}</td>
-          <td>{{ account.avg_ptr | floatformat:1}} : 1</td>
-          <td>{{ account.winning_rate | floatformat:1 }} %</td>
-          <td>{{ account.commission | intcomma }}</td>
-          <td>{{ account.duration }} 일</td>
-        </tr>
-      </tbody>
-    </table>
-    
+      <table class="table table-bordered">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:16.6%">수익률</th>
+            <th scope="col" style="width:16.6%">리스크</th>
+            <th scope="col" style="width:16.6%">리스크율</th>
+            <th scope="col" style="width:16.6%">CAGR</th>
+            <th scope="col" style="width:16.6%">자본인하율</th>
+            <th scope="col" style="width:16.6%">MDD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ record.rate_profit| floatformat:1}} %</td>
+            <td>{{ account.risk | intcomma }}</td>
+            <td>{{ record.rate_risk | floatformat:1 }} %</td>
+            <td>{{ record.cagr | floatformat:1}} %</td>
+            <td>{{ record.drawdown | floatformat:1}} %</td>
+            <td>{{ record.mdd | floatformat:1}} %</td>
+          </tr>
+          </tr>
+        </tbody>
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" style="width:16.6%">진입리스크</th>
+            <th scope="col" style="width:16.6%">평균수익</th>
+            <th scope="col" style="width:16.6%">손익비</th>
+            <th scope="col" style="width:16.6%">승률</th>
+            <th scope="col" style="width:16.6%">수수료</th>
+            <th scope="col" style="width:16.6%">평균보유기간</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ account.avg_entry_risk  | intcomma }}</td>
+            <td>{{ account.avg_profit | intcomma }}</td>
+            <td>{{ account.avg_ptr | floatformat:1}} : 1</td>
+            <td>{{ account.winning_rate | floatformat:1 }} %</td>
+            <td>{{ account.commission | intcomma }}</td>
+            <td>{{ account.duration }} 일</td>
+          </tr>
+        </tbody>
+      </table>
+    {% endif %}
   </div>
   </br>
   <div id="history" style="width:100%"></div>
@@ -95,11 +142,12 @@
 {% block script %}
 <script>
 //매매내역 페이징
+{% if account.id != 0 %}
 var movePage
 (movePage = function (num) {
    $('#history').load("{% url 'futureshistory' system=account.id %}?page=" + num);
 })(1)
-
+{% endif %}
 //차트 그리기
 Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
@@ -107,7 +155,7 @@ Highcharts.setOptions({
 var chart = Highcharts.chart('profit-chart', {
             chart: { height: '75%' },// 16:9 ratio}
             legend: { enabled: false},
-            title: { text: '{{account.account_name}}' },
+            title: { text: "{{ account.account_name }}" },
             xAxis: { 
                 type: 'datetime',
                 crosshair:{

@@ -71,6 +71,21 @@ def create_record(account):
                 value=acc.value,
                 risk=acc.risk
             ).save()
+        
+        # 시스템 통합 정보 갱신
+        accounts = FuturesAccount.objects.all()
+        agg = accounts.aggregate(
+            Sum('principal'),
+            Sum('value'),
+            Sum('risk')
+            )
+        Record(
+            date=now,
+            account_symbol='FA', #total futures asset
+            principal=agg['principal__sum'],
+            value=agg['value__sum'],
+            risk=agg['risk__sum']
+        ).save()
 
 
 
@@ -112,8 +127,13 @@ class Record(models.Model):
     def save(self, *args, **kwargs):
         self.gross_profit = self.value - self.principal
         self.risk_excluded_value = self.value - self.risk
-        self.rate_profit =  self.gross_profit/self.principal * 100
-        self.rate_risk = self.risk/self.value * 100
+        self.rate_profit =  self.gross_profit/self.principal * 100 if self.principal > 0 else 0
+        
+
+        if self.value > 0:
+            self.rate_risk = self.risk/self.value * 100
+        else:
+            self.rate_risk = 0
         
         if not self.id:
             records = Record.objects.filter(account_symbol=self.account_symbol).all()
@@ -130,13 +150,13 @@ class Record(models.Model):
             
             
             self.volatility_day = 100*abs(last_gross_profit-self.gross_profit)\
-                                /(last_gross_profit+self.principal)
+                                /(last_gross_profit+self.principal) if last_gross_profit+self.principal > 0 else 0
             since = self.date - timedelta(days=30)
-            self.volatility = records.filter(date__gte=since).all()\
-                            .aggregate(Avg('volatility_day'))['volatility_day__avg']
+            self.volatility = (records.filter(date__gte=since).all()\
+                            .aggregate(Avg('volatility_day'))['volatility_day__avg'] or 0)
             
             max_value = max(last_max, self.value)
-            self.drawdown = 100 * (max_value - self.value)/max_value
+            self.drawdown = 100 * (max_value - self.value)/max_value if max_value > 0 else 0
             self.mdd = max(self.drawdown, last_mdd)
 
             #계좌오픈일 찾기
@@ -150,7 +170,7 @@ class Record(models.Model):
                 first_date = FuturesAccount.objects.get(symbol=self.account_symbol).date
 
             days = (self.date.date() - first_date).days
-            if days > 1:
+            if (days > 1) and (self.principal > 0) :
                 n = days/365
                 self.cagr = (pow(float(self.value/self.principal), 1/n) - 1)*100
             else:
@@ -522,7 +542,7 @@ class FuturesAccount(models.Model):
         super(FuturesAccount, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.id}/{self.account_name}"
+        return f"{self.account_name}"
 
 class  FuturesEntry(models.Model):
     POSITIONS = [
@@ -575,7 +595,7 @@ class  FuturesEntry(models.Model):
         super(FuturesEntry, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"({self.id}) 상품: {self.instrument.name} / 날짜: {self.date}/ 리스크: {self.entry_risk}"
+        return f"({self.account.account_name}) {self.id}/{self.instrument.name}/{self.entry_price}/ r: {self.entry_risk}"
     class Meta:
         ordering = ('-id',)
 
