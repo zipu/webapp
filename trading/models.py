@@ -524,21 +524,33 @@ class FuturesAccount(models.Model):
                     self.avg_ptr = abs(avg_wins/avg_loses)
                 profit = int(c.convert('USD','KRW', usd_exit_agg['profit__sum']))\
                         + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum']))
+                
+                usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum'] or 0))\
+                                + int(c.convert('USD','KRW', usd_exit_agg['commission__sum'] or 0))
+
+                eur_commission =  int(c.convert('EUR','KRW', eur_entry_agg['commission__sum'] or 0))\
+                                + int(c.convert('EUR','KRW', eur_exit_agg['commission__sum'] or 0))
+
+                self.commission = usd_commission + eur_commission
+                self.value = self.principal + profit + current_profit - self.commission
+                self.value_usd = self.principal_usd + (usd_opens_agg['current_profit__sum'] or 0)\
+                                + ( usd_exit_agg['profit__sum'] or 0 ) - (usd_entry_agg['commission__sum'] or 0) - (usd_exit_agg['commission__sum'] or 0)
+                self.value_eur = self.principal_eur + (eur_opens_agg['current_profit__sum'] or 0)\
+                                + ( eur_exit_agg['profit__sum'] or 0 ) - (eur_entry_agg['commission__sum'] or 0) - (eur_exit_agg['commission__sum'] or 0)
+                self.gross_profit = self.value - self.principal
             else:
                 profit = 0
-            usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum']))\
-                                + int(c.convert('USD','KRW', usd_exit_agg['commission__sum']))
+                usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum'] or 0))
 
-            eur_commission =  int(c.convert('EUR','KRW', eur_entry_agg['commission__sum']))\
-                                + int(c.convert('EUR','KRW', eur_exit_agg['commission__sum']))
-            self.commission = usd_commission + eur_commission
+                eur_commission =  int(c.convert('EUR','KRW', eur_entry_agg['commission__sum'] or 0))
 
-            self.value = self.principal + profit + current_profit - self.commission
-            self.value_usd = self.principal_usd + (usd_opens_agg['current_profit__sum'] or 0)\
-                            + ( usd_exit_agg['profit__sum'] or 0 ) - (usd_entry_agg['commission__sum'] or 0) - (usd_exit_agg['commission__sum'] or 0)
-            self.value_eur = self.principal_eur + (eur_opens_agg['current_profit__sum'] or 0)\
-                            + ( eur_exit_agg['profit__sum'] or 0 ) - (eur_entry_agg['commission__sum'] or 0) - (eur_exit_agg['commission__sum'] or 0)
-            self.gross_profit = self.value - self.principal
+                self.commission = usd_commission + eur_commission
+                self.value = self.principal + profit + current_profit - self.commission
+                self.value_usd = self.principal_usd + (usd_opens_agg['current_profit__sum'] or 0)\
+                               - (usd_entry_agg['commission__sum'] or 0)
+                self.value_eur = self.principal_eur + (eur_opens_agg['current_profit__sum'] or 0)\
+                               - (eur_entry_agg['commission__sum'] or 0)
+                self.gross_profit = self.value - self.principal
         super(FuturesAccount, self).save(*args, **kwargs)
 
     def __str__(self):
