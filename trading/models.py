@@ -436,6 +436,8 @@ class FuturesInstrument(models.Model):
     def __str__(self):
         return f"{self.name} ({self.symbol})"
 
+    class Meta:
+        ordering = ('name',)
 
 class FuturesAccount(models.Model):
     asset = models.ForeignKey(
@@ -519,11 +521,11 @@ class FuturesAccount(models.Model):
                     sum_wins_eur = int(c.convert('EUR', 'KRW', eur_exits.filter(profit__gt=0).aggregate(Sum('profit'))['profit__sum'] or 0))
                     sum_loses_usd = int(c.convert('USD', 'KRW', usd_exits.filter(profit__lte=0).aggregate(Sum('profit'))['profit__sum'] or 0))
                     sum_loses_eur = int(c.convert('EUR', 'KRW', eur_exits.filter(profit__lte=0).aggregate(Sum('profit'))['profit__sum'] or 0))
-                    avg_wins = (sum_wins_usd + sum_wins_eur)/exits.filter(profit__gt=0).count()
-                    avg_loses = (sum_loses_usd + sum_loses_eur)/exits.filter(profit__lte=0).count()
-                    self.avg_ptr = abs(avg_wins/avg_loses)
-                profit = int(c.convert('USD','KRW', usd_exit_agg['profit__sum']))\
-                        + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum']))
+                    avg_wins = (sum_wins_usd + sum_wins_eur)/exits.filter(profit__gt=0).count() if exits.filter(profit__gt=0).count() > 0 else 0
+                    avg_loses = (sum_loses_usd + sum_loses_eur)/exits.filter(profit__lte=0).count() if exits.filter(profit__lte=0).count() > 0 else 0
+                    self.avg_ptr = abs(avg_wins/avg_loses) if avg_loses >0 else 0
+                profit = int(c.convert('USD','KRW', usd_exit_agg['profit__sum'] or 0))\
+                        + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum'] or 0))
                 
                 usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum'] or 0))\
                                 + int(c.convert('USD','KRW', usd_exit_agg['commission__sum'] or 0))
@@ -653,9 +655,11 @@ class Transfer(models.Model):
     ACCOUNTS = [
         ("N", "없음"),
         ("C", "현금"),
-        ("FM", "선물_1"),
         ("S", "주식")
-    ]
+    ] + [ (a.symbol, f"선물({a.account_name})") for a in FuturesAccount.objects.all()]
+
+
+
     CURRENCIES = [
         ('KRW', '원'),
         ('USD', '달러'),
@@ -666,10 +670,10 @@ class Transfer(models.Model):
     date = models.DateField("날짜")
     acc_from = models.CharField("출금계좌", choices=ACCOUNTS, max_length=10)
     currency_from = models.CharField("출금통화", choices=CURRENCIES, max_length=10, blank=True, null=True)
-    amount_from = models.DecimalField("출금액", max_digits=12, decimal_places=0, blank=True, null=True)
+    amount_from = models.DecimalField("출금액", max_digits=15, decimal_places=2, blank=True, null=True)
     acc_to = models.CharField("입금계좌", choices=ACCOUNTS, max_length=10)
     currency_to = models.CharField("입금통화", choices=CURRENCIES, max_length=10)
-    amount_to = models.DecimalField("입금액", max_digits=12, decimal_places=0)
+    amount_to = models.DecimalField("입금액", max_digits=15, decimal_places=2)
 
     def save(self, *args, **kwargs):
         if self.acc_from == "C":
