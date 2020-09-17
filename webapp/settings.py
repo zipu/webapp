@@ -78,7 +78,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize', #humanize app like 'intcomma'
     'maths.apps.MathsConfig', #수학자료
     #'asset.apps.AssetConfig', #asset
-    'trading.apps.TradingConfig' #트레이딩 
+    'trading.apps.TradingConfig', #트레이딩 ,
+    'aops.apps.AopsConfig' #수학문제, art of problem solving
 ]
 
 MIDDLEWARE = [
@@ -98,8 +99,11 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'webapp/templates'),
-            os.path.join(BASE_DIR, 'maths/templates')
+            os.path.join(BASE_DIR, 'webapp/templates/webapp'),
+            #os.path.join(BASE_DIR, 'maths/templates'),
+           # os.path.join(BASE_DIR, 'trading/templates'),
+            #os.path.join(BASE_DIR, 'aops/templates'),
+
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -121,8 +125,8 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 DATABASE_ROUTERS = [
     'maths.dbRouter.MathsDBRouter',
-    #'asset.dbRouter.AssetDBRouter',
-    'trading.dbRouter.TradingDBRouter'
+    'trading.dbRouter.TradingDBRouter',
+    'aops.dbRouter.AopsDBRouter',
 ]
 
 # [START db_setup]
@@ -150,6 +154,13 @@ if os.getenv('GAE_APPLICATION', None):
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'trading'
+        },
+        'aops' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+            'NAME': 'aops'
         }
     }
 else:
@@ -182,6 +193,14 @@ else:
             'HOST': '127.0.0.1',
             'PORT': PORT,
             'NAME': 'trading',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'aops' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '127.0.0.1',
+            'PORT': PORT,
+            'NAME': 'aops',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
         }

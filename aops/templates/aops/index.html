@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  {% block title %}<title>Art of problem solving</title>{% endblock %}
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Add additional CSS in static file -->
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+
+  <!-- Add additional CSS in static file -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+    integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{% static 'css/navbar-top-fixed.css' %}">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+      aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li {% if activate == 'klass' %} class="nav-item active" {% else %} class="nav-item" {% endif %}>
+          <a class="nav-link" href="">Klasssss</a>
+        </li>
+      </ul>
+      <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
+    </div>
+  </nav>
+  <main role="main" class="container-fluid" style="max-width:900px">
+  </main>
+  <div class="container">
+    {% for problem in problems %}
+    <table style="width: 793px; height: 181px; margin-left: auto; margin-right: auto;" border="2">
+      <tbody>
+        <tr>
+          <td style="text-align:center; width:10%;"> # {{problem.id}} </td>
+          <td style="width:85%; text-align:center;"> 
+            ({{problem.year}}) {% for topic in problem.topic.all %}{{topic}} {% if not forloop.last %} / {% endif %} {% endfor %}
+          </td>
+          <td style="width:5%; text-align:center;"> {{problem.difficulty}} </td>
+        </tr>
+        <tr>
+        <td style="text-align:center;"> 
+          {% for category in problem.category.all %}
+            {{category}}</br>{% endfor %}
+        </td>
+          <td style="width:90%; padding:15px" colspan=2> {% if problem.image %}
+                <img src="{{MEDIA_URL}}{{problem.image}}" style="display:block; margin-left:auto;margin-right:auto;max-height:250px;max-width:60%"/></br>
+                {% endif %}
+               {{problem.question |safe}}
+          </td>
+        </tr>
+        <tr>
+        <td style="text-align:center;"> ANS </td>
+        <td style="color:white;" colspan=2> {{problem.answer}} </td>
+        </tr>
+      </tbody>
+    </table>
+    </br>
+    {% endfor %}
+  </div>
+
+  <!-- css and js-->
+
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous">
+  </script>
+
+
+
+</body>
+
+</html>

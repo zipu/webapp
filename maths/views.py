@@ -9,7 +9,7 @@ from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
 
 class DocumentView(TemplateView):
-    template_name = "document.html"
+    template_name = "maths/document.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["documents"] = Document.objects.order_by('-reputation')
@@ -57,7 +57,7 @@ class DocumentView(TemplateView):
 
 
 class KlassView(TemplateView):
-    template_name = "klass.html"
+    template_name = "maths/klass.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["klasses"] = Klass.objects.all().order_by('-status','-pub_date')
@@ -66,7 +66,7 @@ class KlassView(TemplateView):
     
 
 class KlassDetailView(DetailView):
-    template_name = "klassdetail.html"
+    template_name = "maths/klassdetail.html"
     model=Klass
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,7 +132,7 @@ class KlassDetailView(DetailView):
         return redirect(request.path_info)
 
 class ExamView(TemplateView):
-    template_name = "pastexam.html"
+    template_name = "maths/pastexam.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["exams"] = PastExamPaper.objects.all().order_by('exam', '-pub_year')
@@ -140,7 +140,7 @@ class ExamView(TemplateView):
         return context
 
 class ExamDetailView(DetailView):
-    template_name = "pastexamdetail.html"
+    template_name = "maths/pastexamdetail.html"
     model = PastExamPaper
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

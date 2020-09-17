@@ -125,7 +125,7 @@ class ChartView(View):
 
 
 class AssetView(TemplateView):
-    template_name = "asset.html"
+    template_name = "trading/asset.html"
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
@@ -138,7 +138,7 @@ class AssetView(TemplateView):
        return context
 
 class FuturesView(TemplateView):
-    template_name = "futures.html"
+    template_name = "trading/futures.html"
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
@@ -176,7 +176,7 @@ class FuturesHistoryView(ListView):
        return context
 
 class StockView(TemplateView):
-    template_name = "stock.html"
+    template_name = "trading/stock.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -187,7 +187,7 @@ class StockView(TemplateView):
         return context
 
 class StockHistoryView(ListView):
-    template_name = "stock_history.html"
+    template_name = "trading/stock_history.html"
     model = StockTradeUnit
     queryset = StockTradeUnit.objects.all().order_by('-id')
     context_object_name = "trades"
@@ -201,7 +201,7 @@ class StockHistoryView(ListView):
         return context
 
 class CashView(TemplateView):
-    template_name = "cash.html"
+    template_name = "trading/cash.html"
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
