@@ -254,11 +254,12 @@ STATICFILES_DIRS = [
 # Media files (유저 업로드 파일들)
 if os.getenv('GAE_APPLICATION', None):
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-        os.path.join(BASE_DIR,"credentials.json")
-    )
+    #GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    #    os.path.join(BASE_DIR,"credentials.json")
+    #)
     GS_BUCKET_NAME = 'choiyosep.appspot.com'
-    MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
+    MEDIA_URL = f'https://storage.googleapis.com/{ GS_BUCKET_NAME }/'
+    #MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
 
 else:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media_dev') #local media folder for dev

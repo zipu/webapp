@@ -45,3 +45,6 @@ class Problem(models.Model):
 
     def __str__(self):
         return f"{self.id}"
+
+    class Meta:
+        ordering = ('-id',)
