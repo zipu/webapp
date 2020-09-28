@@ -37,7 +37,7 @@ SECRET_KEY = get_secret('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 #
+SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
 DEBUG = False if os.getenv('GAE_APPLICATION', None) else True
 if DEBUG == False:
@@ -257,7 +257,7 @@ if os.getenv('GAE_APPLICATION', None):
     #GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     #    os.path.join(BASE_DIR,"credentials.json")
     #)
-    GS_BUCKET_NAME = 'choiyosep.appspot.com'
+    GS_BUCKET_NAME = 'yosebi.appspot.com'
     MEDIA_URL = f'https://storage.googleapis.com/{ GS_BUCKET_NAME }/'
     #MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
 

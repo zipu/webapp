@@ -5,7 +5,8 @@ from django.views.generic import RedirectView
 from .views import AopsView
 
 urlpatterns = [
-    #path('', RedirectView.as_view(url='aops', permanent=False)),
-    path('', AopsView.as_view(), name='aops'),
+    path('', RedirectView.as_view(url='1', permanent=False), name='index'),
+    #path('', AopsView.as_view(), name='aops'),
+    path('<int:page>', AopsView.as_view(), name='aops'),
 ]
 

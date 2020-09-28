@@ -7,6 +7,8 @@
   {% block title %}<title>Art of problem solving</title>{% endblock %}
   <!-- Required meta tags -->
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
   <!-- Katex things -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"
     integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
@@ -17,79 +19,67 @@
     integrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous">
   </script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      padding-top: 20px;
-    }
-    select {
-      display: block;
-      width: 80%;
-      margin: 0 auto;
-      margin-bottom: 10px;
-    }
-    table {
-      border-collapse:collapse;
-    }
-    .column {
-      float: left;
-      padding: 10px;
-    }
 
-    .left { 
-      max-width: 200px;
-      width: 25%; }
-    .right { 
-      width: 75%;
-      max-width: 1000px;
-    }
-
-    .disabled {
-      pointer-events: none;
-      cursor: default;
-      text-decoration: none;
-      color: black !important;
-    }
-    .pagination {
-     display: block;
-     text-align:center;
-    }
-
-    .pagination a {
-      color: blue;
-      margin: 0 auto;
-      padding: 8px 16px;
-      text-decoration: none;
-    }
-
-  </style>
+  <!-- Add additional CSS in static file -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'css/navbar-top-fixed.css' %}">
 </head>
 
 <body>
-  <div class="row">
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+      aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li {% if activate == 'klass' %} class="nav-item active" {% else %} class="nav-item" {% endif %}>
+          <a class="nav-link" href="">Klasssss</a>
+        </li>
+      </ul>
+      <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
+    </div>
+  </nav>
+  <main role="main" class="container-fluid">
+    <div class="container">
       <!-- 검색 필드 -->
-        <div class="column left">
+      <div class="row justify-content-md-center">
+        <div class="col col-sm-2">
           <form action="1" method="get">
-            <select name="category" multiple>
+            <select name="category" style="
+                display: block;
+                width: 80%;
+                margin: 0 auto;
+                margin-bottom: 10px;
+                margin-top: 30px;" multiple>
               {% for category in categories %}
               <option value="{{category.name}}">{{category.name}}</option>
               {% endfor %}
             </select>
-            <select name='topic' multiple>
+            <select name='topic' style="display: block;width: 80%;margin: 0 auto;margin-bottom: 10px;margin-top: 20px;"
+              multiple>
               {% for topic in topics %}
               <option value="{{topic.name}}">{{topic.name}}</option>
               {% endfor %}
             </select>
-            <select name='difficulty' style="height: 30px;" multiple>
+            <select name='difficulty' style="
+                display: block;
+                height: 30px;
+                width:  80%;
+                margin: 0 auto;
+                margin-bottom:  10px;" multiple>
               <option value=1 style="display: table-cell;"> 1 </option>
               <option value=2 style="display: table-cell;"> 2 </option>
               <option value=3 style="display: table-cell;"> 3 </option>
               <option value=4 style="display: table-cell;"> 4 </option>
               <option value=5 style="display: table-cell;"> 5 </option>
             </select>
-            <select name='year' multiple>
+            <select name='year' style="
+                display: block;
+                width:  80%;
+                margin: 0 auto;
+                margin-bottom:  10px; " multiple>
               {% for year in years %}
               <option value={{year.0}}>{{year.0 }}</option>
               {% endfor %}
@@ -97,9 +87,11 @@
             <input type="submit" value="search" style="display:block;float:right;margin-right:15%">
             </br>
           </form>
+          
         </div>
+        <!-- 검색 끝 !-->
         <!-- 문제 리스트 -->
-        <div class="column right">
+        <div class="col">
           {% for problem in page_obj %}
           <table style="table-layout:fixed; width:90%; min-width:800px"
             border="2">
@@ -136,36 +128,60 @@
 
           <!-- pagination -->
           {% if is_paginated %}
-          <div class="pagination">
-                <a class="{% if not page_obj.has_previous %}disabled{% endif %}"
-                    href="{% url 'aops' page=1 %}?{{ request.GET.urlencode }}"> &laquo;
+          <nav aria-label="Page navigator">
+            <ul class="pagination pagination-sm justify-content-center">
+              <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                <a class="page-link" href="{% url 'aops' page=1 %}?{{ request.GET.urlencode }}" aria-label="First">
+                  <span aria-hidden="true">&laquo;</span>
+                  <span class="sr-only">First</span>
                 </a>
-                <a class="{% if not page_obj.has_previous %}disabled{% endif %}" 
-                   href="{% url 'aops' page=page_obj.number|add:"-1" %}?{{ request.GET.urlencode }}">
-                   &lt;
+              </li>
+              <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                <a class="page-link" href="{% url 'aops' page=page_obj.number|add:"-1" %}?{{ request.GET.urlencode }}"
+                  aria-label="Previous">
+                  <span aria-hidden="true">&lt;</span>
+                  <span class="sr-only">Previous</span>
                 </a>
+              </li>
               {% for i in page_range %}
-                {% if page_obj.number == i %}
-                  <a class="disabled" href="#">{{i}} </a>
-                {% else %}
-                  <a href="{% url 'aops' page=i %}?{{ request.GET.urlencode }}"
-                     style="text-decoration:underline">{{i}}</a>
-                {% endif %}
+              {% if page_obj.number == i %}
+              <li class="page-item disabled">
+                <a class="page-link" href="#">{{i}} <span class="sr-only">(current)</span></a>
+              </li>
+              {% else %}
+              <li class="page-item"><a class="page-link"
+                  href="{% url 'aops' page=i %}?{{ request.GET.urlencode }}">{{i}}</a></li>
+              {% endif %}
               {% endfor %}
-                <a class="{% if not page_obj.has_next %}disabled{% endif %}"
-                   href="{% url 'aops' page=page_obj.number|add:"1" %}?{{ request.GET.urlencode }}">
-                  &gt;
+              <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{% url 'aops' page=page_obj.number|add:"1" %}?{{ request.GET.urlencode }}"
+                  aria-label="next">
+                  <span aria-hidden="true">&gt;</span>
+                  <span class="sr-only">Next</span>
                 </a>
-                <a class="{% if not page_obj.has_next %}disabled{% endif %}"
-                  href="{% url 'aops' page=page_obj.paginator.num_pages %}?{{ request.GET.urlencode }}">
-                  &raquo;
+              </li>
+              <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                <a class="page-link"
+                  href="{% url 'aops' page=page_obj.paginator.num_pages %}?{{ request.GET.urlencode }}"
+                  aria-label="Last">
+                  <span aria-hidden="true">&raquo;</span>
+                  <span class="sr-only">Last</span>
                 </a>
-          </div>
+              </li>
+            </ul>
+          </nav>
           {% endif %}
         </div>
- </div>
+      </div>
+    </div>
+  </main>
+
+
+
+
 
   <!-- css and js-->
+
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
   </script>
