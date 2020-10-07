@@ -4,5 +4,5 @@ from django.contrib import admin
 from aops.models import Problem, Topic, Category
 
 admin.site.register(
- [Problem, Category, Topic]
+ [Problem]
 )

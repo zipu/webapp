@@ -1,0 +1,30 @@
+{% extends "tutoring/index.html"%}
+
+{% block content %}
+         
+          <table class="students">
+            <thead>
+              <tr>
+                <td style="width:5%;">#</td>
+                <td style="width:15%;">등록일</td>
+                <td style="width:20%;">이름</td>
+                <td style="width:15%;">학교</td>
+                <td style="width:15%;">학년</td>
+                <td style="width:10%;">등록</td>
+                <td style="width:20%;">비고</td>
+              </tr>
+            </thead>
+            <tbody>
+              {%for student in students %}
+                  <td>{{student.pk}}</td>
+                  <td>{{student.date|date:"Y-m-d"}}</td>
+                  <td><a href="{% url 'studentdetail' name=student.name %}">{{student.name}}</a></td>
+                  <td>{{student.school}}</td>
+                  <td>{{student.year}}</td>
+                  <td>{% if student.status %} 등록 {% else %} 미등록 {% endif %}</td>
+                  <td>{{student.note |default_if_none:""}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+{% endblock %}

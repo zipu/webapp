@@ -15,7 +15,6 @@ class AopsView(TemplateView):
     def get(self, request, *args, **kwargs):
         problems = Problem.objects.all()
         params = dict(request.GET)
-        
         # 검색식 필터링
         if params.get('category'):
             query = Q(category__name=params['category'][0])

@@ -1,0 +1,115 @@
+{% extends "tutoring/index.html"%}
+
+{% block content %}
+          <div id="student-info">
+            <p><b>&#9632; 인적사항</b></p>
+            <table>
+              <tbody>
+                <tr>
+                  <th>이름</th>
+                  <td>{{student.name}}</td>
+                  <th>등록일</th>
+                  <td>{{student.date|date:"Y-m-d" }}</td>
+                </tr>
+                <tr>
+                  <th>학교</th>
+                  <td>{{student.school}}</td>
+                  <th>학년</th>
+                  <td>{{student.year}}</td>
+                </tr>
+                <tr>
+                  <th>지역</th>
+                  <td>{{student.region}}</td>
+                  <th>위챗</th>
+                  <td>{{student.wechat_id }}</td>
+                </tr>
+                <tr>
+                  <th>주소</th>
+                  <td colspan=3>{{student.address|default_if_none:""}}</td>
+                </tr>
+                <tr>
+                  <th>상태</th>
+                  <td>{% if student.status %} 등록 {% else %} 미등록 {% endif %}</td>
+                  <th>비고</th>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+            <br>
+            <p><b>&#9632; 수업료 납부현황</b></p>
+            <table>
+              <tbody>
+                <tr>
+                  <th>납부총액</th><td>&yen;{{tuition.deposit}}</td>
+                  <th>잔액</th><td>&yen;{{tuition.usage}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <br>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30%;">날짜</th>
+                  <th style="width:50%;">금액</th>
+                  <th style="width:20%;">납부방식</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in tuition.records %}
+                <tr>
+                  <td>{{record.date |date:"Y-m-d"}}</td>
+                  <td>&yen;{{record.deposit}}</a></td>
+                  <td>{{record.payment}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <br>
+            <p><b>&#9632; 수업 리스트</b></p>
+            <table id="course-list">
+              <thead>
+                <tr>
+                  <th style="width:15%">시작일</th>
+                  <th style="width:40%" >수업명</th>
+                  <th style="width:30%">과정</th>
+                  <th style="width:15%">진행상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for course in courses %}
+                <tr>
+                  <td>{{course.startdate |date:"Y-m-d"}}</td>
+                  <td><a href="{% url "coursedetail" pk=course.pk %}">{{course.name}}</a></td>
+                  <td>{{course.curriculum.name}}</td>
+                  <td>{% if course.status %} 진행중 {% else %} 완료 {% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <br>
+            <p><b>&#9632; 수업 상세</b></p>
+            <table id="student-lessons">
+              <thead>
+                <tr>
+                  <th style="width:13%">수업일</th>
+                  <th style="width:13%" >시간</th>
+                  <th style="width:18%">단원</th>
+                  <th style="width:40%">수업내용</th>
+                  <th style="width:15%">과정</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for at in attendences %}
+                <tr>
+                  <td>{{at.lesson.date |date:"Y-m-d"}}</td>
+                  <td>{{at.lesson.start |date:"H:i"}}~{{at.lesson.end |date:"H:i"}}</td>
+                  <td>{{at.lesson.topic |default_if_none:""}}</a></td>
+                  <td>{{at.lesson.name}}</td>
+                  <td>{{at.lesson.course.curriculum.name}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "tutoring/index.html"%}
+
+{% block content %}
+          <table class="course">
+            <thead>
+              <tr>
+                <td style="width:5%;">#</td>
+                <td style="width:13%;">수업일</td>
+                <td style="width:12%;">시간</td>
+                <td style="width:35%;">수업내용</td>
+                <td style="width:10%;">출석학생</td>
+                <td style="width:25%;">숙제</td>
+              </tr>
+            </thead>
+            <tbody>
+              {%for lesson in lessons %}
+                <tr style="font-weight:normal">
+                  <td>{{forloop.revcounter}}</td>
+                  <td>{{lesson.date |date:"Y-m-d"}}</td>
+                  <td>{{lesson.start |date:"H:i"}}~{{lesson.end |date:"H:i"}}</td>
+                  <td>{{lesson.name}}</td>
+                  <td>{% for at in lesson.attendence_set.all %}<a href="{% url "studentdetail" name=at.student.name %}">{{at.student.name}}</a> {% endfor %}</td>
+                  <td>{{lesson.homework |default_if_none:""}}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+{% endblock %}

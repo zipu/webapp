@@ -1,0 +1,78 @@
+{% extends "tutoring/index.html"%}
+
+{% block content %}
+          <table class="calander" style="border:none;">
+            <tr>
+              <td style="height:20px;border:none;padding-left:30px;padding-right:30px;">
+                <a href="{% url 'calendar' %}?week={{weekidx|add:-1}}" style='float:left;'> &lt;&lt; 지난주</a>
+                <a href="{% url 'calendar' %}?week=0" style='margin:0 auto;'> 오늘 </a>
+                <a href="{% url 'calendar' %}?week={{weekidx|add:1}}" style='float:right;'>다음주 &gt;&gt;</a>
+              </td>
+            </tr>
+          </table>
+          <table class="calander">
+            <thead>
+              <tr>
+                <td rowspan=2>시간</td>
+                <td>월</td>
+                <td>화</td>
+                <td>수</td>
+                <td>목</td>
+                <td>금</td>
+                <td>토</td>
+                <td>일</td>
+              </tr>
+              <tr>
+                {% for num in thisweek %}
+                <td {% if today == num %}style="background-color: yellow;"{% endif %}>{{num |date:'n월 j일'}}</td>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in '0123456789abcd' %}
+              <tr>
+                <td style="border-top:1px solid black;" > {{forloop.counter|add:9}}:00  </td>
+                {% if i == '0' %}
+                  {% for v in dayworks.values %}
+                  <td style="padding:0px;" rowspan=14>
+                    <div style="height:100%;width:100%;position:relative;">
+                      {% if v.todo %}
+                        {% for lesson in v.todo %}
+                          {% if not lesson.0.pk in course_pks %}
+                          <div class="todo" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:beige;">
+                              <a href="{% url "coursedetail" pk=lesson.0.pk %}">{{lesson.0.name}}</a><br>
+                              {{lesson.3}}<br>
+                              {% for student in lesson.0.student.all %}
+                                <a href="{% url 'studentdetail' name=student.name %}">{{ student.name }}</a>
+                              {% endfor %}
+                          </div>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+
+                      {% if v.done %}
+                        {% for lesson in v.done %}
+                        <div class="done" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:#AFEEEE;">
+                            <a href="{% url "coursedetail" pk=lesson.0.course.pk %}">{{lesson.0.course.name}}</a><br>
+                            {{lesson.3}}<br>
+                            {% for student in lesson.0.course.student.all %}
+                              {% if student.name in lesson.4 %}
+                                <a href="{% url 'studentdetail' name=student.name %}">{{ student.name }}</a>
+                              {% else %}
+                                <a href="{% url 'studentdetail' name=student.name %}" style="text-decoration:line-through;">{{ student.name }}</a>
+                              {% endif %}
+                            {% endfor %}
+
+                        </div>
+                        {% endfor %}
+                      {% endif %}
+
+                    </div>
+                  </td>
+                  {% endfor %}
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+{% endblock %}

@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize', #humanize app like 'intcomma'
     'maths.apps.MathsConfig', #수학자료
-    #'asset.apps.AssetConfig', #asset
+    'tutoring.apps.TutoringConfig', # 과외 
     'trading.apps.TradingConfig', #트레이딩 ,
     'aops.apps.AopsConfig' #수학문제, art of problem solving
 ]
@@ -127,6 +127,7 @@ DATABASE_ROUTERS = [
     'maths.dbRouter.MathsDBRouter',
     'trading.dbRouter.TradingDBRouter',
     'aops.dbRouter.AopsDBRouter',
+    'tutoring.dbRouter.TutoringDBRouter',
 ]
 
 # [START db_setup]
@@ -161,6 +162,13 @@ if os.getenv('GAE_APPLICATION', None):
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
             'NAME': 'aops'
+        },
+        'tutoring' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+            'NAME': 'tutoring'
         }
     }
 else:
@@ -170,7 +178,7 @@ else:
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    PORT = '3306' #local: 3306, remote: 3307
+    PORT = '3307' #local: 3306, remote: 3307
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -201,6 +209,14 @@ else:
             'HOST': '127.0.0.1',
             'PORT': PORT,
             'NAME': 'aops',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'tutoring' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '127.0.0.1',
+            'PORT': PORT,
+            'NAME': 'tutoring',
             'USER': get_secret('DB_USERNAME'),
             'PASSWORD': get_secret('DB_PASSWORD'),
         }
@@ -248,7 +264,8 @@ STATIC_ROOT = 'static'#os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "webapp/static"),
-    os.path.join(BASE_DIR, "maths/static")
+    os.path.join(BASE_DIR, "maths/static"),
+    os.path.join(BASE_DIR, "tutoring/static"),
 ]
 
 # Media files (유저 업로드 파일들)

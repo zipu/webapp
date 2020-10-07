@@ -23,10 +23,11 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
-    path('maths/', include('maths.urls')),
+    path('maths/', include('maths.urls'), name='maths'),
     #path('asset/', include('asset.urls')),
     path('trading/', include('trading.urls')),
     path('aops/', include('aops.urls')),
+    path('tutoring/', include('tutoring.urls')),
 ]
 
 
