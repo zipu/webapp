@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Sum
+
 from datetime import datetime
 
 SCHOOLS = [
@@ -29,6 +31,20 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    # 납입 잔액
+    def balance(self):
+        total = Tuition.objects.filter(student=self)\
+                    .aggregate(Sum('deposit'))['deposit__sum'] or 0
+
+        attendences = Attendence.objects.filter(student=self)
+        usage = sum([l.lesson.course.tuition for l in attendences] )
+        balance = total - usage
+        return balance
+    
+    def total_deposit(self):
+        return Tuition.objects.filter(student=self)\
+                .aggregate(Sum('deposit'))['deposit__sum']
 
     class Meta:
         ordering = ('pk', )

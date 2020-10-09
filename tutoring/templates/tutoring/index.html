@@ -1,31 +1,48 @@
-{% load static %}
-<!DOCTYPE html>
+{% extends "tutoring/base.html"%}
 
-<html lang="en">
-
-<head>
-  {% block title %}<title>Tutoring</title>{% endblock %}
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="{% static 'css/tutoring.css' %}">
-</head>
-
-<body>
-  <div class="topnav">
-    <a href="{% url 'calendar' %}">시간표</a> /
-    <a href="{% url 'course' %}">수업정보</a> /
-    <a href="{% url 'student' %}">학생정보</a> /
-    <a href="{% url 'logout' %}" style="float:right;padding-right:40px;">로그아웃</a> 
-
-  </div>
-  <div class="row">
-      <!-- 사이드 메뉴 -->
-        <!-- 시간표 -->
-        <div class="column">
-          {% block content %}
-          {% endblock %}
-        </div>
- </div>
-</body>
-
-</html>
+{% block content %}
+          <div id="index">
+            {% for day in days %}
+              <p> * <b {% if day.0.weekday == today.weekday %}style='background-color:yellow;'{% endif %}>{{day.0 |date:"Y-m-d"}} ({{day.1}}) </b></p>
+              {% if day.2 %}
+                {% for lesson in day.2%}
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th style="width:20%;">수업</th>
+                        <td><a href="{% url 'coursedetail' pk=lesson.0.pk %}">{{lesson.0.name}}</a> ({{lesson.0.curriculum.name}})</td>
+                        <th style="width:15%;">시간</th>
+                        <td>{{lesson.1 |date:"H:i"}} ~ {{lesson.2 |date:"H:i"}}</td>
+                      </tr>
+                      {% for s in lesson.0.student.all %}
+                      <tr>
+                        <th>학생</th>
+                        <td>
+                            <a href="{% url 'studentdetail' name=s.name%}">{{s.name}}</a></td>
+                        <th>잔액</th>
+                        <td>
+                            &yen;{{s.balance|floatformat:"0"}} (남은횟수: {% widthratio s.balance lesson.0.tuition 1 %})</td>
+                      </tr>
+                      {% endfor %}
+                      <tr>
+                        <th>지난 수업내용</th>
+                        <td colspan=3> {{lesson.0.lesson_set.first.name}}</td>
+                      </tr>
+                      <tr>
+                        <th>숙제</th>
+                        <td colspan=3>{{lesson.0.lesson_set.first.homework|default_if_none:""}}</td>
+                      </tr>
+                      <tr>
+                        <th>특이사항</th>
+                        <td colspan=3>{{lesson.0.lesson_set.first.note|default_if_none:""}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <br>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+         
+          </div>
+          
+{% endblock %}

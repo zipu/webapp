@@ -117,7 +117,7 @@ a {
   height: 35px;
 }
 
-#student-info th {
+#student-info th{
   background-color: beige;;
 }
 
@@ -126,5 +126,30 @@ a {
 }
 
 #student-lessons tbody tr {
+  font-size: 95%;
+}
+
+/* index view */
+#index > table {
+  text-align: center;
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 85%;
+  min-width: 800px;
+}
+
+#index tr {
+  height: 25px;
+}
+
+#index th{
+  background-color: beige;;
+}
+
+#index td, #index th  {
+  border: 1px solid grey;
+}
+
+#index tbody td {
   font-size: 95%;
 }

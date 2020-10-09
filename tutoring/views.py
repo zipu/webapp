@@ -10,6 +10,7 @@ from .models import Course, Lesson, Student, Tuition, Attendence
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
+
 class Calendar:
     def __init__(self, weekidx):
         """ 오늘 기준으로 이번주 week=0, 지난주는 week=-1, 다음주는 week=1"""
@@ -18,6 +19,8 @@ class Calendar:
         todaynum = self.today.weekday()
         self._thisweek = [self.today + timedelta(i-todaynum) for i in range(7)]
     
+    
+    # 현재 사용 안함
     def time_sequences(self):
         """ 매 5분단위 시간을 9시~밤12시까지 tuple 형태로 표현된 리스트 반환
             ex) 9시 15분 = (9,15)"""
@@ -56,8 +59,39 @@ class Calendar:
     def last(self):
         return self.thisweek[-1]
     
+    @property
+    def weekdays(self):
+        return ['MON','TUE','WED','THU','FRI','SAT','SUN']
 
-class TutoringView(TemplateView):
+class IndexView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        context={}
+        courses = Course.objects.filter(status=True)
+        today = datetime.today().date()
+        days=[]
+        # 향후 7일동안의 수업일정을 불러옴
+        weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
+        weekdays_kor = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일']
+        for date in [today + + timedelta(i) for i in range(7)]:
+            day = weekdays[date.weekday()] #요일
+            day_kor = weekdays_kor[date.weekday()] #요일-한글
+            work = [date, day_kor] 
+            lesson = courses.filter(time__contains=day)
+            l = []
+            for item in lesson:
+                strtime = [t for t in item.time.split(';') if day in t][0] #WED16001730
+                start = time(int(strtime[3:5]),int(strtime[5:7]))
+                end = time(int(strtime[7:9]),int(strtime[9:]))
+                l.append(
+                    (item, start, end)
+                )
+            work.append(l)
+            days.append(work)
+        context['days'] = days
+        context['today'] = today
+        return render(request, "tutoring/index.html", context)
+
+class CalendarView(TemplateView):
     #template_name = "tutoring/calendar.html"
 
     def get(self, request, *args, **kwargs):

@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  {% block title %}<title>Tutoring</title>{% endblock %}
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="{% static 'css/tutoring.css' %}">
+</head>
+
+<body>
+  <div class="topnav">
+    <a href="{% url 'index' %}">홈</a> /
+    <a href="{% url 'calendar' %}">시간표</a> /
+    <a href="{% url 'course' %}">수업정보</a> /
+    <a href="{% url 'student' %}">학생정보</a> /
+    <a href="{% url 'logout' %}" style="float:right;padding-right:40px;">로그아웃</a> 
+
+  </div>
+  <div class="row">
+        <div class="column">
+          {% block content %}
+          {% endblock %}
+        </div>
+ </div>
+</body>
+
+</html>
