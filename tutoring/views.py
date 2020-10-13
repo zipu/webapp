@@ -172,19 +172,36 @@ class StudentDetailView(TemplateView):
     def get(self, request, *args, **kwargs):
         student = Student.objects.get(name=kwargs['name'])
         courses = Course.objects.filter(student=student)
-        attendences = Attendence.objects.filter(student=student).order_by('-pk')
+        attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')
         tuition = Tuition.objects.filter(student=student)
-        deposit = tuition.aggregate(Sum('deposit'))['deposit__sum']
-        usage = sum([l.lesson.course.tuition for l in attendences])
+        #deposit = tuition.aggregate(Sum('deposit'))['deposit__sum']
+        #usage = sum([l.lesson.course.tuition for l in attendences])
         context={}
         context["student"] = student
         context["courses"] = courses
-        context["attendences"] = attendences
+        context["attendences"] = attendences[:10] #수업목록 10회만 보임
         context["tuition"] = {
             'records': tuition,
-            'deposit': deposit if deposit else 0,
-            'usage': deposit-usage if deposit and usage else 0
+            'deposit': student.total_deposit(),
+            'usage': student.balance()
         }
-
-        
         return render(request, "tutoring/student_detail.html", context)
+
+class StatementView(TemplateView):
+    #template_name = "tutoring/coursedetail.html"
+    def get(self, request, *args, **kwargs):
+        params = dict(request.GET)
+        student = Student.objects.get(pk=params.get('student')[0])
+        attendences = []
+        if params.get('attendences'):
+            for at in reversed(params['attendences']):
+                attendences.append(Attendence.objects.get(pk=at))
+        course = attendences[-1].lesson.course if attendences else None
+        context = {}
+        context['student'] = student
+        context['attendences'] = attendences
+        context['course'] = course
+        context['tuition'] = Tuition.objects.filter(student=student).order_by('-date').first()
+        context['nums'] = len(attendences)
+        context['today'] = datetime.today().date()
+        return render(request, "tutoring/statement.html", context)

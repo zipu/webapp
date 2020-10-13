@@ -1,0 +1,64 @@
+{% load static %}
+<head>
+  <link rel="stylesheet" href="{% static 'css/tutoring.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+  <style>
+    body{
+      font-family: 'Nanum Gothic', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="statement">
+    <h2> 수업내역서 </h2>
+    <div id="intro">
+      <p>&nbsp;&nbsp;&nbsp;<b>{{student.name}}</b> 학생의 지난 <b>{{tuition.date |date:"Y년 n월 j일"}}</b> 납부하신
+       <b>{{nums}}회분</b> 수업료에 대한 수업이 아래와 같이 진행되었습니다. 확인해 보시고 문의사항이 있으면 연락 주시기 바랍니다. </p>  
+    </div>
+     <table id="statement-info">
+      <tbody>
+      <tr>
+        <th style="width:10%">과정</th><td style="width:30%;">{{course.curriculum.name}}</td>
+        <th style="width:10%">교재</th><td>{{course.textbook}}</td>
+      </tr>
+      </tbody>
+    </table>
+    <br>
+    
+    {% for at in attendences %}
+      <div id="statement-detail">
+      <p style="margin-bottom:8px; font-size:13px;"> <b>{{forloop.counter}}. {{at.lesson.date |date:"Y년 n월 j일"}} ({{at.lesson.start |date:"H시i분"}} - {{at.lesson.end |date:"H시i분"}}) </b></p>
+      <table class='lesson-table'>
+        <tbody>
+          <tr>
+            <th>단원</th>
+            <td colspan=3>{{at.lesson.topic|default_if_none:""}}</td>
+            <th>지난숙제</th>
+            <td colspan=1 style='font-size:15px;'>
+              {% if at.homework == "1" %} &#x25CB; 
+              {% elif at.homework == "2" %} &#9651;
+              {% elif at.homework == "3" %} &#10005;
+              {% elif at.homework == "4" %} 
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>수업내용</th>
+            <td colspan=5>{{at.lesson.name}}</td>
+          </tr>
+          <tr>
+            <th>숙제</th>
+            <td colspan=5>{{at.lesson.homework |default_if_none:""}}</td>
+          </tr>
+          <tr>
+            <th>특이사항</th>
+            <td colspan=5>{{at.note |default_if_none:""}}</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    {% endfor %}
+    <p style="float:right; margin-top:0; padding-right:10px;font-size:14px;"> <b>{{today |date:"Y년 n월 j일"}}</b> </p>
+
+  </div>
+</body>

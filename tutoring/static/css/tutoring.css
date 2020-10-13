@@ -105,7 +105,7 @@ a {
   font-weight: bold;;
 }
 
-#student-info > table {
+#student-info  table {
   text-align: center;
   table-layout: fixed;
   border-collapse: collapse;
@@ -152,4 +152,76 @@ a {
 
 #index tbody td {
   font-size: 95%;
+}
+
+/* statement */
+@media all{
+#statement {
+  width:90%;
+  margin:0 auto;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+
+#statement h2 {
+  text-align: center;
+  padding-top: 1%;
+}
+
+#intro {
+  margin-top: 25px;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.lesson-table {
+  width: 100%;
+  text-align: center;
+  table-layout: fixed;
+  border-collapse: collapse;
+  page-break-inside : avoid;
+  border:1px solid black;
+  margin-bottom: 25px;
+
+}
+.lesson-table tr {
+  height: 20px;
+}
+
+.lesson-table th{
+  background-color: rgb(242,242,242);
+  font-size: 12px;
+  border: 1px solid lightgrey;
+}
+
+.lesson-table td {
+  font-size: 12px;
+  border: 1px solid lightgrey;
+}
+
+#statement-detail {
+  page-break-inside: avoid;
+}
+
+#statement-info {
+  margin-top: 30px;
+  width: 100%;
+  height:40px;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  font-size: 15px;
+}
+
+#statement-info th{
+  text-align: left;
+  padding-left: 13px;
+}
+
+#statement-info td{
+  text-align: left;
+  padding-left: 10px;
+}
+
 }

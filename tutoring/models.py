@@ -34,8 +34,7 @@ class Student(models.Model):
 
     # 납입 잔액
     def balance(self):
-        total = Tuition.objects.filter(student=self)\
-                    .aggregate(Sum('deposit'))['deposit__sum'] or 0
+        total = self.total_deposit()
 
         attendences = Attendence.objects.filter(student=self)
         usage = sum([l.lesson.course.tuition for l in attendences] )
@@ -44,7 +43,7 @@ class Student(models.Model):
     
     def total_deposit(self):
         return Tuition.objects.filter(student=self)\
-                .aggregate(Sum('deposit'))['deposit__sum']
+                .aggregate(Sum('deposit'))['deposit__sum'] or 0
 
     class Meta:
         ordering = ('pk', )
@@ -73,6 +72,7 @@ class Course(models.Model):
                    WED15001630;SUN16001730"
     )
     student = models.ManyToManyField("Student", verbose_name="학생")
+    textbook = models.CharField(max_length=50, blank=True, null=True, verbose_name="주교재")
     tuition = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="수업료")
     status = models.BooleanField(verbose_name="진행상태")
 
@@ -103,13 +103,14 @@ class Lesson(models.Model):
 class Attendence(models.Model):
     """ 출결상황 """
     HOMEWORK = [
-        (1, "잘해옴"),
-        (2, "부족"),
-        (3, "안함"),
+        ('1', "잘해옴"),
+        ('2', "부족"),
+        ('3', "안함"),
+        ('4', "")
     ]
     lesson = models.ForeignKey("Lesson", on_delete=models.PROTECT)
     student = models.ForeignKey("Student", on_delete=models.PROTECT)
-    homework = models.SmallIntegerField(choices=HOMEWORK, verbose_name="숙제")
+    homework = models.CharField(choices=HOMEWORK, blank=True, null=True, max_length=250)
     note = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):

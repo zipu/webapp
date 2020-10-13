@@ -87,29 +87,39 @@
               </tbody>
             </table>
             <br>
-            <p><b>&#9632; 수업 상세</b></p>
-            <table id="student-lessons">
-              <thead>
-                <tr>
-                  <th style="width:13%">수업일</th>
-                  <th style="width:13%" >시간</th>
-                  <th style="width:18%">단원</th>
-                  <th style="width:40%">수업내용</th>
-                  <th style="width:15%">과정</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for at in attendences %}
-                <tr>
-                  <td>{{at.lesson.date |date:"Y-m-d"}}</td>
-                  <td>{{at.lesson.start |date:"H:i"}}~{{at.lesson.end |date:"H:i"}}</td>
-                  <td>{{at.lesson.topic |default_if_none:""}}</a></td>
-                  <td>{{at.lesson.name}}</td>
-                  <td>{{at.lesson.course.curriculum.name}}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+            <form method="get"
+                  target="수업내역서"
+                  action="{% url 'statement' %}"
+                  onsubmit="window.open('about:blank','수업내역서', 'width=800,height=800');">
+            <p><b>&#9632; 지난 수업 목록 (10회) </b> 
+               <input type="submit" value="내역서 출력">
+               <input type="hidden" name="student" value="{{student.pk}}"> 
+               </p>
+              <table id="student-lessons">
+                <thead>
+                  <tr>
+                    <th style="width:12%">수업일</th>
+                    <th style="width:12%" >시간</th>
+                    <th style="width:17%">단원</th>
+                    <th style="width:40%">수업내용</th>
+                    <th style="width:12%">과정</th>
+                    <th style="width:5%"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for at in attendences %}
+                  <tr>
+                    <td>{{at.lesson.date |date:"Y-m-d"}}</td>
+                    <td>{{at.lesson.start |date:"H:i"}}~{{at.lesson.end |date:"H:i"}}</td>
+                    <td>{{at.lesson.topic |default_if_none:""}}</a></td>
+                    <td>{{at.lesson.name}}</td>
+                    <td>{{at.lesson.course.curriculum.name}}</td>
+                    <td><input type="checkbox" name="attendences" value={{at.pk}} /> </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </form>
           </div>
           
 {% endblock %}
