@@ -65,14 +65,19 @@
               </tbody>
             </table>
             <br>
+            <form method="get"
+                  target="수업내역서"
+                  action="{% url 'statement' %}"
+                  onsubmit="window.open('about:blank','수업내역서', 'width=800,height=800');">
             <p><b>&#9632; 수업 리스트</b></p>
             <table id="course-list">
               <thead>
                 <tr>
                   <th style="width:15%">시작일</th>
                   <th style="width:40%" >수업명</th>
-                  <th style="width:30%">과정</th>
+                  <th style="width:25%">과정</th>
                   <th style="width:15%">진행상태</th>
+                  <th style="width:5%"></th>
                 </tr>
               </thead>
               <tbody>
@@ -82,17 +87,15 @@
                   <td><a href="{% url "coursedetail" pk=course.pk %}">{{course.name}}</a></td>
                   <td>{{course.curriculum.name}}</td>
                   <td>{% if course.status %} 진행중 {% else %} 완료 {% endif %}</td>
+                  <td><input type="checkbox" name="course" value={{course.pk}} /> </td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
             <br>
-            <form method="get"
-                  target="수업내역서"
-                  action="{% url 'statement' %}"
-                  onsubmit="window.open('about:blank','수업내역서', 'width=800,height=800');">
+            
             <p><b>&#9632; 지난 수업 목록 (10회) </b> 
-               <input type="submit" value="내역서 출력">
+               
                <input type="hidden" name="student" value="{{student.pk}}"> 
                </p>
               <table id="student-lessons">
@@ -119,7 +122,10 @@
                   {% endfor %}
                 </tbody>
               </table>
+            
+             <input type="submit" value="내역서 출력" style="display:block; margin: 0 auto; margin-top:10px">
             </form>
+            <br>
           </div>
           
 {% endblock %}

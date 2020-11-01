@@ -66,8 +66,10 @@ class Calendar:
 class IndexView(TemplateView):
     def get(self, request, *args, **kwargs):
         context={}
-        courses = Course.objects.filter(status=True)
+        courses = Course.objects.filter(status=True).all()
+        #courses = Course.objects.filter(status=True)
         today = datetime.today().date()
+
         days=[]
         # 향후 7일동안의 수업일정을 불러옴
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
@@ -76,6 +78,7 @@ class IndexView(TemplateView):
             day = weekdays[date.weekday()] #요일
             day_kor = weekdays_kor[date.weekday()] #요일-한글
             work = [date, day_kor] 
+            #lesson = [l for l in courses if day in l]
             lesson = courses.filter(time__contains=day)
             l = []
             for item in lesson:
@@ -196,12 +199,24 @@ class StatementView(TemplateView):
         if params.get('attendences'):
             for at in reversed(params['attendences']):
                 attendences.append(Attendence.objects.get(pk=at))
-        course = attendences[-1].lesson.course if attendences else None
+        #course = attendences[-1].lesson.course if attendences else None
+        if params.get('course'):
+            course = Course.objects.get(pk=params['course'][0])
+        else:
+            course = None
+
+        tuition = {
+            'last_payment_date': Tuition.objects.filter(student=student).order_by('-date').first().date, #최근 납입일
+            'lesson_start_date': attendences[-1].lesson.date + timedelta(1) if attendences else None, #수업료 적용 날짜
+            'amount': course.tuition * 4 if course else None, #총납부액
+            'fee': course.tuition if course else None, #회당수업료
+        }
+        
         context = {}
         context['student'] = student
         context['attendences'] = attendences
         context['course'] = course
-        context['tuition'] = Tuition.objects.filter(student=student).order_by('-date').first()
+        context['tuition'] = tuition
         context['nums'] = len(attendences)
         context['today'] = datetime.today().date()
         return render(request, "tutoring/statement.html", context)

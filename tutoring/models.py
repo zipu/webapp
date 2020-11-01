@@ -62,6 +62,7 @@ class Course(models.Model):
     name = models.CharField(max_length=64) #수업명
     curriculum = models.ForeignKey(Curriculum, on_delete=models.PROTECT) #과정
     startdate = models.DateField() #수업개설일
+    duration = models.IntegerField(verbose_name="진행시간(분)", default=90) #수업진행시간
     # 수업시간
     # 수요일 3시-4시30분 일요일 4시-5시30분의 경우
     # WED15001630;SUN16001730 으로 저장 후 parsing하여 사용
@@ -98,7 +99,7 @@ class Lesson(models.Model):
         return f"[{self.date}]({self.course.name}) {self.name} "
 
     class Meta:
-        ordering = ('-date',)
+        ordering = ('-date', '-start')
     
 class Attendence(models.Model):
     """ 출결상황 """

@@ -1,5 +1,6 @@
 {% load static %}
 <head>
+  <title> {{student.name}}_수업내역서_{{today|date:'ymd'}}</title>
   <link rel="stylesheet" href="{% static 'css/tutoring.css' %}">
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&family=Nanum+Gothic+Coding&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
   <style>
@@ -10,11 +11,13 @@
 </head>
 <body>
   <div id="statement">
-    <h2> 수업내역서 </h2>
+    <h2> 수업 안내 </h2>
+    
     <div id="intro">
-      <p>&nbsp;&nbsp;&nbsp;<b>{{student.name}}</b> 학생의 지난 <b>{{tuition.date |date:"Y년 n월 j일"}}</b> 납부하신
-       <b>{{nums}}회분</b> 수업료에 대한 수업이 아래와 같이 진행되었습니다. 확인해 보시고 문의사항이 있으면 연락 주시기 바랍니다. </p>  
+      <p style="margin-top:5px;">&nbsp;&nbsp;&nbsp;<b>{{student.name}}</b> 학생의 지난 <b>{{tuition.last_payment_date |date:"Y년 n월 j일"}}</b> 납부하신
+       <b>{{nums}}회분</b> 수업료에 대한 수업이 아래와 같이 진행되었습니다. 더불어 다음 수업료 안내를 드리오니 확인 후 문의사항 있으시면 연락 부탁드립니다.</p>  
     </div>
+     <h4 style="margin-bottom:10px;">&#9679; &nbsp;지난수업내역 </h4>
      <table id="statement-info">
       <tbody>
       <tr>
@@ -24,10 +27,10 @@
       </tbody>
     </table>
     <br>
-    
+    <div>
     {% for at in attendences %}
       <div id="statement-detail">
-      <p style="margin-bottom:8px; font-size:13px;"> <b>{{forloop.counter}}. {{at.lesson.date |date:"Y년 n월 j일"}} ({{at.lesson.start |date:"H시i분"}} - {{at.lesson.end |date:"H시i분"}}) </b></p>
+      <p style="margin-bottom:8px; font-size:13px;"> &nbsp;<b>{{forloop.counter}}. {{at.lesson.date |date:"Y년 n월 j일"}} [{{at.lesson.start |date:"H:i"}} - {{at.lesson.end |date:"H:i"}}] </b></p>
       <table class='lesson-table'>
         <tbody>
           <tr>
@@ -47,7 +50,7 @@
             <td colspan=5>{{at.lesson.name}}</td>
           </tr>
           <tr>
-            <th>숙제</th>
+            <th>부여숙제</th>
             <td colspan=5>{{at.lesson.homework |default_if_none:""}}</td>
           </tr>
           <tr>
@@ -58,7 +61,33 @@
       </table>
       </div>
     {% endfor %}
-    <p style="float:right; margin-top:0; padding-right:10px;font-size:14px;"> <b>{{today |date:"Y년 n월 j일"}}</b> </p>
-
+    </div>
   </div>
+  <!-- 여기까지 수업 내역 -->
+  <!-- 수업료 안내 -->
+ <div id="statement" class="tuition-info" style="margin-top:35px;">
+    <h4 style="margin-bottom:0;"> &#9679; &nbsp;수업료 안내 </h4>
+    <table id="tuition-table">
+      <tbody>
+      <tr>
+        <th style="width:30%;padding-left:5%;"> 수업료 </th><td> <b>{{tuition.fee |floatformat}} RMB/회</b></td>
+      </tr>
+      <tr>
+        <th style="width:30%;padding-left:5%;"> 수업시간 </th><td> <b>{{course.duration |floatformat}} 분/회</b></td>
+      </tr>
+      <tr>
+        <th style="width:30%;padding-left:5%;"> 횟수 </th><td> <b>4회</b></td>
+      </tr>
+      <tr>
+        <th style="width:30%;padding-left:5%;border:none;background-color:rgb(242,242,242);"> 합계 </th><td style="border:none;background-color:rgb(242,242,242);"> <b>{{tuition.amount |floatformat}} RMB</b></td>
+      </tr>
+      </tbody>
+    </table>
+    <div id="intro">
+      <p style="margin-top:5px;">&#8251;&nbsp;납부하시는 수업료는 <b>{{tuition.lesson_start_date |date:"Y년 n월 j일"}}</b> 이후에 진행되는 수업부터 적용됩니다.  
+    </div>
+    <br>
+  </div>
+    <p style="float:right; margin-top:0; padding-right:5%;font-size:14px;"> <b>{{today |date:"Y년 n월 j일"}}</b> </p>
+
 </body>

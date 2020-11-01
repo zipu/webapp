@@ -16,3 +16,7 @@ handlers:
 
 # any environment variables you want to pass to your application.
 # accessible through os.environ['VARIABLE_NAME']
+instance_class: F2
+
+vpc_access_connector:
+  name: "projects/cyosep/locations/asia-northeast1/connectors/connector-to-sql"

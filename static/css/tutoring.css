@@ -171,13 +171,14 @@ a {
 }
 
 #intro {
-  margin-top: 25px;
+  margin-top: 5px;
   font-size: 15px;
   line-height: 1.8;
+  
 }
 
 .lesson-table {
-  width: 100%;
+  width: 95%;
   text-align: center;
   table-layout: fixed;
   border-collapse: collapse;
@@ -206,8 +207,8 @@ a {
 }
 
 #statement-info {
-  margin-top: 30px;
-  width: 100%;
+  margin-top: 20px;
+  width: 98%;
   height:40px;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
@@ -222,6 +223,28 @@ a {
 #statement-info td{
   text-align: left;
   padding-left: 10px;
+}
+
+.tuition-info {
+  page-break-inside: avoid;
+}
+
+#tuition-table {
+  table-layout: fixed;
+  margin-top:15px;
+  width: 95%;
+  height: 70px;
+  border-collapse: collapse;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  font-size: 14px;
+}
+#tuition-table th, #tuition-table td  {
+  border-bottom: 1px dotted black;
+}
+
+#tuition-table td {
+  text-align: center;
 }
 
 }
