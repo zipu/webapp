@@ -40,11 +40,11 @@
                         {% for lesson in v.todo %}
                           {% if not lesson.0.pk in course_pks %}
                           <div class="todo" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:beige;">
-                              <a href="{% url "coursedetail" pk=lesson.0.pk %}">{{lesson.0.name}}</a><br>
                               {{lesson.3}}<br>
+                              <a href="{% url 'popup-lesson' course=lesson.0.pk date=v.date%}" target="수업입력" onclick="window.open('about:blank','수업입력', 'width=800,height=800');">{{lesson.0.name}}</a><br>
                               {% for student in lesson.0.student.all %}
-                                <a href="{% url 'studentdetail' name=student.name %}">{{ student.name }}</a>
-                              {% endfor %}
+                                <a href="{% url 'studentdetail' name=student.name %}" target='_blank'>{{ student.name }}</a>
+                              {% endfor %} <br>
                           </div>
                           {% endif %}
                         {% endfor %}
@@ -53,13 +53,15 @@
                       {% if v.done %}
                         {% for lesson in v.done %}
                         <div class="done" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:#AFEEEE;">
-                            <a href="{% url "coursedetail" pk=lesson.0.course.pk %}">{{lesson.0.course.name}}</a><br>
                             {{lesson.3}}<br>
+                            <a href="{% url 'popup-lesson' lesson=lesson.0.pk %}"
+                               target="수업입력"
+                               onclick="window.open('about:blank','수업입력', 'width=800,height=800');"> {{lesson.0.course.name}}</a><br>
                             {% for student in lesson.0.course.student.all %}
                               {% if student.name in lesson.4 %}
-                                <a href="{% url 'studentdetail' name=student.name %}">{{ student.name }}</a>
+                                <a href="{% url 'studentdetail' name=student.name %}" target='_blank'>{{ student.name }}</a>
                               {% else %}
-                                <a href="{% url 'studentdetail' name=student.name %}" style="text-decoration:line-through;">{{ student.name }}</a>
+                                <a href="{% url 'studentdetail' name=student.name %}" target='_blank' style="text-decoration:line-through;">{{ student.name }}</a>
                               {% endif %}
                             {% endfor %}
 

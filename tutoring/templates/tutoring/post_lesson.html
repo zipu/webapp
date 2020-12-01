@@ -1,0 +1,112 @@
+{% load static %}
+<head>
+  <title> 수업입력</title>
+  <link rel="stylesheet" href="{% static 'css/tutoring.css' %}">
+</head>
+<body>
+   <form method="post"
+         action="{% url 'post-lesson' %}">
+  <!-- 메타 정보 -->
+  {% csrf_token %}
+  <div id="post-lesson">
+    <h2 style="text-align:center;"> 수업 입력 </h2>
+    <div>
+      <b>과  정</b>: {{course.curriculum.name}} <br>
+    </div>
+    <div style="margin-top: 10px;">
+      <b>수  업</b>: {{course.name}} 
+    </div>
+    <div  style="margin-top: 10px;">
+      <b>날  짜</b>:
+      <input type="date" name="date" value={{date|date:'Y-m-d'}} style="height:25px;">
+    </div>
+    <div style="margin-top: 10px;">
+      <b>시  간</b>: 
+      <input type="time" name="start" value={{time.0 |time:'H:i'}} style="height:25px;"> ~  
+      <input type="time" name="end" value={{time.1 |time:'H:i'}} style="height:25px;">
+    </div>
+    <div style="margin-top: 10px;">
+      <b>수업료</b>: <input type="number" name="tuition" 
+                            value={% if lesson %} {{lesson.tuition |floatformat:0}} {% else %} {{course.tuition |floatformat:0}} {% endif %} min=0 style="width:60px;">위안
+    </div>
+    <div style="margin-top: 10px;">
+      <b>단  원</b>: <input type="text" name="topic" value="{{lesson.topic |default_if_none:''}}"  style="width:500px;height:25px;">
+    </div>
+    <div style="margin-top: 10px;">
+      <b>내  용</b>: <input type="text" name="content" value='{{lesson.name}}' style="width:500px;height:25px;">
+    </div>
+    <div style="margin-top: 10px;">
+      <b>숙  제</b>: <input type="text" name="homework" value="{{lesson.homework |default_if_none:''}}" style="width:500px;height:25px;">
+    </div>
+    <div style="margin-top: 10px;">
+      <b>특이사항</b>: <input type="text" name="note" value="{{lesson.note |default_if_none:''}}" style="width:500px;height:25px;">
+    </div>
+    <br>
+
+    <b>* 출석체크</b>
+    {% for att in attendence %}
+      <table id="attendence">
+        <tbody>
+        <tr>
+          <th style="width:30%"> 이름 </th><td> {{att.student.name}}
+          <input type='hidden' name='students' value='{{att.student.pk}}'></td>
+        </tr>
+        <tr>
+          <th> 출석 </th><td> <input type='radio' name="attendence_{{att.student.pk}}" value=1 checked> 출석
+                              <input type='radio' name="attendence_{{att.student.pk}}" value=0 >결석 </td>
+        </tr>
+        <tr>
+          <th> 숙제 </th><td> <input type='radio' name="homework_{{att.student.pk}}" value=1 {% if att.homework == '1' %}checked {% endif %}>잘함
+                              <input type='radio' name="homework_{{att.student.pk}}" value=2 {% if att.homework == '2' %}checked {% endif %}>미흡
+                              <input type='radio' name="homework_{{att.student.pk}}" value=3 {% if att.homework == '3' %}checked {% endif %}>안함
+                              <input type='radio' name="homework_{{att.student.pk}}" value=4 {% if att.homework == '4' %}checked {% endif %}> 기타 </td>
+        </tr>
+        <tr>
+          <th> 비고 </th><td> <input type="text" name="student-note_{{att.student.pk}}" value="{{att.note |default_if_none:''}}" style="width:80%;height:25px;"></td>
+        </tr>
+        </tbody>
+      </table>
+    {% endfor %}
+    
+    {% for student in course.student.all %}
+      {% if student.pk in students %}
+      {% else %}
+      <table id="attendence">
+        <tbody>
+        <tr>
+          <th style="width:30%"> 이름 </th><td> {{student.name}}
+          <input type='hidden' name='students' value='{{student.pk}}'></td>
+        </tr>
+        <tr>
+          <th> 출석 </th><td> <input type='radio' name="attendence_{{student.pk}}" value=1> 출석
+                              <input type='radio' name="attendence_{{student.pk}}" value=0 checked>결석 </td>
+        </tr>
+        <tr>
+          <th> 숙제 </th><td> <input type='radio' name="homework_{{student.pk}}" value=1 checked >잘함
+                              <input type='radio' name="homework_{{student.pk}}" value=2>미흡
+                              <input type='radio' name="homework_{{student.pk}}" value=3>안함
+                              <input type='radio' name="homework_{{student.pk}}" value=4> 기타 </td>
+        </tr>
+        <tr>
+          <th> 비고 </th><td> <input type="text" name="student-note_{{student.pk}}" style="width:80%;height:25px;"></td>
+        </tr>
+        </tbody>
+      </table>
+      {% endif %}
+    {% endfor %}
+    <div style="margin-top:10px;text-align:center;">
+      {% if lesson %}
+        <input type='hidden' name='lesson' value={{lesson.pk}}>
+        <button type='submit' name='submit' value='update'>수정</button>
+        <button type='submit' name='submit' value='delete' style='float:right;'>삭제</button>
+
+      {% else %}
+      <input type='hidden' name='type' value='create'>
+      <input type='hidden' name='course' value={{course.pk}}>
+        <button type='submit' name='submit' value='create'>제출</button>
+      {% endif %}
+    
+    </div>
+  </div>
+  </form>
+</body>

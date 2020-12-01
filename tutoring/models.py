@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Sum
 
-from datetime import datetime
+from datetime import datetime, time
 
 SCHOOLS = [
     ('SASPX','SASPX'),
@@ -37,7 +37,7 @@ class Student(models.Model):
         total = self.total_deposit()
 
         attendences = Attendence.objects.filter(student=self)
-        usage = sum([l.lesson.course.tuition for l in attendences] )
+        usage = sum([l.lesson.tuition for l in attendences] )
         balance = total - usage
         return balance
     
@@ -80,19 +80,33 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.name}"
     
+    def get_time(self, weekday):
+        """ 요일을 입력하면 그날의 수업시간 반환 """
+        strtime = [i for i in self.time.split(';') if weekday in i]
+        if not strtime:
+            return None
+        else:
+            tm = strtime[0][3:]
+            start = time(int(tm[0:2]), int(tm[2:4]))
+            end = time(int(tm[4:6]), int(tm[6:8]))
+            return start, end
+        
+
+    
     class Meta:
         ordering = ('-status','-startdate',)
 
 class Lesson(models.Model):
     """ 상세 수업 내용 """
     course = models.ForeignKey("Course", on_delete=models.PROTECT) #수업
+    tuition = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="수업료")
     date = models.DateField(verbose_name="날짜")
     start = models.TimeField(verbose_name="시작시간")
     end = models.TimeField(verbose_name="마친시간")
     name = models.CharField(max_length=64, verbose_name="수업내용")
     #student = models.ManyToManyField("Student", verbose_name="출석학생")
     topic = models.CharField(max_length=256, verbose_name="단원", blank=True, null=True)
-    homework = models.CharField(max_length=256, verbose_name="숙제", blank=True, null=True) 
+    homework = models.CharField(max_length=256, verbose_name="숙제", blank=True, null=True)
     note = models.CharField(max_length=128, blank=True, null=True) #비고
 
     def __str__(self):

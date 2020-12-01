@@ -104,8 +104,9 @@
                     <th style="width:12%">수업일</th>
                     <th style="width:12%" >시간</th>
                     <th style="width:17%">단원</th>
-                    <th style="width:40%">수업내용</th>
+                    <th style="width:32%">수업내용</th>
                     <th style="width:12%">과정</th>
+                    <th style="width:8%">수업료</th>
                     <th style="width:5%"></th>
                   </tr>
                 </thead>
@@ -117,6 +118,7 @@
                     <td>{{at.lesson.topic |default_if_none:""}}</a></td>
                     <td>{{at.lesson.name}}</td>
                     <td>{{at.lesson.course.curriculum.name}}</td>
+                    <td>&#165;{{at.lesson.tuition |floatformat:0}}</td>
                     <td><input type="checkbox" name="attendences" value={{at.pk}} /> </td>
                   </tr>
                   {% endfor %}

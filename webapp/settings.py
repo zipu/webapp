@@ -178,7 +178,7 @@ else:
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    PORT = '3307' #local: 3306, remote: 3307
+    PORT = '3306' #local: 3306, remote: 3307
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -274,7 +274,7 @@ if os.getenv('GAE_APPLICATION', None):
     #GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     #    os.path.join(BASE_DIR,"credentials.json")
     #)
-    GS_BUCKET_NAME = 'yosebi.appspot.com'
+    GS_BUCKET_NAME = 'cyosep.appspot.com'
     MEDIA_URL = f'https://storage.googleapis.com/{ GS_BUCKET_NAME }/'
     #MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
 

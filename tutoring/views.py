@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta, time
 from collections import OrderedDict
 
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum
@@ -74,7 +75,7 @@ class IndexView(TemplateView):
         # 향후 7일동안의 수업일정을 불러옴
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
         weekdays_kor = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일']
-        for date in [today + + timedelta(i) for i in range(7)]:
+        for date in [today + timedelta(i) for i in range(7)]:
             day = weekdays[date.weekday()] #요일
             day_kor = weekdays_kor[date.weekday()] #요일-한글
             work = [date, day_kor] 
@@ -109,6 +110,7 @@ class CalendarView(TemplateView):
             day = weekdays[idx]
             dayworks[day]['done'] = []
             dayworks[day]['todo'] = []
+            dayworks[day]['date'] = date
 
             # 완료된 수업
             lesson = lessons.filter(date=date)
@@ -220,3 +222,104 @@ class StatementView(TemplateView):
         context['nums'] = len(attendences)
         context['today'] = datetime.today().date()
         return render(request, "tutoring/statement.html", context)
+
+class PostLessonView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        # 수업입력
+        if 'course' in kwargs.keys():
+            c = Calendar(0)
+            course = Course.objects.get(pk=kwargs['course'])
+            date = datetime.strptime(kwargs['date'], '%Y-%m-%d')
+            context={}
+            context['course'] = course
+            context['date'] = date
+            context['time'] = course.get_time(c.weekdays[date.weekday()])
+
+            return render(request, "tutoring/post_lesson.html", context)
+
+        #입력된 수업 확인
+        elif 'lesson' in kwargs.keys():
+            lesson = Lesson.objects.get(pk=kwargs['lesson'])
+            context={}
+            context['lesson'] = lesson 
+            context['course'] = lesson.course
+            context['date'] = lesson.date
+            context['time'] = (lesson.start, lesson.end)
+            context['attendence'] = Attendence.objects.filter(lesson=lesson)
+            context['students'] = [i.student.pk for i in context['attendence']]
+
+            return render(request, "tutoring/post_lesson.html", context)
+
+
+    def post(self, request, *args, **kwargs):
+        params = dict(request.POST)
+        #validation
+        if not params['content'][0] or not params['tuition'][0]: 
+           return  HttpResponse('수업내용 다시 입력 하세요')
+
+        if params['submit'][0] == 'create':
+            course = Course.objects.get(pk=params.get('course')[0])
+            lesson = Lesson.objects.create(
+                course=course,
+                tuition=params['tuition'][0],
+                date=params['date'][0],
+                start=params['start'][0],
+                end=params['end'][0],
+                name=params['content'][0],
+                topic=params['topic'][0],
+                homework=params['homework'][0],
+                note=params['note'][0]
+            )
+
+            for pk in params['students']:
+                if params[f'attendence_{pk}'][0] == '1':
+                    student = Student.objects.get(pk=pk)
+                    Attendence.objects.create(
+                        lesson=lesson,
+                        student=student,
+                        homework=params[f'homework_{pk}'][0],
+                        note=params[f'student-note_{pk}'][0],
+                    ).save()
+
+            lesson.save()
+
+        elif params['submit'][0] == 'update':
+            lesson = Lesson.objects.get(pk=params.get('lesson')[0])
+            lesson.tuition = params['tuition'][0]
+            lesson.date=params['date'][0]
+            lesson.start=params['start'][0]
+            lesson.end=params['end'][0]
+            lesson.name=params['content'][0]
+            lesson.topic=params['topic'][0]
+            lesson.homework=params['homework'][0]
+            lesson.note=params['note'][0]
+
+            for pk in params['students']:
+                atts = Attendence.objects.filter(lesson=lesson).filter(student=pk)
+                if atts:
+                    if params[f'attendence_{pk}'][0] == '1':
+                        att = atts[0]
+                        att.homework = params[f'homework_{pk}'][0]
+                        att.note = params[f'student-note_{pk}'][0]
+                        att.save()
+                    elif params[f'attendence_{pk}'][0] == '0':
+                        atts[0].delete()
+                else:
+                    if params[f'attendence_{pk}'][0] == '1':
+                        student = Student.objects.get(pk=pk)
+                        Attendence.objects.create(
+                            lesson=lesson,
+                            student=student,
+                            homework=params[f'homework_{pk}'][0],
+                            note=params[f'student-note_{pk}'][0],
+                        ).save()
+            lesson.save()
+
+        elif params['submit'][0] == 'delete':
+            lesson = Lesson.objects.get(pk=params.get('lesson')[0])
+            atts = Attendence.objects.filter(lesson=lesson)
+            for att in atts:
+                att.delete()
+            lesson.delete()
+
+        return HttpResponse('<script>window.close();window.opener.location.reload();</script>')

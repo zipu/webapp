@@ -4,8 +4,9 @@
 
 body {
   max-width: 1000px;
-  margin:0 auto;
+  margin: 0 auto;
 }
+
 .topnav {
   position: fixed;
   width: 100%;
@@ -58,13 +59,19 @@ a {
   height: 50px;
 }
 
-.todo, .done {
+.todo,
+.done {
   position: absolute;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
   width: 100%;
   height: 48px;
-  font-size: 90%;
+  font-size: 80%;
+}
+
+.todo>a:hover,
+.done>a:hover {
+  text-decoration: underline;
 }
 
 /* course view */
@@ -80,7 +87,8 @@ a {
   border-bottom: 2px solid black;
   background-color: beige;
   height: 40px;
-  font-weight: bold;;
+  font-weight: bold;
+  ;
 }
 
 .course tbody tr {
@@ -102,10 +110,11 @@ a {
   border-bottom: 2px solid black;
   background-color: beige;
   height: 40px;
-  font-weight: bold;;
+  font-weight: bold;
+  ;
 }
 
-#student-info  table {
+#student-info table {
   text-align: center;
   table-layout: fixed;
   border-collapse: collapse;
@@ -117,11 +126,13 @@ a {
   height: 35px;
 }
 
-#student-info th{
-  background-color: beige;;
+#student-info th {
+  background-color: beige;
+  ;
 }
 
-#student-info td, #student-info th  {
+#student-info td,
+#student-info th {
   border: 1px solid black;
 }
 
@@ -130,7 +141,7 @@ a {
 }
 
 /* index view */
-#index > table {
+#index>table {
   text-align: center;
   table-layout: fixed;
   border-collapse: collapse;
@@ -142,11 +153,13 @@ a {
   height: 25px;
 }
 
-#index th{
-  background-color: beige;;
+#index th {
+  background-color: beige;
+  ;
 }
 
-#index td, #index th  {
+#index td,
+#index th {
   border: 1px solid grey;
 }
 
@@ -155,96 +168,127 @@ a {
 }
 
 /* statement */
-@media all{
-#statement {
-  width:90%;
-  margin:0 auto;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
+@media all {
+  #statement {
+    width: 90%;
+    margin: 0 auto;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+  }
+
+
+  #statement h2 {
+    text-align: center;
+    padding-top: 1%;
+  }
+
+  #intro {
+    margin-top: 5px;
+    font-size: 15px;
+    line-height: 1.8;
+
+  }
+
+  .lesson-table {
+    width: 95%;
+    text-align: center;
+    table-layout: fixed;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+    border: 1px solid black;
+    margin-bottom: 25px;
+
+  }
+
+  .lesson-table tr {
+    height: 20px;
+  }
+
+  .lesson-table th {
+    background-color: rgb(242, 242, 242);
+    font-size: 12px;
+    border: 1px solid lightgrey;
+  }
+
+  .lesson-table td {
+    font-size: 12px;
+    border: 1px solid lightgrey;
+  }
+
+  #statement-detail {
+    page-break-inside: avoid;
+  }
+
+  #statement-info {
+    margin-top: 20px;
+    width: 98%;
+    height: 40px;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    font-size: 15px;
+  }
+
+  #statement-info th {
+    text-align: left;
+    padding-left: 13px;
+  }
+
+  #statement-info td {
+    text-align: left;
+    padding-left: 10px;
+  }
+
+  .tuition-info {
+    page-break-inside: avoid;
+  }
+
+  #tuition-table {
+    table-layout: fixed;
+    margin-top: 15px;
+    width: 95%;
+    height: 70px;
+    border-collapse: collapse;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    font-size: 14px;
+  }
+
+  #tuition-table th,
+  #tuition-table td {
+    border-bottom: 1px dotted black;
+  }
+
+  #tuition-table td {
+    text-align: center;
+  }
+
 }
 
-
-#statement h2 {
-  text-align: center;
-  padding-top: 1%;
-}
-
-#intro {
-  margin-top: 5px;
-  font-size: 15px;
-  line-height: 1.8;
-  
-}
-
-.lesson-table {
+/* 수업입력 */
+#post-lesson {
   width: 95%;
+  margin: 0 auto;
+}
+
+#post-lesson table {
+  margin-top:10px;
   text-align: center;
   table-layout: fixed;
   border-collapse: collapse;
-  page-break-inside : avoid;
-  border:1px solid black;
-  margin-bottom: 25px;
-
-}
-.lesson-table tr {
-  height: 20px;
+  width: 90%;
 }
 
-.lesson-table th{
-  background-color: rgb(242,242,242);
-  font-size: 12px;
-  border: 1px solid lightgrey;
+#post-lesson tr {
+  height: 35px;
 }
 
-.lesson-table td {
-  font-size: 12px;
-  border: 1px solid lightgrey;
+#post-lesson th {
+  background-color: beige;
+  ;
 }
 
-#statement-detail {
-  page-break-inside: avoid;
-}
-
-#statement-info {
-  margin-top: 20px;
-  width: 98%;
-  height:40px;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-  font-size: 15px;
-}
-
-#statement-info th{
-  text-align: left;
-  padding-left: 13px;
-}
-
-#statement-info td{
-  text-align: left;
-  padding-left: 10px;
-}
-
-.tuition-info {
-  page-break-inside: avoid;
-}
-
-#tuition-table {
-  table-layout: fixed;
-  margin-top:15px;
-  width: 95%;
-  height: 70px;
-  border-collapse: collapse;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-  font-size: 14px;
-}
-#tuition-table th, #tuition-table td  {
-  border-bottom: 1px dotted black;
-}
-
-#tuition-table td {
-  text-align: center;
-}
-
+#post-lesson td,
+#post-lesson th {
+  border: 1px solid black;
 }
