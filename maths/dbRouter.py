@@ -2,7 +2,7 @@
 
 class MathsDBRouter(object):
     """
-    A router to control maths db operations
+    A router tdo control maths db operations
     """
     def db_for_read(self, model, **hints):
         "point all operations on maths models to db 'maths'"
