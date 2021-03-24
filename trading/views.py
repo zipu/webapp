@@ -35,7 +35,9 @@ class UpdatePriceView(TemplateView):
         return JsonResponse(data, safe=False)
 
     def post(self, request, **kwargs):
-        data = json.loads(request.body.decode("utf-8"))
+        
+        data = json.loads(request.body.decode('utf-8'))
+
         for code, price in data['stock']:
             trades = StockTradeUnit.objects.filter(is_open=True, code=code).all()
             for trade in trades:
@@ -159,7 +161,7 @@ class FuturesView(TemplateView):
        return context
 
 class FuturesHistoryView(ListView):
-   template_name = "futures_history.html"
+   template_name = "trading/futures_history.html"
    model = FuturesEntry
    #queryset = FuturesEntry.objects.filter(system__id=1).order_by('-pk')
    context_object_name = "entries"

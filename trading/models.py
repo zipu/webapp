@@ -166,6 +166,9 @@ class Record(models.Model):
                 first_date = CashAccount.objects.all().earliest('date').date
             elif self.account_symbol == 'S':
                 first_date = StockAccount.objects.first().date
+            elif self.account_symbol == 'FA': #(선물통합)
+                first_date = FuturesAccount.objects.all().earliest('date').date
+
             else:
                 first_date = FuturesAccount.objects.get(symbol=self.account_symbol).date
 
@@ -501,7 +504,7 @@ class FuturesAccount(models.Model):
             #self.commission = c.convert('USD','KRW', entry_agg['commission__sum'])
             self.avg_entry_risk = (int(c.convert('USD','KRW', usd_entry_agg['entry_risk__sum'] or 0))\
                                    +int(c.convert('EUR','KRW', eur_entry_agg['entry_risk__sum'] or 0)))\
-                                   / self.entries.count()
+                                   / self.entries.count() if self.entries.count() else 0
             
             self.count = self.entries.count()
             if exits.count() > 0: 

@@ -89,6 +89,7 @@ class IndexView(TemplateView):
                 l.append(
                     (item, start, end)
                 )
+            print(l)
             work.append(l)
             days.append(work)
         context['days'] = days
@@ -196,6 +197,7 @@ class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
         params = dict(request.GET)
+        print(params)
         student = Student.objects.get(pk=params.get('student')[0])
         attendences = []
         if params.get('attendences'):
@@ -221,6 +223,8 @@ class StatementView(TemplateView):
         context['tuition'] = tuition
         context['nums'] = len(attendences)
         context['today'] = datetime.today().date()
+        context['last_tuition_date'] = True if params.get('last_tuition_date') else None
+        context['guide_next_tuition'] = True if params.get('guide_next_tuition') else None
         return render(request, "tutoring/statement.html", context)
 
 class PostLessonView(TemplateView):
