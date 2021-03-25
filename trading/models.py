@@ -691,7 +691,13 @@ class Transfer(models.Model):
             acc.usd = latest_acc.usd - self.amount_from if self.currency_from == 'USD' else latest_acc.usd
             acc.save()
         
-        elif self.acc_from == "FM":
+        
+        elif self.acc_from == "S":
+            acc = StockAccount.objects.get(symbol=self.acc_from)
+            acc.principal = acc.principal - self.amount_from
+            acc.save()
+
+        else:
             acc = FuturesAccount.objects.get(symbol=self.acc_from)
             if self.currency_from == 'KRW':
                 acc.principal_krw = acc.principal_krw - self.amount_from
@@ -701,11 +707,7 @@ class Transfer(models.Model):
                 acc.principal_eur = acc.principal_eur - self.amount_from
             acc.save()
 
-        elif self.acc_from == "S":
-            acc = StockAccount.objects.get(symbol=self.acc_from)
-            acc.principal = acc.principal - self.amount_from
-            acc.save()
-
+        
         if self.acc_to == "C":
             latest_acc = CashAccount.objects.latest('date')
             acc = CashAccount(
@@ -718,7 +720,12 @@ class Transfer(models.Model):
             acc.usd = latest_acc.usd + self.amount_to if self.currency_to == 'USD' else latest_acc.usd
             acc.save()
 
-        elif self.acc_to == "FM":
+        elif self.acc_to == "S":
+            acc = StockAccount.objects.get(symbol=self.acc_to)
+            acc.principal = acc.principal + self.amount_to
+            acc.save()
+
+        else:
             acc = FuturesAccount.objects.get(symbol=self.acc_to)
             if self.currency_to == 'KRW':
                 acc.principal_krw = acc.principal_krw + self.amount_to
@@ -726,11 +733,6 @@ class Transfer(models.Model):
                 acc.principal_usd = acc.principal_usd + self.amount_to
             elif self.currency_to == 'EUR':
                 acc.principal_eur = acc.principal_eur + self.amount_to
-            acc.save()
-
-        elif self.acc_to == "S":
-            acc = StockAccount.objects.get(symbol=self.acc_to)
-            acc.principal = acc.principal + self.amount_to
             acc.save()
         
         super(Transfer, self).save(*args, **kwargs)
