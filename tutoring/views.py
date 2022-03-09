@@ -89,7 +89,7 @@ class IndexView(TemplateView):
                 l.append(
                     (item, start, end)
                 )
-            print(l)
+            #print(l)
             work.append(l)
             days.append(work)
         context['days'] = days
@@ -178,14 +178,14 @@ class StudentDetailView(TemplateView):
     def get(self, request, *args, **kwargs):
         student = Student.objects.get(name=kwargs['name'])
         courses = Course.objects.filter(student=student)
-        attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')
-        tuition = Tuition.objects.filter(student=student)
+        attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')[:20] #최근 20회 수업내역
+        tuition = Tuition.objects.filter(student=student).order_by('-date')[:10] #최근 10회 납입내역 
         #deposit = tuition.aggregate(Sum('deposit'))['deposit__sum']
         #usage = sum([l.lesson.course.tuition for l in attendences])
         context={}
         context["student"] = student
         context["courses"] = courses
-        context["attendences"] = attendences[:10] #수업목록 10회만 보임
+        context["attendences"] = attendences
         context["tuition"] = {
             'records': tuition,
             'deposit': student.total_deposit(),
@@ -197,7 +197,7 @@ class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
         params = dict(request.GET)
-        print(params)
+        #print(params)
         student = Student.objects.get(pk=params.get('student')[0])
         attendences = []
         if params.get('attendences'):

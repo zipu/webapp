@@ -23,6 +23,9 @@ class CreateRecordView(TemplateView):
 
 
 class UpdatePriceView(TemplateView):
+    """
+    보유중인 상품의 매매가격을 업데이트하는 뷰
+    """
     def get(self, request, *args, **kwargs):
         stock_codes = list(StockTradeUnit.objects.filter(is_open=True).values_list('code', flat=True))
         futures_codes = list(FuturesEntry.objects.filter(is_open=True).values_list('code', 'instrument__number_system'))

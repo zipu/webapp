@@ -8,7 +8,26 @@ from django.dispatch import receiver
 from decimal import Decimal as D
 from datetime import datetime, timedelta, time
 
-from forex_python.converter import CurrencyRates
+#from forex_python.converter import CurrencyRates
+class CurrencyRates:
+    """
+    환율 계산 모듈
+    """
+    
+    def convert(self, base, target, amount):
+        import requests
+        from decimal import Decimal
+        
+        if base == target:
+            return amount
+
+        url = f'https://theforexapi.com/api/latest?base={base}&symbols={target}'
+        response = requests.get(url)
+        data = response.json()
+        
+        rates = Decimal(str(data['rates'][target]))
+        converted = amount * rates
+        return converted
 
 def convert_to_decimal(value, system):
     "8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환"
@@ -597,6 +616,7 @@ class  FuturesEntry(models.Model):
         if not self.id:
             entry_risk = ((self.entry_price - self.stop_price)*self.position/self.instrument.tickunit)\
                              *self.instrument.tickprice*self.num_cons
+            
             self.entry_risk = self.current_risk = c.convert(self.instrument.currency, 'USD', entry_risk)
             
         if self.exits.count() > 0:
