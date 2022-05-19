@@ -9,11 +9,15 @@ from decimal import Decimal as D
 from datetime import datetime, timedelta, time
 
 #from forex_python.converter import CurrencyRates
+import requests
+from bs4 import BeautifulSoup
+
 class CurrencyRates:
     """
     환율 계산 모듈
     """
     
+    """
     def convert(self, base, target, amount):
         import requests
         from decimal import Decimal
@@ -28,6 +32,33 @@ class CurrencyRates:
         rates = Decimal(str(data['rates'][target]))
         converted = amount * rates
         return converted
+    """
+    def convert(self, base, target, amount):
+        if base == target: 
+            return amount
+
+        #소문자로 변경
+        base = base.lower() 
+        target = target.lower()
+
+        url = f'https://www.investing.com/currencies/{base}-{target}'
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'}
+        session = requests.Session()
+        session.headers.update(headers)
+        response = session.get(url)
+
+        if response.ok:
+            bs = BeautifulSoup(response.text, 'html.parser')
+            rates = bs.find_all(name="span", attrs={'data-test':"instrument-price-last"})[0].text
+            rates = D(rates.replace(',',''))
+            return amount * rates
+        else:
+            #print(f"환율정보 갱신 실패: {base}/{target}")
+            raise ValueError(f"환율정보 갱신 실패: {base}/{target}")
+
+
+
+
 
 def convert_to_decimal(value, system):
     "8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환"
