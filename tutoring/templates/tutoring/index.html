@@ -2,10 +2,10 @@
 
 {% block content %}
           <div id="index">
-            {% for day in days %}
-              <p> * <b {% if day.0.weekday == today.weekday %}style='background-color:yellow;'{% endif %}>{{day.0 |date:"Y-m-d"}} ({{day.1}}) </b></p>
-              {% if day.2 %}
-                {% for course in day.2%}
+              <h3> 오늘의 수업 </h3>
+              <p> * <b>{{ today|date:"Y-m-d"}} ({{weekday}}) </b></p>
+                {% for course in lessons%}
+                 
                   <table>
                     <tbody>
                       <tr>
@@ -42,8 +42,6 @@
                   </table>
                   <br>
                 {% endfor %}
-              {% endif %}
-            {% endfor %}
          
           </div>
           

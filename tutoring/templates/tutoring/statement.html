@@ -54,13 +54,13 @@
             <th>수업내용</th>
             <td colspan=5>{{at.lesson.name}}</td>
           </tr>
-          <tr>
+          <tr {% if at.lesson.homework|default_if_none:"" == "" %}style="display:none"{% endif %}>
             <th>부여숙제</th>
             <td colspan=5>{{at.lesson.homework |default_if_none:""}}</td>
           </tr>
-          <tr>
+          <tr {% if at.note|default_if_none:"" == ""%}style="display:none"{% endif %}>
             <th>특이사항</th>
-            <td colspan=5>{{at.note |default_if_none:""}}</td>
+            <td colspan=5>{{at.note}}</td>
           </tr>
         </tbody>
       </table>

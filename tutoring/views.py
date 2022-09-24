@@ -71,29 +71,23 @@ class IndexView(TemplateView):
         #courses = Course.objects.filter(status=True)
         today = datetime.today().date()
 
-        days=[]
-        # 향후 7일동안의 수업일정을 불러옴
+
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
         weekdays_kor = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일']
-        for date in [today + timedelta(i) for i in range(7)]:
-            day = weekdays[date.weekday()] #요일
-            day_kor = weekdays_kor[date.weekday()] #요일-한글
-            work = [date, day_kor] 
-            #lesson = [l for l in courses if day in l]
-            lesson = courses.filter(time__contains=day)
-            l = []
-            for item in lesson:
+        day = weekdays[today.weekday()] #요일
+        lessons = courses.filter(time__contains=day)
+        l = []
+        for item in lessons:
                 strtime = [t for t in item.time.split(';') if day in t][0] #WED16001730
                 start = time(int(strtime[3:5]),int(strtime[5:7]))
                 end = time(int(strtime[7:9]),int(strtime[9:]))
                 l.append(
                     (item, start, end)
                 )
-            #print(l)
-            work.append(l)
-            days.append(work)
-        context['days'] = days
         context['today'] = today
+        context['weekday'] = weekdays_kor[today.weekday()]
+        context['lessons'] = l
+
         return render(request, "tutoring/index.html", context)
 
 class CalendarView(TemplateView):
