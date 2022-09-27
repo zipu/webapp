@@ -46,7 +46,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
-DEBUG = False if os.getenv('ON_CLOUD', None) else True
+DEBUG = False #if os.getenv('ON_CLOUD', None) else True
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600
@@ -255,7 +255,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Beijing'#'UTC'
+TIME_ZONE = 'Asia/Shanghai'#'UTC'
 
 USE_I18N = True
 
