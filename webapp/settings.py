@@ -40,7 +40,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY") if os.getenv("ON_CLOUD") else get_secret("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -137,7 +137,12 @@ DATABASE_ROUTERS = [
     'tutoring.dbRouter.TutoringDBRouter',
 ]
 
+
+
 # [START db_setup]
+REMOTE = True
+PORT = '3306' 
+
 if os.getenv('ON_CLOUD', None):
     # Running on production App Engine, so connect to Google Cloud SQL using
     # the unix socket at /cloudsql/<your-cloudsql-connection string>
@@ -178,14 +183,58 @@ if os.getenv('ON_CLOUD', None):
             'NAME': 'tutoring'
         }
     }
-else:
+elif REMOTE:
     # Running locally so connect to either a local MySQL instance or connect to
     # Cloud SQL via the proxy. To start the proxy via command line:
     #
     #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
     #
     # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    PORT = '3306' #local: 3306, remote: 3307
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'PORT': PORT,
+            'NAME': 'webapp',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'maths' :{
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'PORT': PORT,
+            'NAME': 'maths',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'trading' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'PORT': PORT,
+            'NAME': 'trading',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'aops' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'PORT': PORT,
+            'NAME': 'aops',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        },
+        'tutoring' : {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': get_secret('DB_HOST'),
+            'PORT': PORT,
+            'NAME': 'tutoring',
+            'USER': get_secret('DB_USERNAME'),
+            'PASSWORD': get_secret('DB_PASSWORD'),
+        }
+    }
+
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -228,6 +277,8 @@ else:
             'PASSWORD': get_secret('DB_PASSWORD'),
         }
     }
+
+
 # [END db_setup]
 
 
