@@ -149,6 +149,7 @@ if os.getenv('ON_CLOUD', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
+            'PORT': PORT,
             'HOST': os.getenv('DB_HOST'),
             'USER': os.getenv('DB_USERNAME'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -156,6 +157,7 @@ if os.getenv('ON_CLOUD', None):
         },
         'maths': {
             'ENGINE': 'django.db.backends.mysql',
+            'PORT': PORT,
             'HOST': os.getenv('DB_HOST'),
             'USER': os.getenv('DB_USERNAME'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -163,6 +165,7 @@ if os.getenv('ON_CLOUD', None):
         },
         'trading' : {
             'ENGINE': 'django.db.backends.mysql',
+            'PORT': PORT,
             'HOST': os.getenv('DB_HOST'),
             'USER': os.getenv('DB_USERNAME'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -170,6 +173,7 @@ if os.getenv('ON_CLOUD', None):
         },
         'aops' : {
             'ENGINE': 'django.db.backends.mysql',
+            'PORT': PORT,
             'HOST': os.getenv('DB_HOST'),
             'USER': os.getenv('DB_USERNAME'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
@@ -177,6 +181,7 @@ if os.getenv('ON_CLOUD', None):
         },
         'tutoring' : {
             'ENGINE': 'django.db.backends.mysql',
+            'PORT': PORT,
             'HOST': os.getenv('DB_HOST'),
             'USER': os.getenv('DB_USERNAME'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
