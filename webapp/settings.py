@@ -52,6 +52,9 @@ else:
     DEBUG = True
 
 
+CSRF_TRUSTED_ORIGINS = [
+        'https://*.azurewebsites.net',
+    ]
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600
@@ -63,6 +66,7 @@ if DEBUG == False:
     SECURE_BROWSER_XSS_FILTER = True    
     X_FRAME_OPTIONS = 'DENY'
     SECURE_HSTS_PRELOAD = True
+    
 
 
 ALLOWED_HOSTS = ['*']
