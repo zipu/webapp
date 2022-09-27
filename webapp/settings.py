@@ -46,7 +46,12 @@ SECRET_KEY = os.getenv("SECRET_KEY") if os.getenv("ON_CLOUD") else get_secret("S
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
-DEBUG = False #if os.getenv('ON_CLOUD', None) else True
+if os.getenv('ON_CLOUD', None) == 1:
+    DEBUG = False
+else:
+    DEBUG = True
+
+
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600
