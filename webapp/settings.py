@@ -16,18 +16,19 @@ from google.oauth2 import service_account
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print(BASE_DIR)
-print(os.environ)
 
-with open(os.path.join(BASE_DIR, 'secrets.json')) as secrets_file:
-    secrets = json.load(secrets_file)
 
-def get_secret(setting, secrets=secrets):
+def get_secret(setting):
     """Get secret setting or fail with ImproperlyConfigured"""
+    
+    with open(os.path.join(BASE_DIR, 'secrets.json')) as secrets_file:
+        secrets = json.load(secrets_file)
+    
     try:
         return secrets[setting]
     except KeyError:
         raise ImproperlyConfigured("Set the {} setting".format(setting))
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -39,13 +40,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_secret('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
-DEBUG = False if os.getenv('GAE_APPLICATION', None) else True
+DEBUG = False if os.getenv('ON_CLOUD', None) else True
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600
@@ -137,43 +138,43 @@ DATABASE_ROUTERS = [
 ]
 
 # [START db_setup]
-if os.getenv('GAE_APPLICATION', None):
+if os.getenv('ON_CLOUD', None):
     # Running on production App Engine, so connect to Google Cloud SQL using
     # the unix socket at /cloudsql/<your-cloudsql-connection string>
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'USER': os.getenv('DB_USERNAME'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
             'NAME': 'webapp',
         },
         'maths': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'USER': os.getenv('DB_USERNAME'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
             'NAME': 'maths',
         },
         'trading' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'USER': os.getenv('DB_USERNAME'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
             'NAME': 'trading'
         },
         'aops' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'USER': os.getenv('DB_USERNAME'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
             'NAME': 'aops'
         },
         'tutoring' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'USER': os.getenv('DB_USERNAME'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
             'NAME': 'tutoring'
         }
     }
