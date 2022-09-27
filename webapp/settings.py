@@ -46,7 +46,7 @@ SECRET_KEY = os.getenv("SECRET_KEY") if os.getenv("ON_CLOUD") else get_secret("S
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
-if os.getenv('ON_CLOUD', None) == 1:
+if os.getenv('ON_CLOUD', None) == 'true':
     DEBUG = False
 else:
     DEBUG = True
@@ -107,7 +107,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'webapp.middleware.LoginRequiredMiddleware' #custom login middleware
+    'webapp.middleware.LoginRequiredMiddleware', #custom login middleware
+    'storeges'
 ]
 
 
@@ -335,8 +336,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_ROOT = './static/'#os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = './static/' #if os.getenv('ON_CLOUD') else 'static' #os.path.join(BASE_DIR, 'static')
+
+
 STATIC_URL = '/static/'
+
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATICFILES_DIRS = [
@@ -346,6 +351,27 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (유저 업로드 파일들)
+DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+AZURE_ACCOUNT_NAME = "yosepstorage"
+AZURE_ACCOUNT_KEY = "FCUamlKDVOnqx8rkFg/yZL+hzH5XgG0svK6WmMyj1NoLqi+Had1sN99INjb7eHySTntp3RdhKSNT+ASt7P5azg=="
+AZURE_CONTAINER = "webapp"
+AZURE_SSL = False
+
+DEFAULT_FILE_STORAGE = 'backend.custom_azure.AzureMediaStorage'
+STATICFILES_STORAGE = 'backend.custom_azure.AzureStaticStorage'
+
+#STATIC_LOCATION = "static"
+MEDIA_LOCATION = "webapp"
+AZURE_ACCOUNT_NAME = "yosepstorage"
+AZURE_ACCOUNT_KEY = "FCUamlKDVOnqx8rkFg/yZL+hzH5XgG0svK6WmMyj1NoLqi+Had1sN99INjb7eHySTntp3RdhKSNT+ASt7P5azg=="
+AZURE_CONTAINER = "webapp"
+AZURE_SSL = False
+
+AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
+#STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+
+"""
 if os.getenv('GAE_APPLICATION', None):
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     #GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
@@ -358,11 +384,12 @@ if os.getenv('GAE_APPLICATION', None):
 else:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media_dev') #local media folder for dev
     MEDIA_URL = '/media/'
+"""
 
 #login
 LOGIN_URL = '/login'
-LOGIN_REDIRECT_URL = 'index'
-LOGOUT_REDIRECT_URL = 'index'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 #version
 MATH_APP_VERSION = '1.23' 
