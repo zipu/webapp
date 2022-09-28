@@ -360,7 +360,7 @@ MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 #login
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/index'
-#LOGOUT_REDIRECT_URL = '/login'
+LOGOUT_REDIRECT_URL = '/'
 
 #version
 MATH_APP_VERSION = '1.23' 
