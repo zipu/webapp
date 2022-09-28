@@ -8,7 +8,8 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
-"""
+""" 
+
 import json
 import os
 from django.core.exceptions import ImproperlyConfigured
@@ -359,7 +360,7 @@ MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 #login
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/index'
-LOGOUT_REDIRECT_URL = '/login'
+#LOGOUT_REDIRECT_URL = '/login'
 
 #version
 MATH_APP_VERSION = '1.23' 
