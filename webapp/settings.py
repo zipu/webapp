@@ -52,9 +52,7 @@ else:
     DEBUG = True
 
 
-CSRF_TRUSTED_ORIGINS = [
-        'https://*.azurewebsites.net',
-    ]
+
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600
@@ -68,7 +66,9 @@ if DEBUG == False:
     SECURE_HSTS_PRELOAD = True
     
 
-
+CSRF_TRUSTED_ORIGINS = [
+        'https://*.azurewebsites.net',
+    ]
 ALLOWED_HOSTS = ['*']
 
 
@@ -359,8 +359,8 @@ MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 
 #login
 LOGIN_URL = '/login'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/index'
+LOGOUT_REDIRECT_URL = '/login'
 
 #version
 MATH_APP_VERSION = '1.23' 
