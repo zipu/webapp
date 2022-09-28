@@ -21,7 +21,7 @@ from django.views.generic import TemplateView, RedirectView
 urlpatterns = [
     path('', RedirectView.as_view(url='index', permanent=False)),
     path('login', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', RedirectView.as_view(url='index', permanent=False), name='logout'),
+    path('index', TemplateView.as_view(template_name='index.html'), name='logout'),
     path('admin', admin.site.urls),
     path('index', TemplateView.as_view(template_name='index.html'), name='index'),
     
