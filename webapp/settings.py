@@ -108,10 +108,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'webapp.middleware.LoginRequiredMiddleware', #custom login middleware
-    'storeges'
 ]
-
-
 
 ROOT_URLCONF = 'webapp.urls'
 
@@ -337,8 +334,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_ROOT = './static/' #if os.getenv('ON_CLOUD') else 'static' #os.path.join(BASE_DIR, 'static')
-
-
 STATIC_URL = '/static/'
 
 
@@ -357,34 +352,10 @@ AZURE_ACCOUNT_KEY = "FCUamlKDVOnqx8rkFg/yZL+hzH5XgG0svK6WmMyj1NoLqi+Had1sN99INjb
 AZURE_CONTAINER = "webapp"
 AZURE_SSL = False
 
-DEFAULT_FILE_STORAGE = 'backend.custom_azure.AzureMediaStorage'
-STATICFILES_STORAGE = 'backend.custom_azure.AzureStaticStorage'
 
-#STATIC_LOCATION = "static"
-MEDIA_LOCATION = "webapp"
-AZURE_ACCOUNT_NAME = "yosepstorage"
-AZURE_ACCOUNT_KEY = "FCUamlKDVOnqx8rkFg/yZL+hzH5XgG0svK6WmMyj1NoLqi+Had1sN99INjb7eHySTntp3RdhKSNT+ASt7P5azg=="
-AZURE_CONTAINER = "webapp"
-AZURE_SSL = False
+MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 
-AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
-#STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
 
-"""
-if os.getenv('GAE_APPLICATION', None):
-    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    #GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    #    os.path.join(BASE_DIR,"credentials.json")
-    #)
-    GS_BUCKET_NAME = 'cyosep.appspot.com'
-    MEDIA_URL = f'https://storage.googleapis.com/{ GS_BUCKET_NAME }/'
-    #MEDIA_URL = f'https://storage.cloud.google.com/{ GS_BUCKET_NAME }/'
-
-else:
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media_dev') #local media folder for dev
-    MEDIA_URL = '/media/'
-"""
 
 #login
 LOGIN_URL = '/login'
