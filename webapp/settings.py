@@ -52,7 +52,7 @@ if os.getenv('ON_CLOUD', None) == 'true':
 else:
     DEBUG = True
 
-DEBUG = False
+#DEBUG = False
 
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True

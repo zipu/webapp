@@ -36,8 +36,11 @@ class Student(models.Model):
     def balance(self):
         total = self.total_deposit()
 
-        usage = Attendence.objects.filter(student=self).aggregate(Sum('lesson__tuition'))\
-            ['lesson__tuition__sum']
+        usage = Lesson.objects.filter(attendence__student=self).\
+                aggregate(Sum('tuition'))['tuition__sum']
+        #    ['lesson__tuition__sum']
+        #usage = Attendence.objects.filter(student=self).aggregate(Sum('lesson__tuition'))\
+        #    ['lesson__tuition__sum']
         #attendences = Attendence.objects.filter(student=self)
         #usage = sum([l.lesson.tuition for l in attendences] )
         balance = total - usage
@@ -125,7 +128,7 @@ class Attendence(models.Model):
         ('3', "안함"),
         ('4', "")
     ]
-    lesson = models.ForeignKey("Lesson", on_delete=models.PROTECT)
+    lesson = models.ForeignKey("Lesson", on_delete=models.PROTECT, related_name="attendence")
     student = models.ForeignKey("Student", on_delete=models.PROTECT)
     homework = models.CharField(choices=HOMEWORK, blank=True, null=True, max_length=250)
     note = models.CharField(max_length=250, blank=True, null=True)
