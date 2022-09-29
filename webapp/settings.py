@@ -52,6 +52,7 @@ if os.getenv('ON_CLOUD', None) == 'true':
 else:
     DEBUG = True
 
+DEBUG = False
 
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
@@ -150,7 +151,7 @@ DATABASE_ROUTERS = [
 
 
 # [START db_setup]
-REMOTE = False
+REMOTE = True
 PORT = '3306' 
 
 if os.getenv('ON_CLOUD', None):
@@ -358,8 +359,8 @@ MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 
 
 #login
-LOGIN_URL = '/login'
-LOGIN_REDIRECT_URL = '/index'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 #version

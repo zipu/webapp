@@ -20,10 +20,10 @@ from django.views.generic import TemplateView, RedirectView
 
 urlpatterns = [
     path('', RedirectView.as_view(url='index', permanent=False)),
-    path('login', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout', auth_views.LogoutView.as_view(template_name='login.html'), name='logout'),
-    path('admin', admin.site.urls),
-    path('index', TemplateView.as_view(template_name='index.html'), name='index'),
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(template_name='login.html'), name='logout'),
+    path('admin/', admin.site.urls),
+    path('index/', TemplateView.as_view(template_name='index.html'), name='index'),
     
     path('maths/', include('maths.urls'), name='maths'),
     #path('asset/', include('asset.urls')),

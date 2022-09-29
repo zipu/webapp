@@ -20,7 +20,7 @@ class LoginRequiredMiddleware:
         if not request.user.is_authenticated:
             #print(request.path_info)
             path = request.path_info.lstrip('/')
-            if path == 'login':
+            if path == 'login/':
                 return self.get_response(request)
             #else:
             #    #print(request.path_info)
