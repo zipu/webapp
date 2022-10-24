@@ -151,7 +151,7 @@ DATABASE_ROUTERS = [
 
 
 # [START db_setup]
-REMOTE = True
+REMOTE = False
 PORT = '3306' 
 
 if os.getenv('ON_CLOUD', None):
@@ -353,9 +353,11 @@ AZURE_ACCOUNT_KEY = "FCUamlKDVOnqx8rkFg/yZL+hzH5XgG0svK6WmMyj1NoLqi+Had1sN99INjb
 AZURE_CONTAINER = "webapp"
 AZURE_SSL = False
 
-
-MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
-
+if os.getenv('ON_CLOUD', None):
+    MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+    MEDIA_URL = '/media/'
 
 
 #login
