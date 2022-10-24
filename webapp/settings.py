@@ -151,7 +151,7 @@ DATABASE_ROUTERS = [
 
 
 # [START db_setup]
-REMOTE = False
+REMOTE = True
 PORT = '3306' 
 
 if os.getenv('ON_CLOUD', None):
@@ -210,43 +210,43 @@ elif REMOTE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
+            'HOST': get_secret('REMOTE_HOST'),
             'PORT': PORT,
             'NAME': 'webapp',
             'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'PASSWORD': get_secret('REMOTE_PASSWORD'),
         },
         'maths' :{
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
+            'HOST': get_secret('REMOTE_HOST'),
             'PORT': PORT,
             'NAME': 'maths',
             'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'PASSWORD': get_secret('REMOTE_PASSWORD'),
         },
         'trading' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
+            'HOST': get_secret('REMOTE_HOST'),
             'PORT': PORT,
             'NAME': 'trading',
             'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'PASSWORD': get_secret('REMOTE_PASSWORD'),
         },
         'aops' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
+            'HOST': get_secret('REMOTE_HOST'),
             'PORT': PORT,
             'NAME': 'aops',
             'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'PASSWORD': get_secret('REMOTE_PASSWORD'),
         },
         'tutoring' : {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('DB_HOST'),
+            'HOST': get_secret('REMOTE_HOST'),
             'PORT': PORT,
             'NAME': 'tutoring',
             'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
+            'PASSWORD': get_secret('REMOTE_PASSWORD'),
         }
     }
 
@@ -347,14 +347,17 @@ STATICFILES_DIRS = [
 ]
 
 # Media files (유저 업로드 파일들)
-DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-AZURE_ACCOUNT_NAME = "yosepstorage"
-AZURE_ACCOUNT_KEY = "FCUamlKDVOnqx8rkFg/yZL+hzH5XgG0svK6WmMyj1NoLqi+Had1sN99INjb7eHySTntp3RdhKSNT+ASt7P5azg=="
-AZURE_CONTAINER = "webapp"
-AZURE_SSL = False
+
 
 if os.getenv('ON_CLOUD', None):
+    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+    AZURE_ACCOUNT_NAME = os.getenv('STORAGE_ACCOUNT_NAME')
+    AZURE_ACCOUNT_KEY = os.getenv('STORAGE_ACCOUNT_KEY')
+    AZURE_CONTAINER = "webapp"
+    AZURE_SSL = False
+    
     MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
+
 else:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
     MEDIA_URL = '/media/'
