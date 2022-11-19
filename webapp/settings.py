@@ -151,7 +151,7 @@ DATABASE_ROUTERS = [
 
 
 # [START db_setup]
-REMOTE = True
+REMOTE = False
 PORT = '3306' 
 
 if os.getenv('ON_CLOUD', None):

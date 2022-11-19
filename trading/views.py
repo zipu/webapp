@@ -8,13 +8,21 @@ from django.db.models import Sum, Window, F
 from trading.models import Asset, Record, CashAccount
 from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
-from trading.models import create_record
-
+from trading.models import create_record, CurrencyRates
 
 from datetime import datetime, time
 import json
 from decimal import Decimal as D
 # Create your views here.
+class UpdateCurrencyRateView(TemplateView):
+    """
+     환율 갱신하는 뷰
+    """
+    def get(self, request, *args, **kwargs):
+        result = CurrencyRates.update()
+        return JsonResponse(result, safe=False)
+
+
 class CreateRecordView(TemplateView):
     """ 수동 레코드 업데이트 """
     def get(self, request, *args, **kwargs):
@@ -55,6 +63,9 @@ class UpdatePriceView(TemplateView):
         create_record('all')
 
         return JsonResponse('done', safe=False)
+
+
+
 
 # slack 으로 매매내역 요약 전송
 class ReportView(TemplateView):

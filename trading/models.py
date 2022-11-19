@@ -33,6 +33,7 @@ class CurrencyRates:
         converted = amount * rates
         return converted
     """
+    """
     def convert(self, base, target, amount):
         if base == target: 
             return amount
@@ -42,7 +43,7 @@ class CurrencyRates:
         target = target.lower()
 
         url = f'https://www.investing.com/currencies/{base}-{target}'
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'}
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'}
         session = requests.Session()
         session.headers.update(headers)
         response = session.get(url)
@@ -55,7 +56,41 @@ class CurrencyRates:
         else:
             #print(f"환율정보 갱신 실패: {base}/{target}")
             raise ValueError(f"환율정보 갱신 실패: {base}/{target}")
+    """
+    RATES = {
+        'KRWUSD': 0,
+        'KRWEUR': 0,
+        'KRWCNY': 0,
+        'KRWHKD': 0,
+        'KRWJPY': 0
+    }
 
+    @classmethod
+    def update(cls):
+        url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD,FRX.KRWEUR,FRX.KRWCNY,FRX.KRWHKD,FRX.KRWJPY'
+        response = requests.get(url)
+
+        if response.ok:
+            rates = response.json()
+            CurrencyRates.RATES = {
+                'KRWUSD': D(str(rates[0]['basePrice'])),
+                'KRWEUR': D(str(rates[1]['basePrice'])),
+                'KRWCNY': D(str(rates[2]['basePrice'])),
+                'KRWHKD': D(str(rates[3]['basePrice'])),
+                'KRWJPY': D(str(rates[4]['basePrice']))
+            }
+            return CurrencyRates.RATES
+            
+        else:
+            #print(f"환율정보 갱신 실패: {base}/{target}")
+            raise ValueError(f"환율정보 갱신 실패")
+
+    def convert(self, base, target, amount):
+        if base == target: 
+            return amount
+            
+        converted = amount * CurrencyRates.RATES[f'{target}{base}']
+        return converted
 
 
 
