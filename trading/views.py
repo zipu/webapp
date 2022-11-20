@@ -110,29 +110,9 @@ class UpdateView(TemplateView):
                 for trade in trades:
                     trade.current_price = D(str(price))
                     trade.save()
-            create_record('all')
         
-        return JsonResponse(newdata, safe=False)
-
-    def post(self, request, **kwargs):
-        
-        data = json.loads(request.body.decode('utf-8'))
-
-        for code, price in data['stock']:
-            trades = StockTradeUnit.objects.filter(is_open=True, code=code).all()
-            for trade in trades:
-                trade.cur_stock_price = price
-                trade.save()
-        
-        for code, price in data['futures']:
-            trades = FuturesEntry.objects.filter(is_open=True, code=code).all()
-            for trade in trades:
-                trade.current_price = D(str(price))
-                trade.save()
         create_record('all')
-
-        return JsonResponse('done', safe=False)
-
+        return JsonResponse(newdata, safe=False)
 
 
 
