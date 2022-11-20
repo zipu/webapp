@@ -685,7 +685,7 @@ class  FuturesEntry(models.Model):
             
             self.entry_risk = self.current_risk = c.convert(self.instrument.currency, 'USD', entry_risk)
             
-        if self.exits.count() > 0:
+        if self.id and self.exits.count() > 0:
             self.num_close_cons = self.exits.aggregate(Sum('num_cons'))['num_cons__sum']
             self.num_open_cons = self.num_cons - self.num_close_cons
         current_risk = ((self.current_price - self.stop_price)*self.position/self.instrument.tickunit)\
