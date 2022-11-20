@@ -4,7 +4,7 @@ from django.views.generic import RedirectView
 from .views import FuturesView, FuturesHistoryView
 from .views import StockView, StockHistoryView
 from .views import CashView, AssetView, ChartView
-from .views import UpdatePriceView, ReportView, CreateRecordView, UpdateCurrencyRateView
+from .views import UpdateView, ReportView, CreateRecordView, UpdateCurrencyRateView
 
 urlpatterns = [
     path('', RedirectView.as_view(url='asset', permanent=False)),
@@ -15,9 +15,9 @@ urlpatterns = [
     path('stock/history/', StockHistoryView.as_view(), name='stockhistory'),
     path('cash/', CashView.as_view(), name='cash'),
     path('chart/<str:account>/', ChartView.as_view(), name='chart'),
-    path('update/', UpdatePriceView.as_view(), name='updateprice'),
+    path('update/', UpdateView.as_view(), name='update'),
     path('report/', ReportView.as_view(), name='report'),
     path('createrecord/', CreateRecordView.as_view(), name='record'),
-    path('updatecurrencyrates/', UpdateCurrencyRateView.as_view(), name='updatecurrencyrates')
+    #path('updatecurrencyrates/', UpdateCurrencyRateView.as_view(), name='updatecurrencyrates')
 ]
 

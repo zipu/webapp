@@ -258,7 +258,7 @@ class Record(models.Model):
                 first_date = FuturesAccount.objects.get(symbol=self.account_symbol).date
 
             days = (self.date.date() - first_date).days
-            if (days > 1) and (self.principal > 0) :
+            if (days > 1) and (self.principal > 0) and (self.value > 0):
                 n = days/365
                 self.cagr = (pow(float(self.value/self.principal), 1/n) - 1)*100
             else:

@@ -17,9 +17,21 @@ class LoginRequiredMiddleware:
              'django.contrib.auth.middlware.AuthenticationMiddleware'. If that doesn't\
              work, ensure your TEMPLATE_CONTEXT_PROCESSORS setting includes\
              'django.core.context_processors.auth'."
-        if not request.user.is_authenticated:
+        
+        path = request.path_info.lstrip('/')
+
+        if path == 'trading/update/':
+            """
+             환율, 가격 정보 업데이트 위한 주소
+            """
+            if request.GET.get('key') == 'value':
+                return self.get_response(request)
+            else:
+                return HttpResponseRedirect(settings.LOGIN_URL)
+
+        elif not request.user.is_authenticated:
             #print(request.path_info)
-            path = request.path_info.lstrip('/')
+            #path = request.path_info.lstrip('/')
             if path == 'login/':
                 return self.get_response(request)
             #else:
