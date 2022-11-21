@@ -55,7 +55,7 @@ class UpdateView(TemplateView):
         futures_codes = list(FuturesEntry.objects.filter(is_open=True).values_list('code', 'instrument__number_system'))
         olddata={
             'stock': stock_codes,
-            'futures': futures_codes,
+            'futures': list(set(futures_codes)),
         }
         
         #LOGIN_URL = "http://cyosep.appspot.com/login/"
@@ -93,6 +93,7 @@ class UpdateView(TemplateView):
                 if number_system != 10:
                     a,b = [float(i) for i in value.split("'")]
                     value = a+b/number_system
+
                 newdata['futures'].append([code, value])
                 print(f"해외선물 시세 업데이트: 종목코드({code}), 가격({value})")
             else:
