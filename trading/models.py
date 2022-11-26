@@ -698,7 +698,7 @@ class  FuturesEntry(models.Model):
         super(FuturesEntry, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"({self.account.account_name}) {self.id}/{self.instrument.name}/{self.entry_price}/ r: {self.entry_risk}"
+        return f"({self.account.account_name}) {self.id}/{self.instrument.name}/{self.entry_price:.{self.instrument.decimal_places}f}/ r:{self.current_risk:.0f}/ ct:{self.num_open_cons}/{self.num_cons}"
     class Meta:
         ordering = ('-id',)
 

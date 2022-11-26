@@ -207,22 +207,25 @@ class FuturesView(TemplateView):
     template_name = "trading/futures.html"
 
     def get_context_data(self, **kwargs):
-       context = super().get_context_data(**kwargs)
-       context['accounts'] = FuturesAccount.objects.all()
-       #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-       if kwargs['system'] == 0:
-           context['account'] = {'id':0, 'account_name': '시스템 합산'}
-           record = Record.objects.filter(account_symbol='FA')
-           #context['record'] = Record.objects.filter(account_symbol='FA').latest('date','id')
-       
-       else:
-           context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-           record = Record.objects.filter(account_symbol=context['account'].symbol)
-           #context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-           #                     .latest('date','id')
-       context['record'] = record.latest('date','id')
-       context['activate'] = 'futures'
-       return context
+        #기간 설정
+        #duration = self.request.GET.get('duration')
+        
+        context = super().get_context_data(**kwargs)
+        context['accounts'] = FuturesAccount.objects.all()
+        #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
+        if kwargs['system'] == 0:
+            context['account'] = {'id':0, 'account_name': '시스템 합산'}
+            record = Record.objects.filter(account_symbol='FA')
+            #context['record'] = Record.objects.filter(account_symbol='FA').latest('date','id')
+        
+        else:
+            context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
+            record = Record.objects.filter(account_symbol=context['account'].symbol)
+            #context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
+            #                     .latest('date','id')
+        context['record'] = record.latest('date','id')
+        context['activate'] = 'futures'
+        return context
 
 class FuturesHistoryView(ListView):
    template_name = "trading/futures_history.html"
@@ -232,14 +235,14 @@ class FuturesHistoryView(ListView):
    paginate_by = 10
 
    def get_queryset(self):
-       return FuturesAccount.objects.get(id=self.kwargs['system']).entries.order_by('-is_open','-exits__date','-date')
+    return FuturesAccount.objects.get(id=self.kwargs['system']).entries.order_by('-is_open','-exits__date','-date')
 
    def get_context_data(self, **kwargs):
-       context = super().get_context_data(**kwargs)
-       start = int(context['page_obj'].number/10)+1
-       end = min(start+10, context['page_obj'].paginator.num_pages+1)
-       context['range'] = range(start, end)
-       return context
+    context = super().get_context_data(**kwargs)
+    start = int(context['page_obj'].number/10)+1
+    end = min(start+10, context['page_obj'].paginator.num_pages+1)
+    context['range'] = range(start, end)
+    return context
 
 class StockView(TemplateView):
     template_name = "trading/stock.html"
