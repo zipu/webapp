@@ -10,12 +10,14 @@ from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, Futures
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
 from trading.models import create_record, CurrencyRates
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import json
 from decimal import Decimal as D
 
 import requests
 from bs4 import BeautifulSoup as bs
+import statistics 
+
 
 
 # Create your views here.
@@ -188,6 +190,82 @@ class ChartView(View):
         data = list(records.all().values_list(
             'date', 'value', 'risk_excluded_value','volatility_day', 'volatility', 'principal')) 
         return JsonResponse(data, safe=False)
+
+class StatView(View):
+    """ 통계 데이터 반환용 뷰 """
+    
+    def get(self, request, *args, **kwargs):
+        
+
+        duration = int(request.GET.get('duration'))
+        system = FuturesAccount.objects.get(id=kwargs['account'])
+        since = datetime.now()-timedelta(days=duration)
+        entries = system.entries.filter(date__gte=since)
+        
+        print("통계 데이터 뷰")
+        print(system, kwargs)
+
+        stat = {
+            'gross_profit':0, #누적손익
+            'net_profit': 0, #순손익 (누적손인 - 수수료)
+            'cum_profit': 0, #누적수익
+            'cum_loss':0, #누적손실
+            'winrate':0, 
+            'pnl_per_trade': 0, #매매당 손익비
+            'avg_profit_day':0, #일평균 손익
+            'avg_profit_trade':0, #매매당 평균 손익
+            'avg_profit_std':0, #손익 표준편차
+            'avg_trade_day':0, #일 평균 매매횟수
+            'cum_commission':0, #누적 수수료
+            'avg_commission':0 #평균 수수료
+        }
+       
+
+        win_trades = []
+        loss_trades = []
+        for entry in entries:
+            stat['cum_commission'] += entry.commission
+            if entry.is_open:
+                #평가손익합산
+                cur_profit = entry.current_profit
+                stat['gross_profit'] += cur_profit
+                if cur_profit >= 0:
+                    stat['cum_profit'] += cur_profit
+                else: 
+                    stat['cum_loss'] += cur_profit
+
+            if entry.exits.all():
+                profit = sum([p.profit for p in entry.exits.all()])
+                if profit >= 0:
+                    win_trades.append(profit)
+                else:
+                    loss_trades.append(profit)
+
+        num_trades = entries.count() #매매횟수
+        days = round(duration*5/7)  #영업일 
+        trades = win_trades+loss_trades
+        
+        stat['cum_profit'] = sum(win_trades)
+        stat['cum_loss'] = sum(loss_trades)
+        gross_profit = stat['cum_profit'] + stat['cum_loss']
+        
+        stat['gross_profit'] += gross_profit
+        stat['net_profit'] = stat['gross_profit'] - stat['cum_commission']
+        if num_trades > 0:
+            stat['winrate'] = 100*len(win_trades)/num_trades
+            stat['avg_profit_trade'] = gross_profit/num_trades
+            
+        if loss_trades:
+            stat['pnl_per_trade'] = -(stat['cum_profit']/len(win_trades))/(stat['cum_loss']/len(loss_trades))
+        stat['avg_profit_day'] = gross_profit/days
+        stat['avg_profit_std'] = statistics.pstdev(trades)
+        stat['avg_trade_day'] = num_trades/days
+        stat['avg_commission'] = stat['cum_commission']/days
+
+        #print(stat)
+
+        return JsonResponse(stat, safe=False)
+
 
 
 class AssetView(TemplateView):

@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.views.generic import RedirectView
 from .views import FuturesView, FuturesHistoryView
 from .views import StockView, StockHistoryView
-from .views import CashView, AssetView, ChartView
+from .views import CashView, AssetView, ChartView, StatView
 from .views import UpdateView, ReportView, CreateRecordView, UpdateCurrencyRateView
 
 urlpatterns = [
@@ -18,6 +18,7 @@ urlpatterns = [
     path('update/', UpdateView.as_view(), name='update'),
     path('report/', ReportView.as_view(), name='report'),
     path('createrecord/', CreateRecordView.as_view(), name='record'),
+    path('stat/<int:account>/', StatView.as_view(), name='stat')
     #path('updatecurrencyrates/', UpdateCurrencyRateView.as_view(), name='updatecurrencyrates')
 ]
 
