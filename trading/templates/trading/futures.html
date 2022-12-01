@@ -140,7 +140,10 @@
     <div style="float:left;padding-bottom:10px;">
       <input type="number" placeholder="기간(20일)" id="duration" style="height:25px">
       <select placeholder="전략" id="strategy" style="width:200px;height:25px;">
-        <option> 전략 </option>
+        {% for strategy in strategies%}
+        <option value=''> 전략 </option>
+        <option value={{strategy.id}}> {{ strategy.name }} </option>
+        {% endfor %}
       </select>
       <button id="durationbtn" style="border-width: thin;">Run</button>
     </div>
@@ -210,8 +213,8 @@ var movePage
 
 //부분통계
 var stat
-(stat = function(duration){
-  $.get( "{% url 'stat' account=account.id %}?duration="+duration, function( data ) {
+(stat = function(duration, strategy){
+  $.get( "{% url 'stat' account=account.id %}?duration="+duration+"&strategy="+strategy, function( data ) {
     console.log(data);
     $('#gross_profit').text('$ '+data.gross_profit);
     $('#net_profit').text('$ '+data.net_profit);
@@ -226,14 +229,14 @@ var stat
     $('#cum_commission').text('$ '+data.cum_commission);
     $('#avg_commision').text('$ '+Number(data.avg_commission).toFixed(1));
   });
-})(25);
+})(25, '');
 
 $('#durationbtn').on('click', function(e){
   e.preventDefault();
   let duration = $('#duration').val()
-  let strategy = $('#strategy').val()
+  let strategy = $("#strategy option:selected").val()
   if (duration){
-    stat(duration);
+    stat(duration, strategy);
   }
 });
 

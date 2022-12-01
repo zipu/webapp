@@ -6,7 +6,7 @@ from django.middleware import csrf
 
 from django.db.models import Sum, Window, F
 from trading.models import Asset, Record, CashAccount
-from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount
+from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount, FuturesStrategy
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
 from trading.models import create_record, CurrencyRates
 
@@ -200,7 +200,12 @@ class StatView(View):
         duration = int(request.GET.get('duration'))
         system = FuturesAccount.objects.get(id=kwargs['account'])
         since = datetime.now()-timedelta(days=duration)
-        entries = system.entries.filter(date__gte=since)
+        
+        if request.GET.get('strategy'):
+            strategyid = int(request.GET.get('strategy'))
+            entries = system.entries.filter(date__gte=since, strategy__id=strategyid)
+        else:
+            entries = system.entries.filter(date__gte=since)
         
         print("통계 데이터 뷰")
         print(system, kwargs)
@@ -255,7 +260,7 @@ class StatView(View):
             stat['winrate'] = 100*len(win_trades)/num_trades
             stat['avg_profit_trade'] = gross_profit/num_trades
             
-        if loss_trades:
+        if loss_trades and win_trades:
             stat['pnl_per_trade'] = -(stat['cum_profit']/len(win_trades))/(stat['cum_loss']/len(loss_trades))
         stat['avg_profit_day'] = gross_profit/days
         stat['avg_profit_std'] = statistics.pstdev(trades)
@@ -290,6 +295,7 @@ class FuturesView(TemplateView):
         
         context = super().get_context_data(**kwargs)
         context['accounts'] = FuturesAccount.objects.all()
+        context['strategies'] = FuturesStrategy.objects.all()
         #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
         if kwargs['system'] == 0:
             context['account'] = {'id':0, 'account_name': '시스템 합산'}

@@ -646,6 +646,14 @@ class FuturesAccount(models.Model):
     def __str__(self):
         return f"{self.account_name}"
 
+class FuturesStrategy(models.Model):
+    name = models.CharField("전략명", max_length=50)
+    code = models.CharField("전략코드", max_length=10)
+    description = models.TextField("설명", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name}/{self.code}"
+
 class  FuturesEntry(models.Model):
     POSITIONS = [
         (1, "Long"),
@@ -660,6 +668,15 @@ class  FuturesEntry(models.Model):
                     FuturesInstrument,
                     verbose_name="상품명",
                     on_delete=models.PROTECT)
+
+    strategy = models.ForeignKey(
+               FuturesStrategy,
+               blank=True,
+               null=True,
+               related_name="strategies",
+               verbose_name="전략",
+               on_delete=models.CASCADE)
+    
     date = models.DateField("진입 날짜")
     code = models.CharField("종목코드", max_length=20)
     expiration = models.DateField("만기일", null=True)
@@ -725,6 +742,8 @@ class FuturesExit(models.Model):
         return f"id = {self.id}, entry id = {self.entry.id}: {self.profit} / {self.date}"
     class Meta:
         ordering = ('-id',)
+
+  
 
 @receiver(post_save, sender=FuturesExit,
           dispatch_uid="update_entry_after_exit")
