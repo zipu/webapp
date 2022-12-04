@@ -368,8 +368,8 @@ else:
     #MEDIA_URL = '/media/'
 
     DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-    AZURE_ACCOUNT_NAME = os.get_secret('STORAGE_ACCOUNT_NAME')
-    AZURE_ACCOUNT_KEY = os.get_secret('STORAGE_ACCOUNT_KEY')
+    AZURE_ACCOUNT_NAME = get_secret('STORAGE_ACCOUNT_NAME')
+    AZURE_ACCOUNT_KEY = get_secret('STORAGE_ACCOUNT_KEY')
     AZURE_CONTAINER = "webapp"
     AZURE_SSL = False
     
