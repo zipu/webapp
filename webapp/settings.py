@@ -70,7 +70,8 @@ if DEBUG == False:
 CSRF_TRUSTED_ORIGINS = [
         'https://*.azurewebsites.net',
     ]
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    '*']
 
 
 # Application definition
@@ -151,7 +152,7 @@ DATABASE_ROUTERS = [
 
 
 # [START db_setup]
-REMOTE = True
+REMOTE = False
 PORT = '3306' 
 
 if os.getenv('ON_CLOUD', None):
