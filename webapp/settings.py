@@ -336,7 +336,9 @@ USE_L10N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_ROOT = './static/' #if os.getenv('ON_CLOUD') else 'static' #os.path.join(BASE_DIR, 'static')
+
+#STATIC_ROOT = './static/' #if os.getenv('ON_CLOUD') else 'static' #os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATIC_URL = '/static/'
 
 
@@ -361,8 +363,17 @@ if os.getenv('ON_CLOUD', None):
     MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 
 else:
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-    MEDIA_URL = '/media/'
+    
+    #MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+    #MEDIA_URL = '/media/'
+
+    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+    AZURE_ACCOUNT_NAME = os.get_secret('STORAGE_ACCOUNT_NAME')
+    AZURE_ACCOUNT_KEY = os.get_secret('STORAGE_ACCOUNT_KEY')
+    AZURE_CONTAINER = "webapp"
+    AZURE_SSL = False
+    
+    MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 
 
 #login
