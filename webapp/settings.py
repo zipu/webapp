@@ -344,11 +344,11 @@ STATIC_URL = '/static/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "webapp/static"),
-    os.path.join(BASE_DIR, "maths/static"),
-    os.path.join(BASE_DIR, "tutoring/static"),
-]
+#STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, "webapp/static"),
+#    os.path.join(BASE_DIR, "maths/static"),
+#    os.path.join(BASE_DIR, "tutoring/static"),
+#]
 
 # Media files (유저 업로드 파일들)
 
