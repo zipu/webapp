@@ -9,11 +9,9 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """ 
-
 import json
 import os
 from django.core.exceptions import ImproperlyConfigured
-#from google.oauth2 import service_account
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,20 +37,14 @@ def get_secret(setting):
 # Modifications after upgraded to django 4
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY") if os.getenv("ON_CLOUD") else get_secret("SECRET_KEY")
+SECRET_KEY = get_secret("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
-if os.getenv('ON_CLOUD', None) == 'true':
-    DEBUG = False
-else:
-    DEBUG = True
-
-#DEBUG = False
+DEBUG = get_secret("DEBUG")
 
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
@@ -68,10 +60,10 @@ if DEBUG == False:
     pass
 
 CSRF_TRUSTED_ORIGINS = [
-        'https://*.azurewebsites.net',
+        'https://*.koreacentral.cloudapp.azure.com',
     ]
-ALLOWED_HOSTS = [
-    '*']
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -149,151 +141,50 @@ DATABASE_ROUTERS = [
     'tutoring.dbRouter.TutoringDBRouter',
 ]
 
-
-
 # [START db_setup]
-REMOTE = False
 PORT = '3306' 
-
-if os.getenv('ON_CLOUD', None):
-    # Running on production App Engine, so connect to Google Cloud SQL using
-    # the unix socket at /cloudsql/<your-cloudsql-connection string>
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'PORT': PORT,
-            'HOST': os.getenv('DB_HOST'),
-            'USER': os.getenv('DB_USERNAME'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'NAME': 'webapp',
-        },
-        'maths': {
-            'ENGINE': 'django.db.backends.mysql',
-            'PORT': PORT,
-            'HOST': os.getenv('DB_HOST'),
-            'USER': os.getenv('DB_USERNAME'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'NAME': 'maths',
-        },
-        'trading' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'PORT': PORT,
-            'HOST': os.getenv('DB_HOST'),
-            'USER': os.getenv('DB_USERNAME'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'NAME': 'trading'
-        },
-        'aops' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'PORT': PORT,
-            'HOST': os.getenv('DB_HOST'),
-            'USER': os.getenv('DB_USERNAME'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'NAME': 'aops'
-        },
-        'tutoring' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'PORT': PORT,
-            'HOST': os.getenv('DB_HOST'),
-            'USER': os.getenv('DB_USERNAME'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'NAME': 'tutoring'
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'webapp',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
+    },
+    'maths' :{
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'maths',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
+    },
+    'trading' : {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'trading',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
+    },
+    'aops' : {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'aops',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
+    },
+    'tutoring' : {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'tutoring',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
     }
-elif REMOTE:
-    # Running locally so connect to either a local MySQL instance or connect to
-    # Cloud SQL via the proxy. To start the proxy via command line:
-    #
-    #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
-    #
-    # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('REMOTE_HOST'),
-            'PORT': PORT,
-            'NAME': 'webapp',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('REMOTE_PASSWORD'),
-        },
-        'maths' :{
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('REMOTE_HOST'),
-            'PORT': PORT,
-            'NAME': 'maths',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('REMOTE_PASSWORD'),
-        },
-        'trading' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('REMOTE_HOST'),
-            'PORT': PORT,
-            'NAME': 'trading',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('REMOTE_PASSWORD'),
-        },
-        'aops' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('REMOTE_HOST'),
-            'PORT': PORT,
-            'NAME': 'aops',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('REMOTE_PASSWORD'),
-        },
-        'tutoring' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': get_secret('REMOTE_HOST'),
-            'PORT': PORT,
-            'NAME': 'tutoring',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('REMOTE_PASSWORD'),
-        }
-    }
-
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': PORT,
-            'NAME': 'webapp',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-        },
-        'maths' :{
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': PORT,
-            'NAME': 'maths',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-        },
-        'trading' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': PORT,
-            'NAME': 'trading',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-        },
-        'aops' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': PORT,
-            'NAME': 'aops',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-        },
-        'tutoring' : {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': PORT,
-            'NAME': 'tutoring',
-            'USER': get_secret('DB_USERNAME'),
-            'PASSWORD': get_secret('DB_PASSWORD'),
-        }
-    }
+}
 
 
 # [END db_setup]
@@ -335,51 +226,25 @@ USE_L10N = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
-
-
-#STATIC_ROOT = './static/' #if os.getenv('ON_CLOUD') else 'static' #os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATIC_URL = '/static/'
-
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-#STATICFILES_DIRS = [
-#    os.path.join(BASE_DIR, "webapp/static"),
-#    os.path.join(BASE_DIR, "maths/static"),
-#    os.path.join(BASE_DIR, "tutoring/static"),
-#]
 
 # Media files (유저 업로드 파일들)
+#MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+#MEDIA_URL = '/media/'
 
-
-if os.getenv('ON_CLOUD', None):
-    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-    AZURE_ACCOUNT_NAME = os.getenv('STORAGE_ACCOUNT_NAME')
-    AZURE_ACCOUNT_KEY = os.getenv('STORAGE_ACCOUNT_KEY')
-    AZURE_CONTAINER = "webapp"
-    AZURE_SSL = False
+DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+AZURE_ACCOUNT_NAME = get_secret('STORAGE_ACCOUNT_NAME')
+AZURE_ACCOUNT_KEY = get_secret('STORAGE_ACCOUNT_KEY')
+AZURE_CONTAINER = "webapp"
+AZURE_SSL = False
     
-    MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
-
-else:
-    
-    #MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-    #MEDIA_URL = '/media/'
-
-    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-    AZURE_ACCOUNT_NAME = get_secret('STORAGE_ACCOUNT_NAME')
-    AZURE_ACCOUNT_KEY = get_secret('STORAGE_ACCOUNT_KEY')
-    AZURE_CONTAINER = "webapp"
-    AZURE_SSL = False
-    
-    MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
+MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 
 
 #login
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-
-#version
-MATH_APP_VERSION = '1.23' 
