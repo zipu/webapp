@@ -1,4 +1,6 @@
 media_dev/
+static/
+
 *.pyc
 
 */*/__pycache__/

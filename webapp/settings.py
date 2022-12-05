@@ -60,7 +60,7 @@ if DEBUG == False:
     pass
 
 CSRF_TRUSTED_ORIGINS = [
-        'https://*.koreacentral.cloudapp.azure.com',
+        'http://*.koreacentral.cloudapp.azure.com',
     ]
 
 ALLOWED_HOSTS = ['*']
