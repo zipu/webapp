@@ -140,8 +140,8 @@
     <div style="float:left;padding-bottom:10px;">
       <input type="number" placeholder="기간(20일)" id="duration" style="height:25px">
       <select placeholder="전략" id="strategy" style="width:200px;height:25px;">
-        {% for strategy in strategies%}
         <option value=''> 전략 </option>
+        {% for strategy in strategies%}
         <option value={{strategy.id}}> {{ strategy.name }} </option>
         {% endfor %}
       </select>
