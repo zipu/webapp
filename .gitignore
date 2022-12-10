@@ -1,5 +1,5 @@
 media_dev/
-static/
+/static/
 
 *.pyc
 
