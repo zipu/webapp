@@ -844,3 +844,24 @@ class Transfer(models.Model):
     
     def __str__(self):
         return f"({self.acc_from} --> {self.acc_to}) 출금: {self.amount_from},  입금: {self.amount_to}"
+
+class Transaction(models.Model):
+    POSITIONS = [
+        (1, "Long"),
+        (-1, "Short")
+    ]
+    instrument = models.ForeignKey(
+                    FuturesInstrument,
+                    verbose_name="상품",
+                    on_delete=models.PROTECT)
+
+    ebest_id = models.PositiveSmallIntegerField("이베스트 체결번호", unique=True)
+    ebest_code = models.CharField("이베스트 상품코드", max_length=20)
+    date = models.DateTimeField("체결날짜")
+    position = models.SmallIntegerField("포지션", choices=POSITIONS)
+    num_cons = models.SmallIntegerField("진입계약수")
+    entry_price = models.DecimalField("진입가", max_digits=12, decimal_places=6)
+    commission = models.DecimalField("수수료", max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return f"({self.id}/{self.ebest_id} ){self.date}/{self.instrument.name}/{self.position}"

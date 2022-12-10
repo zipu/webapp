@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    {% block title %}<title>Yonsei Math</title>{% endblock %}
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Add additional CSS in static file -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="{% static 'css/navbar-top-fixed.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v={{MATH_APP_VERSION}}">
+
+</head>
+
+<body>
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                  <ul class="navbar-nav mr-auto">
+                    <li {% if activate == 'klass' %} class="nav-item active"
+                        {% else %} class="nav-item" {% endif %}>
+                      <a class="nav-link" href="{% url 'klass' %}">Klass</a>
+                    </li>
+                    <li {% if activate == 'exam' %} class="nav-item active"
+                        {% else %} class="nav-item" {% endif %}>
+                      <a class="nav-link" href="{% url 'exam' %}">Past Exam</a>
+                    </li>
+                    <li {% if activate == 'document' %} class="nav-item active"
+                        {% else %} class="nav-item" {% endif %}>
+                      <a class="nav-link" href="{% url 'document' %}">Document</a>
+                    </li>
+                  </ul>
+                  <a href="/logout" class="btn btn-outline-success my-2 my-sm-0">Logout</a>
+                </div>
+              </nav>
+              <main role="main" class="container-fluid" style="max-width:900px">
+                {% block maths %}{% endblock maths %}
+              </main>
+<!-- css and js-->
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+{% csrf_token %}
+<script src="{% static 'js/maths.js' %}?v={{MATH_APP_VERSION}}"></script>
+
+</body>
+</html>

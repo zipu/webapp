@@ -226,6 +226,7 @@ USE_L10N = True
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'webapp/static'),
+   # os.path.join(BASE_DIR, 'trading/static'),
 )
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

@@ -6,12 +6,12 @@ from django.middleware import csrf
 
 from django.db.models import Sum, Window, F
 from trading.models import Asset, Record, CashAccount
-from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount, FuturesStrategy
+from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount, FuturesStrategy, Transaction
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
 from trading.models import create_record, CurrencyRates
 
 from datetime import datetime, time, timedelta
-import json
+import json, csv
 from decimal import Decimal as D
 
 import requests
@@ -328,6 +328,44 @@ class FuturesHistoryView(ListView):
     context['range'] = range(start, end)
     return context
 
+class TransactionView(TemplateView):
+    template_name = "daytrading/transaction.html"
+
+    def get_context_data(self, **kwargs):
+       context = super().get_context_data(**kwargs)
+       context['active'] = 'transaction'
+       return context
+
+    def post(self, request, *args, **kwargs):
+        file_data = csv.reader(request.FILES['file'].read().decode("cp949").splitlines())
+        transactions = []
+        for l, line in enumerate(file_data):
+            if l < 2:
+                continue
+            # 중복 신청시 코등 안보임 해결
+            if not line[4]:
+                line[4] = symbol
+            symbol = line[4]
+            
+            date = datetime.strptime(line[19], "%Y-%m-%d %H:%M:%S" )
+            print(line[4])
+
+            tr = Transaction(
+                instrument = FuturesInstrument.objects.get(symbol=line[4][:-3]),
+                ebest_id = line[3],
+                ebest_code = line[4],
+                date = date,
+                position = 1 if line[12]=="매수" else -1,
+                entry_price = line[13].replace(',',''),
+                num_cons = line[14],
+                commission = line[16]
+            )
+            transactions.append(tr)
+        Transaction.objects.bulk_create(transactions)
+        
+
+        return redirect('transaction')
+
 class StockView(TemplateView):
     template_name = "trading/stock.html"
 
@@ -364,3 +402,15 @@ class CashView(TemplateView):
                             .latest('date', 'id')
        context['activate'] = 'cash'
        return context
+
+class DayTradingView(TemplateView):
+    template_name = "daytrading/daytrading.html"
+    
+    def get_context_data(self, **kwargs):
+       context = super().get_context_data(**kwargs)
+       context['active'] = 'daytrading'
+       return context
+
+
+
+        

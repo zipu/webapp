@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  {% block title %}<title>Day Trading</title>{% endblock %}
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="{% static 'css/daytrading.css' %}">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="topnav">
+        <a class="{% if active == 'daytrading' %}active{% endif %}" href="{% url 'daytrading' %}">Home</a>
+        <a class="{% if active == 'transaction' %}active{% endif %}" href="{% url 'transaction' %}">Transaction</a>
+      </div>
+    <main role="main" class="container-fluid" style="margin-top:60px;">
+        {% block main %}{% endblock main %}
+    </main>
+</body>
+
+</html>

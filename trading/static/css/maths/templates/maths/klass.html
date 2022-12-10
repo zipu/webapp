@@ -1,0 +1,33 @@
+{% extends "maths/base_generic.html"%}
+
+{% block maths %}
+<div class="klass">
+    <table id="data-table" class="table table-hover table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Course</th>
+                <th>Title</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for klass in klasses %}
+            <tr style="cursor:default !important" pk={{klass.id}} onclick="location.href = '/maths/klass/{{klass.id}}';">
+                <td > {{klass.pub_date | date:'Y' }} </td>
+                <td> {{klass.pub_date | date:'M'}} </td>
+                <td> {% if klass.course == 'APAB' %} AP Calculus AB 
+                     {% elif klass.course == 'APBC' %} AP Calculus BC
+                     {% else %} {{klass.course}} 
+                     {% endif %} </td>
+                <td style="text-align: left"> {{klass.name}} </td>
+                <td> {% if klass.status %}<i class="fas fa-lock-open text-info"></i> 
+                     {% else %}<i class="fas fa-lock" style='color:grey'></i>
+                     {% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock maths%}
