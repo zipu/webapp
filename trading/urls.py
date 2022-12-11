@@ -20,7 +20,7 @@ urlpatterns = [
     path('createrecord/', CreateRecordView.as_view(), name='record'),
     path('stat/<int:account>/', StatView.as_view(), name='stat'),
     path('daytrading', DayTradingView.as_view(), name='daytrading'),
-    path('daytrading/transaction', TransactionView.as_view(), name='transaction')
+    path('daytrading/transaction/<int:page>', TransactionView.as_view(), name='transaction')
     #path('updatecurrencyrates/', UpdateCurrencyRateView.as_view(), name='updatecurrencyrates')
 ]
 

@@ -1,26 +1,7 @@
-{% extends "trading/base_trading.html"%}
+{% extends "trading/futures/base.html"%}
 {% load humanize %}
-{% block trading %}
-<div class="row">
-  <ul class="nav nav-tabs">
-  
-    <li class="nav-item">
-      <a class="nav-link {% if account.id == 0 %}active{% endif %}"
-       href="{% url 'futures' system=0 %}">Overview</a>
-    </li>
-    {% for acc in accounts %}
-    <li class="nav-item">
-      <a class="nav-link {% if acc.id == account.id %}active {% endif %}"
-       href="{% url 'futures' system=acc.id %}">{{ acc.account_name }}</a>
-    </li>
-    {% endfor %}
-    <li class="nav-item">
-      <a class="nav-link {% if active == 'transaction' %}active {% endif %}"
-       href="{% url 'transaction' %}">체결 내역</a>
-    </li>
-  </ul>
-</div>
-</br>
+{% block content2 %}
+
 <div class="row" id="system">
   <div style="width:100%">
     <div id="profit-chart" style="margin: auto;"></div>
@@ -199,7 +180,7 @@
 
   <div id="history" style="width:100%"></div>
 </div>
-{% endblock trading%}
+{% endblock content2%}
 
 {% block script %}
 <script>

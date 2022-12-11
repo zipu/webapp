@@ -1,0 +1,99 @@
+{% extends "trading/futures/base.html"%}
+{% load humanize %}
+{% block content2 %}
+
+  {% if is_paginated %}
+    <nav aria-label="Page navigator">
+      <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=1 %}" aria-label="First">
+            <span aria-hidden="true">&laquo;</span>
+            <span class="sr-only">First</span>
+          </a>
+        </li>
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=page_obj.previous %}" aria-label="Previous">
+            <span aria-hidden="true">&lt;</span>
+            <span class="sr-only">Previous</span>
+          </a>
+        </li>
+        {% for page in page_obj.rng %}
+          {% if page_obj.page == page %}
+            <li class="page-item active">
+              <a class="page-link" href="">{{page}}
+                <span class="sr-only">(current)</span></a>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="{% url 'transaction' page=page %}">{{page}}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=page_obj.next %}" aria-label="Previous">
+            <span aria-hidden="true">&gt;</span>
+            <span class="sr-only">Next</span>
+          </a>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=page_obj.num_page %}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="sr-only">Last</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+
+  <table class="table table-sm table-bordered" id="history">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">체결일시</th>
+        <th scope="col">체결번호</th>
+        <th scope="col">상품</th>
+        <th scope="col">이베스트코드</th>
+        <th scope="col">포지션</th>
+        <th scope="col">체결가격</th>
+        <th scope="col">계약수</th>
+        <th scope="col">수수료</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in transactions %}
+        <tr>
+          <td>{{transaction.date | date:"Y-m-d H:i"}}
+          </td>
+          <td>{{transaction.ebest_id}}
+          </td>
+          <td>{{transaction.instrument.name}}
+          </td>
+          <td>{{transaction.ebest_code}}
+          </td>
+          <td>
+            {% if transaction.position == 1 %}
+              Long
+            {% else %}
+              Short
+            {% endif %}
+          </td>
+          <td>
+            {{transaction.entry_price.normalize}}
+          </td>
+          <td>{{transaction.num_cons}}
+          </td>
+          <td>{{transaction.commission}}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+  <div>
+    <form action="{% url 'transaction' page=1 %}" method='post' enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" id="file" name="file" accept=".csv">
+      <input type="submit">
+    </form>
+  </div>
+  <br>
+{% endblock content2 %}

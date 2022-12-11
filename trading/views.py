@@ -287,7 +287,7 @@ class AssetView(TemplateView):
        return context
 
 class FuturesView(TemplateView):
-    template_name = "trading/futures.html"
+    template_name = "trading/futures/futures.html"
 
     def get_context_data(self, **kwargs):
         #기간 설정
@@ -312,7 +312,7 @@ class FuturesView(TemplateView):
         return context
 
 class FuturesHistoryView(ListView):
-   template_name = "trading/futures_history.html"
+   template_name = "trading/futures/futures_history.html"
    model = FuturesEntry
    #queryset = FuturesEntry.objects.filter(system__id=1).order_by('-pk')
    context_object_name = "entries"
@@ -329,12 +329,38 @@ class FuturesHistoryView(ListView):
     return context
 
 class TransactionView(TemplateView):
-    template_name = "daytrading/transaction.html"
+    template_name = "trading/futures/transaction.html"
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
        context['active'] = 'transaction'
+       context['accounts'] = FuturesAccount.objects.all()
        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        transactions = Transaction.objects.order_by('-date')
+        paginate_by = 20 # 페이지당 30개
+        cnt = transactions.count()
+        num_pages = int(cnt/paginate_by)+1
+        page = kwargs['page']
+        obj_start = (page-1)*paginate_by
+        obj_end = obj_start + paginate_by
+        context['transactions'] = transactions.all()[obj_start:obj_end]
+
+        context['is_paginated'] = True if num_pages > 1 else False
+        pages = [ i for i in range(1,num_pages+1) ] 
+        ranges = [[i for i in range(k,k+10) if i <= pages[-1]] for k in pages[::10]]
+        rng = [k for k in ranges if page in k][0]
+
+        context['page_obj']={
+            'page': page,
+            'num_page': num_pages,
+            'previous': page-1,
+            'next': page+1,
+            'rng': rng
+        }
+        return render(request, TransactionView.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
         file_data = csv.reader(request.FILES['file'].read().decode("cp949").splitlines())
@@ -361,13 +387,12 @@ class TransactionView(TemplateView):
                 commission = line[16]
             )
             transactions.append(tr)
-        Transaction.objects.bulk_create(transactions)
-        
+        Transaction.objects.bulk_create(transactions, ignore_conflicts=True)
 
-        return redirect('transaction')
+        return redirect('transaction', page=1)
 
 class StockView(TemplateView):
-    template_name = "trading/stock.html"
+    template_name = "trading/stock/stock.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -378,7 +403,7 @@ class StockView(TemplateView):
         return context
 
 class StockHistoryView(ListView):
-    template_name = "trading/stock_history.html"
+    template_name = "trading/stock/stock_history.html"
     model = StockTradeUnit
     queryset = StockTradeUnit.objects.all().order_by('-id')
     context_object_name = "trades"
