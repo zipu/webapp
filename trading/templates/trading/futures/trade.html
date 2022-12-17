@@ -1,0 +1,121 @@
+{% extends "trading/futures/base.html"%}
+{% load humanize %}
+{% block content2 %}
+
+  {% if is_paginated %}
+    <nav aria-label="Page navigator">
+      <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=1 %}" aria-label="First">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}" aria-label="Previous">
+            <span aria-hidden="true">&lt;</span>
+          </a>
+        </li>
+        {% for page in page_obj.rng %}
+          {% if page_obj.page == page %}
+            <li class="page-item active">
+              <a class="page-link" href="">{{page}}</a>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="{% url 'futurestrade' page=page %}">{{page}}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}" aria-label="Previous">
+            <span aria-hidden="true">&gt;</span>
+          </a>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+
+  <table class="table table-sm table-bordered" style="font-size:small">
+      <tr class="table table-secondary">
+        <td scope="col" rowspan=2>#</td>
+        <td scope="col" rowspan=2>시작일</td>
+        <td scope="col" rowspan=2>상품</td>
+        <td scope="col" rowspan=2>코드</td>
+        <td scope="col" rowspan=2>포지션</td>
+        <td scope="col" colspan=2>진입</td>
+        <td scope="col" colspan=2>청산</td>
+        <td scope="col" rowspan=2>매입평균</td>
+        <td scope="col" rowspan=2>청산평균</td>
+        <td scope="col" rowspan=2>평가</td>
+        <td scope="col" rowspan=2>실현</td>
+        <td scope="col" rowspan=2>리스크</td>
+        <td scope="col" rowspan=2>수수료</td>
+
+      </tr>
+      <tr class="table table-secondary">
+        <td scope="col"> 가격 </td>
+        <td scope="col"> 수량 </td>
+        <td scope="col"> 가격 </td>
+        <td scope="col"> 수량 </td>
+      </tr>
+ 
+      {% for trade, entries, exits in data %}
+      <tr {% if trade.is_open %}bgcolor="#FFF8DC"{% endif %}>
+          <td>{{trade.id}} </td>
+          <td>{{trade.pub_date | date:"Y-m-d"}} </td>
+          <td>{{trade.instrument.name}} </td>
+          <td>{{trade.ebest_code}} </td>
+          <td style={% if trade.position == 1 %} 'color:red' {% else %} 'color:blue' {% endif %}>
+            {% if trade.position == 1 %}
+             Long
+            {% else %}
+             Short
+            {% endif %}
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for entry in entries %}
+              <tr><td> {{entry.price.normalize}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for entry in entries %}
+              <tr><td> {{entry.cnt}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for exit in exits %}
+              <tr><td> {{exit.price.normalize}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for exit in exits %}
+              <tr><td> {{exit.cnt}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>{{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+          <td>{{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+          <td style="color: {% if trade.paper_profit > 0 %} red {% elif trade.paper_profit < 0 %} blue {% endif%}">
+            {{trade.paper_profit.normalize}}
+          </td>
+          <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
+            {{trade.realized_profit.normalize}}
+          </td>
+          <td style='color:blue'>{{trade.risk.normalize}} </td>
+          <td>{{trade.commission.normalize}} </td>
+      </tr>
+      {% endfor %}
+  </table>
+{% endblock content2 %}

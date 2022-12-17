@@ -16,47 +16,6 @@ class CurrencyRates:
     """
     환율 계산 모듈
     """
-    
-    """
-    def convert(self, base, target, amount):
-        import requests
-        from decimal import Decimal
-        
-        if base == target:
-            return amount
-
-        url = f'https://theforexapi.com/api/latest?base={base}&symbols={target}'
-        response = requests.get(url)
-        data = response.json()
-        
-        rates = Decimal(str(data['rates'][target]))
-        converted = amount * rates
-        return converted
-    """
-    """
-    def convert(self, base, target, amount):
-        if base == target: 
-            return amount
-
-        #소문자로 변경
-        base = base.lower() 
-        target = target.lower()
-
-        url = f'https://www.investing.com/currencies/{base}-{target}'
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'}
-        session = requests.Session()
-        session.headers.update(headers)
-        response = session.get(url)
-
-        if response.ok:
-            bs = BeautifulSoup(response.text, 'html.parser')
-            rates = bs.find_all(name="span", attrs={'data-test':"instrument-price-last"})[0].text
-            rates = D(rates.replace(',',''))
-            return amount * rates
-        else:
-            #print(f"환율정보 갱신 실패: {base}/{target}")
-            raise ValueError(f"환율정보 갱신 실패: {base}/{target}")
-    """
     RATES = {
         'KRWUSD': 0,
         'KRWEUR': 0,
@@ -521,11 +480,40 @@ class FuturesInstrument(models.Model):
     opentime = models.TimeField("거래 시작시간") #장 시작시간(한국)
     closetime = models.TimeField("거래 종료시간") #장 종료시간(한국)
 
+    def calc_value(self, entry_price, exit_price, num_cons, position):
+        # 가격 차이를 돈 가치로 변환
+        return position * (exit_price-entry_price)*num_cons*self.tickprice/self.tickunit
+
     def __str__(self):
         return f"{self.name} ({self.symbol})"
 
     class Meta:
         ordering = ('name',)
+
+class FuturesAccount2:
+    asset = models.ForeignKey(
+        Asset,
+        related_name="futures",
+        verbose_name="자산종류",
+        on_delete=models.CASCADE)
+    date = models.DateField("날짜")
+    account_name = models.CharField("계좌명", max_length=20, default='futures')
+    symbol = models.CharField("계좌코드", max_length=16, default='F')
+    
+    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0)
+    pricnipal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1)
+    principal = models.DecimalField("총시드(원)",blank=True, max_digits=12, decimal_places=0)
+
+    def save(self, *args, **kwargs):
+        c = CurrencyRates()
+        self.principal = c.convert('USD','KRW',self.usd)+\
+                c.convert('CNY','KRW',self.cny)+\
+                self.krw
+        
+        super(FuturesAccount, self).save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"({self.account_name}){self.total} won - {self.date}"
 
 class FuturesAccount(models.Model):
     asset = models.ForeignKey(
@@ -743,17 +731,30 @@ class FuturesExit(models.Model):
     class Meta:
         ordering = ('-id',)
 
-  
+class FuturesRecord(models.Model):
+    """
+    해선 계좌의 통계 기록
+    """
+    date = models.DateTimeField("날짜")
+    
+    principal = models.DecimalField("총시드(원)", max_digits=12, decimal_places=0, blank=True)
+    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0, blank=True)
+    principal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1, blank=True)
 
-@receiver(post_save, sender=FuturesExit,
-          dispatch_uid="update_entry_after_exit")
-def update_entry_after_exit(sender, instance, **kwargs):
-    instance.entry.save()
+    # 총가치: 시드 + 평가 + 실현 손익을 합산하여 원화로 계산
+    value = models.DecimalField("총자산", max_digits=12, decimal_places=0, blank=True)
+    value_usd = models.DecimalField("자산(달러)", max_digits=12, decimal_places=0, blank=True)
+    commission = models.DecimalField("수수료", max_digits=9, decimal_places=0, blank=True)
 
-@receiver(post_save, sender=FuturesEntry,
-          dispatch_uid="update_system_record")
-def update_system_record(sender, instance, **kwargs):
-    instance.account.save()
+    # 손익
+    gross_profit = models.DecimalField("누적수익", max_digits=12, decimal_places=0, blank=True)
+    #paper_profit = 
+
+    #averge_profit
+    #average_ptr
+    #winning_rate
+
+    #cagr
 
 
 class Transaction(models.Model):
@@ -766,16 +767,168 @@ class Transaction(models.Model):
                     verbose_name="상품",
                     on_delete=models.PROTECT)
 
-    ebest_id = models.PositiveSmallIntegerField("이베스트 체결번호", unique=True)
+    ebest_id = models.PositiveSmallIntegerField("이베스트 체결번호")
     ebest_code = models.CharField("이베스트 상품코드", max_length=20)
     date = models.DateTimeField("체결날짜")
     position = models.SmallIntegerField("포지션", choices=POSITIONS)
-    num_cons = models.SmallIntegerField("진입계약수")
-    entry_price = models.DecimalField("진입가", max_digits=12, decimal_places=6)
+    price = models.DecimalField("진입가", max_digits=12, decimal_places=6)
     commission = models.DecimalField("수수료", max_digits=6, decimal_places=2)
+    
+    trade = models.ForeignKey(
+        "FuturesTrade",
+        models.SET_NULL,
+        verbose_name="거래",
+        related_name="transactions",
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return f"({self.id}/{self.ebest_id} ){self.date}/{self.instrument.name}/{self.position}"
+    
+
+
+class FuturesTrade(models.Model):
+    POSITIONS = [
+        (1, "Long"),
+        (-1, "Short")
+    ]
+
+    instrument = models.ForeignKey(
+                    FuturesInstrument,
+                    verbose_name="상품",
+                    on_delete=models.PROTECT)
+
+    strategy = models.ForeignKey(
+                    FuturesStrategy,
+                    related_name='trades',
+                    verbose_name="전략",
+                    on_delete=models.PROTECT,
+                    null=True, blank=True)
+
+    
+    pub_date = models.DateTimeField("시작날짜")
+    end_date = models.DateTimeField("종료날짜", null=True, blank=True)
+    ebest_code = models.CharField("이베스트 상품코드", max_length=20)
+    position = models.SmallIntegerField("포지션", choices=POSITIONS)
+    current_price = models.DecimalField(
+                    "현재가", max_digits=12, decimal_places=6,
+                    null=True, blank=True)
+
+    avg_entry_price = models.DecimalField(
+                    "평균진입가", max_digits=12, decimal_places=6,
+                    null=True, blank=True) 
+
+    avg_exit_price = models.DecimalField(
+                    "평균청산가", max_digits=12, decimal_places=6,
+                    null=True, blank=True)
+
+    stop_price = models.DecimalField(
+        "손절가", max_digits=12, decimal_places=6,
+        null=True, blank=True)
+
+    num_entry_cons = models.SmallIntegerField("총진입계약수", default=0)
+    num_exit_cons = models.SmallIntegerField("총청산계약수", default=0, null=True, blank=True)
+    
+    risk = models.DecimalField("리스크", max_digits=12, decimal_places=2, default=0)
+    paper_profit = models.DecimalField("평가손익", max_digits=12, decimal_places=2, default=0)
+    realized_profit = models.DecimalField("실현손익", max_digits=12, decimal_places=2, default=0)
+    commission = models.DecimalField("수수료", max_digits=6, decimal_places=2, default=0)
+
+    is_open = models.BooleanField("상태", default=True)
+    description = models.TextField("설명", null=True, blank=True)
+
+    @staticmethod
+    def add_transactions():
+        """
+        transaction(체결기록)가 기존 거래와 관련된 체결이면 기존 거래에 추가하고
+        그렇지 않으면 신규 거래를 생성
+        views/TransactionView/post 에서 사용함
+        """
+        transactions = Transaction.objects.filter(trade=None).order_by('date')
+        for transaction in transactions:
+            trades = FuturesTrade.objects.filter(ebest_code = transaction.ebest_code, is_open=True)
+            # 해당 transaction의 상품코드와 같은 열려있는 거래가 없으면 생성
+            if not trades:
+                trade = FuturesTrade(
+                    instrument = transaction.instrument,
+                    pub_date = transaction.date,
+                    ebest_code = transaction.ebest_code,
+                    position = transaction.position,
+                )
+                trade.save()
+            # 기존 거래가 있으면 transaction을 추가
+            else:
+                trade = trades[0]
+                
+            trade.transactions.add(transaction)
+            trade.update()
+    
+    def update(self):
+        # 매매내역 갱신. 손익 등 정보 갱신
+            
+        entries = self.transactions.filter(position = self.position).order_by('date')
+        exits = self.transactions.filter(position = self.position*-1).order_by('date')
+        matches = [(entries[i], exits[i]) for i in range(exits.count()) ]
+
+        
+        self.commission = self.transactions.all().aggregate(Sum('commission'))['commission__sum']
+               
+        
+        self.num_entry_cons = entries.count()
+        self.num_exit_cons = exits.count()
+        if self.num_entry_cons < self.num_exit_cons:
+            raise ValueError("청산 계약수가 진입 계약수를 초과")
+        
+        elif self.num_entry_cons == self.num_exit_cons:
+            self.end_date = exits.reverse()[0].date
+            self.is_open = False
+        
+        self.avg_entry_price = entries.aggregate(Avg('price'))['price__avg']
+        self.avg_exit_price = exits.aggregate(Avg('price'))['price__avg']
+
+        # 실현 손익 계산
+        self.realized_profit = 0
+        for match in matches:
+            self.realized_profit += self.instrument.calc_value(
+                match[0].price, match[1].price, 1, self.position
+            ) 
+            
+        #평가 손익 계산
+        if self.current_price:
+            self.paper_profit = self.instrument.calc_value(
+                self.avg_entry_price, self.current_price, 
+                self.num_entry_cons - self.num_exit_cons, self.position
+            )
+        # 리스크 계산
+        if self.stop_price:
+            self.risk = self.instrument.calc_value(
+                self.avg_entry_price, self.stop_price,
+                self.num_entry_cons - self.num_exit_cons, self.position
+            )
+
+        self.save()
+
+
+    def __str__(self):
+        return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"    
+
+
+
+
+
+
+
+
+@receiver(post_save, sender=FuturesExit,
+          dispatch_uid="update_entry_after_exit")
+def update_entry_after_exit(sender, instance, **kwargs):
+    instance.entry.save()
+
+@receiver(post_save, sender=FuturesEntry,
+          dispatch_uid="update_system_record")
+def update_system_record(sender, instance, **kwargs):
+    instance.account.save()
 
 
 ###########################################
@@ -785,11 +938,10 @@ class Transfer(models.Model):
     ACCOUNTS = [
         ("N", "없음"),
         ("C", "현금"),
-        ("S", "주식")
-    ] + [ (a.symbol, f"선물({a.account_name})") for a in FuturesAccount.objects.all()]
-
-
-
+        ("S", "주식"),
+        ("F", "선물")
+    ] 
+    
     CURRENCIES = [
         ('KRW', '원'),
         ('USD', '달러'),
@@ -824,14 +976,14 @@ class Transfer(models.Model):
             acc.principal = acc.principal - self.amount_from
             acc.save()
 
-        else:
-            acc = FuturesAccount.objects.get(symbol=self.acc_from)
+        elif self.acc_from == "F":
+            acc = FuturesAccount.objects.latest('date')
             if self.currency_from == 'KRW':
                 acc.principal_krw = acc.principal_krw - self.amount_from
             elif self.currency_from == 'USD':
                 acc.principal_usd = acc.principal_usd - self.amount_from
-            elif self.currency_from == 'EUR':
-                acc.principal_eur = acc.principal_eur - self.amount_from
+            #elif self.currency_from == 'EUR':
+            #    acc.principal_eur = acc.principal_eur - self.amount_from
             acc.save()
 
         
@@ -852,14 +1004,14 @@ class Transfer(models.Model):
             acc.principal = acc.principal + self.amount_to
             acc.save()
 
-        else:
-            acc = FuturesAccount.objects.get(symbol=self.acc_to)
+        elif self.acc_to == "F":
+            acc = FuturesAccount.objects.latest('date')
             if self.currency_to == 'KRW':
                 acc.principal_krw = acc.principal_krw + self.amount_to
             elif self.currency_to == 'USD':
                 acc.principal_usd = acc.principal_usd + self.amount_to
-            elif self.currency_to == 'EUR':
-                acc.principal_eur = acc.principal_eur + self.amount_to
+            #elif self.currency_to == 'EUR':
+            #    acc.principal_eur = acc.principal_eur + self.amount_to
             acc.save()
         
         super(Transfer, self).save(*args, **kwargs)

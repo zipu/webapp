@@ -4,13 +4,11 @@
   <div class="row">
     <ul class="nav nav-tabs">
       <li class="nav-item">
-        <a class="nav-link {% if account.id == 0 %}active{% endif %}" href="{% url 'futures' system=0 %}">Overview</a>
+        <a class="nav-link {% if active == 'futures' %}active{% endif %}" href="{% url 'futures' %}">통계</a>
       </li>
-      {% for acc in accounts %}
-        <li class="nav-item">
-          <a class="nav-link {% if acc.id == account.id %}active {% endif %}" href="{% url 'futures' system=acc.id %}">{{ acc.account_name }}</a>
-        </li>
-      {% endfor %}
+      <li class="nav-item">
+        <a class="nav-link {% if active == 'trade' %}active{% endif %}" href="{% url 'futurestrade' page=1 %}">거래내역</a>
+      </li>
       <li class="nav-item">
         <a class="nav-link {% if active == 'transaction' %}active {% endif %}" href="{% url 'transaction' page=1 %}">체결 내역</a>
       </li>

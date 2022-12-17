@@ -4,9 +4,10 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.middleware import csrf
 
-from django.db.models import Sum, Window, F
+from django.db.models import Sum, Count
 from trading.models import Asset, Record, CashAccount
-from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount, FuturesStrategy, Transaction
+from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount,\
+                           FuturesStrategy, FuturesTrade, Transaction
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
 from trading.models import create_record, CurrencyRates
 
@@ -292,23 +293,22 @@ class FuturesView(TemplateView):
     def get_context_data(self, **kwargs):
         #기간 설정
         #duration = self.request.GET.get('duration')
-        
         context = super().get_context_data(**kwargs)
         context['accounts'] = FuturesAccount.objects.all()
         context['strategies'] = FuturesStrategy.objects.all()
         #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-        if kwargs['system'] == 0:
-            context['account'] = {'id':0, 'account_name': '시스템 합산'}
-            record = Record.objects.filter(account_symbol='FA')
+        #if kwargs['system'] == 0:
+        #    context['account'] = {'id':0, 'account_name': '시스템 합산'}
+        #    record = Record.objects.filter(account_symbol='FA')
             #context['record'] = Record.objects.filter(account_symbol='FA').latest('date','id')
         
-        else:
-            context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-            record = Record.objects.filter(account_symbol=context['account'].symbol)
+        #else:
+        context['account'] = FuturesAccount.objects.get(symbol='FM02')
+        record = Record.objects.filter(account_symbol=context['account'].symbol)
             #context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
             #                     .latest('date','id')
         context['record'] = record.latest('date','id')
-        context['activate'] = 'futures'
+        context['active'] = 'futures'
         return context
 
 class FuturesHistoryView(ListView):
@@ -328,17 +328,59 @@ class FuturesHistoryView(ListView):
     context['range'] = range(start, end)
     return context
 
-class TransactionView(TemplateView):
-    template_name = "trading/futures/transaction.html"
-
-    def get_context_data(self, **kwargs):
-       context = super().get_context_data(**kwargs)
-       context['active'] = 'transaction'
-       context['accounts'] = FuturesAccount.objects.all()
-       return context
+class FuturesTradeView(TemplateView):
+    template_name = "trading/futures/trade.html"
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
+        
+        context['active'] = 'trade'
+        trades = FuturesTrade.objects.order_by('-is_open', '-pub_date')
+        paginate_by = 20 # 페이지당 30개
+        cnt = trades.count()
+        num_pages = int(cnt/paginate_by)+1
+        page = kwargs['page']
+        obj_start = (page-1)*paginate_by
+        obj_end = obj_start + paginate_by
+        trades = trades.all()[obj_start:obj_end]
+        data = []
+        for trade in trades:
+            entries= trade.transactions.filter(position = trade.position)\
+                            .values('price').annotate(cnt=Count('price'))
+            exits = trade.transactions.filter(position = trade.position*-1)\
+                            .values('price').annotate(cnt=Count('price'))
+            data.append(
+                (trade, entries, exits)
+            )
+
+        context['data'] = data
+        context['is_paginated'] = True if num_pages > 1 else False
+        pages = [ i for i in range(1,num_pages+1) ] 
+        ranges = [[i for i in range(k,k+10) if i <= pages[-1]] for k in pages[::10]]
+        rng = [k for k in ranges if page in k][0]
+
+
+
+        context['page_obj']={
+            'page': page,
+            'num_page': num_pages,
+            'previous': page-1,
+            'next': page+1,
+            'rng': rng
+        }
+
+
+
+
+        return render(request, FuturesTradeView.template_name, context=context)
+
+class TransactionView(TemplateView):
+    template_name = "trading/futures/transaction.html"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        context['active'] = 'transaction'
+        
         transactions = Transaction.objects.order_by('-date')
         paginate_by = 20 # 페이지당 30개
         cnt = transactions.count()
@@ -363,32 +405,49 @@ class TransactionView(TemplateView):
         return render(request, TransactionView.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
+        # 거래내역 생성
+        """
+        if request.GET.get('key') == 'create_trade': 
+            
+            # 체결내역에 시스템 연결
+            for tr, ac in request.POST.items():
+                transaction = Transaction.objects.get(id=tr)
+                account = FuturesAccount.objects.get(id=ac[0])
+                transaction.account = account
+                transaction.save()
+            
+            # 신규등록된 체
+            FuturesTrade.add_transactions()
+            return JsonResponse(True, safe=False)
+        """
+        # 체결기록 등록
+        
         file_data = csv.reader(request.FILES['file'].read().decode("cp949").splitlines())
-        transactions = []
         for l, line in enumerate(file_data):
             if l < 2:
                 continue
             # 중복 신청시 코등 안보임 해결
             if not line[4]:
                 line[4] = symbol
-            symbol = line[4]
+            else:
+                symbol = line[4]
             
             date = datetime.strptime(line[19], "%Y-%m-%d %H:%M:%S" )
-            print(line[4])
-
-            tr = Transaction(
-                instrument = FuturesInstrument.objects.get(symbol=line[4][:-3]),
-                ebest_id = line[3],
-                ebest_code = line[4],
-                date = date,
-                position = 1 if line[12]=="매수" else -1,
-                entry_price = line[13].replace(',',''),
-                num_cons = line[14],
-                commission = line[16]
-            )
-            transactions.append(tr)
-        Transaction.objects.bulk_create(transactions, ignore_conflicts=True)
-
+            if not Transaction.objects.filter(ebest_id=line[3]):
+                num_cons = int(line[14])
+                # 체결 수량 1개당 한개의 transaction으로 함
+                for i in range(int(line[14])):
+                    Transaction(
+                        instrument = FuturesInstrument.objects.get(symbol=line[4][:-3]),
+                        ebest_id = line[3],
+                        ebest_code = line[4],
+                        date = date,
+                        position = 1 if line[12]=="매수" else -1,
+                        price = line[13].replace(',',''),
+                        commission = float(line[16])/num_cons
+                    ).save()
+        # 거래 기록 생성
+        FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
 
 class StockView(TemplateView):
@@ -426,14 +485,6 @@ class CashView(TemplateView):
        context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
                             .latest('date', 'id')
        context['activate'] = 'cash'
-       return context
-
-class DayTradingView(TemplateView):
-    template_name = "daytrading/daytrading.html"
-    
-    def get_context_data(self, **kwargs):
-       context = super().get_context_data(**kwargs)
-       context['active'] = 'daytrading'
        return context
 
 
