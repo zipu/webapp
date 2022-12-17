@@ -22,3 +22,8 @@ table, table td {
 thead {
   font-size: .85em;
 }
+
+.trade:hover {
+    background-color: lightcyan;
+}
+

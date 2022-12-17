@@ -65,7 +65,7 @@
       </tr>
  
       {% for trade, entries, exits in data %}
-      <tr {% if trade.is_open %}bgcolor="#FFF8DC"{% endif %}>
+      <tr class='trade' {% if trade.is_open %}bgcolor="#FFF8DC"{% endif %} onclick="dropdown({{trade.id}})">
           <td>{{trade.id}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
           <td>{{trade.instrument.name}} </td>
@@ -116,6 +116,24 @@
           <td style='color:blue'>{{trade.risk.normalize}} </td>
           <td>{{trade.commission.normalize}} </td>
       </tr>
+      <tr class='table table-sm' id='{{trade.id}}' style='display:none;'> 
+        <td colspan=15> 진입 근거, 청산 근거, 손절가 , 매매전략</td> 
+      </tr>
       {% endfor %}
   </table>
 {% endblock content2 %}
+
+{% block script %}
+<script>
+var dropdown = function(id){
+  display = $('#'+id).css('display')
+  
+  if(display == 'none'){
+     $('#'+id).css('display', 'table-row');
+  } else {
+    $('#'+id).css('display', 'none'); 
+  }
+  
+}
+</script>
+{% endblock script%}
