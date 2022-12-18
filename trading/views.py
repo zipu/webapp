@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.middleware import csrf
 
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Avg, StdDev
 from trading.models import Asset, Record, CashAccount
 from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount,\
                            FuturesStrategy, FuturesTrade, Transaction, Tags
@@ -208,9 +208,6 @@ class StatView(View):
         else:
             entries = system.entries.filter(date__gte=since)
         
-        print("통계 데이터 뷰")
-        print(system, kwargs)
-
         stat = {
             'gross_profit':0, #누적손익
             'net_profit': 0, #순손익 (누적손인 - 수수료)
@@ -311,6 +308,70 @@ class FuturesView(TemplateView):
         context['active'] = 'futures'
         return context
 
+class FuturesStatView(TemplateView):
+    """
+    trading/futures 메인에서 통계자료를 ajax로 전송하는 뷰
+    """
+    def get(self, request, *args, **kwargs):
+        qr_string = request.GET
+        if qr_string:
+            filter ={
+                'start': qr_string.get('start'),
+                'end': qr_string.get('end'),
+                'mental': qr_string.get('mental'),
+
+            }
+        else:
+            trades = FuturesTrade.objects.all()
+        
+        account = FuturesAccount.objects.order_by('-date').first()
+        wins = trades.filter(realized_profit__gt=0)
+        loses = trades.filter(realized_profit__lte=0)
+        cnt = trades.count() #매매횟수
+        
+        # 일별로 그룹화된 쿼리셋
+        trades_by_day = trades.values('pub_date__date')\
+            .order_by('pub_date__date')\
+            .annotate(realized_profit=Sum('realized_profit'),
+                      paper_profit=Sum('paper_profit'),
+                      commission=Sum('commission'),
+                      num_cons=Sum('num_entry_cons'))
+
+        
+        
+        stat = trades.aggregate(
+            Sum('realized_profit'), Sum('paper_profit'), Sum('commission'),
+            Avg('realized_profit'), StdDev('realized_profit')
+        )
+
+        
+        value = c.convert('USD','KRW', stat['realized_profit__sum']) + account.principal
+        win_rate = wins.count()/cnt #승률
+        avg_win_profit = wins.aggregate(Avg('realized_profit'))['realized_profit__avg']
+        avg_loss_profit = loses.aggregate(Avg('realized_profit'))['realized_profit__avg']
+        pnl = (avg_win_profit/avg_loss_profit)*-1
+        
+        c = CurrencyRates()
+        data = {
+            'principal': account.principal,
+            'principal_krw': account.principal_krw,
+            'principal_usd': account.principal_usd,
+
+            'value': value,
+            'realized_profit': c.convert('USD','KRW', stat['realized_profit__sum']),
+            'paper_profit': c.convert('USD','KRW', stat['paper_profit__sum']),
+            'commission': c.convert('USD','KRW', stat['commission__sum']),
+            'avg_profit': c.convert('USD','KRW', stat['realized_profit__avg']),
+            'avg_win_profit':c.convert('USD','KRW', avg_win_profit),
+            'avg_loss_profit': c.convert('USD','KRW', avg_loss_profit),
+            'std_profit':c.convert('USD','KRW', stat['realized_profit__stddev']),
+            'pnl': pnl,
+            'win_rate': win_rate
+        }
+
+        return JsonResponse(data, safe=False)
+
+
 class FuturesHistoryView(ListView):
    template_name = "trading/futures/futures_history.html"
    model = FuturesEntry
@@ -394,7 +455,7 @@ class FuturesTradeView(TemplateView):
         trade.exit_tags.add(*Tags.objects.filter(name__in=exit_tags))
         trade.entry_reason = request.POST.get('entryreason').strip()
         trade.exit_reason = request.POST.get('exitreason').strip()
-        trade.save()
+        #trade.save()
         trade.update()
 
         return redirect('futurestrade', page=1)

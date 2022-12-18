@@ -119,49 +119,23 @@
 {% endblock content2%}
 
 {% block script %}
+
 <script>
-//분석기간 설정
-var accountid = {{account.id}} //시스템아이디
-
-//매매내역 페이징
-{% if account.id != 0 %}
-var movePage
-(movePage = function (num) {
-   $('#history').load("{% url 'futureshistory' system=account.id %}?page=" + num);
-})(1)
-{% endif %}
-
-
-//부분통계
-var stat
-(stat = function(duration, strategy){
-  $.get( "{% url 'stat' account=account.id %}?duration="+duration+"&strategy="+strategy, function( data ) {
-    console.log(data);
-    $('#gross_profit').text('$ '+data.gross_profit);
-    $('#net_profit').text('$ '+data.net_profit);
-    $('#winrate').text(Number(data.winrate).toFixed(1)+'%');
-    $('#cum_profit').text('$ '+data.cum_profit);
-    $('#cum_loss').text('$ '+data.cum_loss);
-    $('#pnl_per_trade').text(Number(data.pnl_per_trade).toFixed(2));
-    $('#avg_profit_day').text('$ '+Number(data.avg_profit_day).toFixed(1));
-    $('#avg_profit_trade').text(Number(data.avg_profit_trade).toFixed(2));
-    $('#avg_profit_std').text(Number(data.avg_profit_std).toFixed(1));
-    $('#avg_trade_day').text(Number(data.avg_trade_day).toFixed(1));
-    $('#cum_commission').text('$ '+data.cum_commission);
-    $('#avg_commision').text('$ '+Number(data.avg_commission).toFixed(1));
+//데이터 요청 ajax call
+(RequestStatData = function(filter){
+  
+  $.ajax({
+    url: "{% url 'statdata' %}",
+    type: "get", //send it through get method
+    data: filter,
+    success: function(response) {
+      console.log(response)
+    },
+    error: function(xhr) {
+      //Do Something to handle error
+    }
   });
-})(25, '');
-
-$('#durationbtn').on('click', function(e){
-  e.preventDefault();
-  let duration = $('#duration').val()
-  let strategy = $("#strategy option:selected").val()
-  if (duration){
-    stat(duration, strategy);
-  }
-});
-
-
+})();
 
 //차트 그리기
 Highcharts.setOptions({

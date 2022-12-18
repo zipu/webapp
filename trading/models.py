@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, time
 import requests
 from bs4 import BeautifulSoup
 
-class CurrencyRates:
+class CurrencyRates(models.Model):
     """
     환율 계산 모듈
     """
@@ -24,31 +24,41 @@ class CurrencyRates:
         'KRWJPY': 0
     }
 
-    @classmethod
-    def update(cls):
+    date = models.DateField(auto_now=True)
+    KRWUSD = models.DecimalField(max_digits=12, decimal_places=5)
+    KRWEUR = models.DecimalField(max_digits=12, decimal_places=5)
+    KRWCNY = models.DecimalField(max_digits=12, decimal_places=5)
+    KRWHKD = models.DecimalField(max_digits=12, decimal_places=5)
+    KRWJPY = models.DecimalField(max_digits=12, decimal_places=5)
+
+
+    @staticmethod
+    def update():
         url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD,FRX.KRWEUR,FRX.KRWCNY,FRX.KRWHKD,FRX.KRWJPY'
         response = requests.get(url)
 
         if response.ok:
             rates = response.json()
-            CurrencyRates.RATES = {
-                'KRWUSD': D(str(rates[0]['basePrice'])),
-                'KRWEUR': D(str(rates[1]['basePrice'])),
-                'KRWCNY': D(str(rates[2]['basePrice'])),
-                'KRWHKD': D(str(rates[3]['basePrice'])),
-                'KRWJPY': D(str(rates[4]['basePrice']))
-            }
-            return CurrencyRates.RATES
+            rate = CurrencyRates(
+                KRWUSD=D(str(rates[0]['basePrice'])),
+                KRWEUR=D(str(rates[1]['basePrice'])),
+                KRWCNY=D(str(rates[2]['basePrice'])),
+                KRWHKD=(str(rates[3]['basePrice'])),
+                KRWJPY=D(str(rates[4]['basePrice']))
+            )
+            rate.save()
+            return rate
             
         else:
             #print(f"환율정보 갱신 실패: {base}/{target}")
             raise ValueError(f"환율정보 갱신 실패")
 
-    def convert(self, base, target, amount):
+    @staticmethod
+    def convert(base, target, amount):
         if base == target: 
             return amount
             
-        converted = amount * CurrencyRates.RATES[f'{target}{base}']
+        converted = D(str(amount)) * CurrencyRates.objects.last().__dict__[f'{target}{base}']
         return converted
 
 
@@ -495,7 +505,7 @@ class FuturesAccount2:
         Asset,
         related_name="futures",
         verbose_name="자산종류",
-        on_delete=models.CASCADE)
+        on_delete=models.PROTECT)
     date = models.DateField("날짜")
     account_name = models.CharField("계좌명", max_length=20, default='futures')
     symbol = models.CharField("계좌코드", max_length=16, default='F')
@@ -731,30 +741,30 @@ class FuturesExit(models.Model):
     class Meta:
         ordering = ('-id',)
 
-class FuturesRecord(models.Model):
+class FuturesStat(models.Model):
     """
     해선 계좌의 통계 기록
     """
     date = models.DateTimeField("날짜")
     
-    principal = models.DecimalField("총시드(원)", max_digits=12, decimal_places=0, blank=True)
-    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0, blank=True)
-    principal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1, blank=True)
+    principal = models.DecimalField("총시드(원)", max_digits=12, decimal_places=0)
+    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0)
+    principal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1)
 
     # 총가치: 시드 + 평가 + 실현 손익을 합산하여 원화로 계산
-    value = models.DecimalField("총자산", max_digits=12, decimal_places=0, blank=True)
-    value_usd = models.DecimalField("자산(달러)", max_digits=12, decimal_places=0, blank=True)
-    commission = models.DecimalField("수수료", max_digits=9, decimal_places=0, blank=True)
+    value = models.DecimalField("총자산(원)", max_digits=12, decimal_places=0)
+    value_usd = models.DecimalField("달러자산", max_digits=12, decimal_places=0)
+    commission = models.DecimalField("누적수수료", max_digits=9, decimal_places=0)
 
     # 손익
-    gross_profit = models.DecimalField("누적수익", max_digits=12, decimal_places=0, blank=True)
-    #paper_profit = 
+    realized_profit = models.DecimalField("누적실현손익", max_digits=12, decimal_places=0, default=0)
+    paper_profit =  models.DecimalField("평가손익", max_digits=12, decimal_places=0, default=0)
+    averge_realized_profit = models.DecimalField("평균실현손익", max_digits=12, decimal_places=0, blank=True)
+    average_ptr = models.FloatField("평균손익비")
+    winning_rate = models.FloatField("승률")
 
-    #averge_profit
-    #average_ptr
-    #winning_rate
 
-    #cagr
+    cagr = models.FloatField("승률")
 
 class Tags(models.Model):
     name = models.CharField("태그", max_length=100, unique=True)
