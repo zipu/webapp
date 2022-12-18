@@ -756,6 +756,11 @@ class FuturesRecord(models.Model):
 
     #cagr
 
+class Tags(models.Model):
+    name = models.CharField("태그", max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class Transaction(models.Model):
     POSITIONS = [
@@ -793,6 +798,11 @@ class FuturesTrade(models.Model):
         (1, "Long"),
         (-1, "Short")
     ]
+    MENTALS = [
+        ("Bad", "Bad"),
+        ("Normal", "Normal"),
+        ("Good", "Good")
+    ]
 
     instrument = models.ForeignKey(
                     FuturesInstrument,
@@ -801,15 +811,33 @@ class FuturesTrade(models.Model):
 
     strategy = models.ForeignKey(
                     FuturesStrategy,
+                    on_delete=models.PROTECT,
                     related_name='trades',
                     verbose_name="전략",
-                    on_delete=models.PROTECT,
                     null=True, blank=True)
+    
+    entry_tags = models.ManyToManyField(
+        Tags,
+        related_name='entry_trades',
+        verbose_name='진입태그',
+        blank=True
+    )
+
+    exit_tags = models.ManyToManyField(
+        Tags,
+        related_name='exit_trades',
+        verbose_name='청산태그',
+        blank=True
+    )
+
+    mental = models.CharField("멘탈", max_length=10, choices=MENTALS, null=True, blank=True)
+    entry_reason = models.TextField("진입 이유", null=True, blank=True)
+    exit_reason = models.TextField("청산 이유", null=True, blank=True)
 
     
     pub_date = models.DateTimeField("시작날짜")
     end_date = models.DateTimeField("종료날짜", null=True, blank=True)
-    ebest_code = models.CharField("이베스트 상품코드", max_length=20)
+    ebest_code = models.CharField("월물코드", max_length=20)
     position = models.SmallIntegerField("포지션", choices=POSITIONS)
     current_price = models.DecimalField(
                     "현재가", max_digits=12, decimal_places=6,
@@ -836,7 +864,7 @@ class FuturesTrade(models.Model):
     commission = models.DecimalField("수수료", max_digits=6, decimal_places=2, default=0)
 
     is_open = models.BooleanField("상태", default=True)
-    description = models.TextField("설명", null=True, blank=True)
+    duration = models.IntegerField("보유기간(시간)", blank=True, null=True)
 
     @staticmethod
     def add_transactions():
@@ -883,6 +911,7 @@ class FuturesTrade(models.Model):
         elif self.num_entry_cons == self.num_exit_cons:
             self.end_date = exits.reverse()[0].date
             self.is_open = False
+            self.duration = (self.end_date - self.pub_date).total_seconds()
         
         self.avg_entry_price = entries.aggregate(Avg('price'))['price__avg']
         self.avg_exit_price = exits.aggregate(Avg('price'))['price__avg']
@@ -901,9 +930,9 @@ class FuturesTrade(models.Model):
                 self.num_entry_cons - self.num_exit_cons, self.position
             )
         # 리스크 계산
-        if self.stop_price:
+        if self.stop_price and self.current_price:
             self.risk = self.instrument.calc_value(
-                self.avg_entry_price, self.stop_price,
+                self.current_price, self.stop_price,
                 self.num_entry_cons - self.num_exit_cons, self.position
             )
 

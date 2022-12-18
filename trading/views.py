@@ -7,7 +7,7 @@ from django.middleware import csrf
 from django.db.models import Sum, Count
 from trading.models import Asset, Record, CashAccount
 from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount,\
-                           FuturesStrategy, FuturesTrade, Transaction
+                           FuturesStrategy, FuturesTrade, Transaction, Tags
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
 from trading.models import create_record, CurrencyRates
 
@@ -343,24 +343,27 @@ class FuturesTradeView(TemplateView):
         obj_start = (page-1)*paginate_by
         obj_end = obj_start + paginate_by
         trades = trades.all()[obj_start:obj_end]
+        
+        # 거래 정보 오브젝트
         data = []
         for trade in trades:
             entries= trade.transactions.filter(position = trade.position)\
                             .values('price').annotate(cnt=Count('price'))
             exits = trade.transactions.filter(position = trade.position*-1)\
                             .values('price').annotate(cnt=Count('price'))
+            duration = timedelta(seconds=trade.duration) if trade.duration else ''
             data.append(
-                (trade, entries, exits)
+                (trade, entries, exits, duration)
             )
+        context['strategies'] = FuturesStrategy.objects.all()
 
+        
+        # 페이지 오브젝트
         context['data'] = data
         context['is_paginated'] = True if num_pages > 1 else False
         pages = [ i for i in range(1,num_pages+1) ] 
         ranges = [[i for i in range(k,k+10) if i <= pages[-1]] for k in pages[::10]]
         rng = [k for k in ranges if page in k][0]
-
-
-
         context['page_obj']={
             'page': page,
             'num_page': num_pages,
@@ -369,10 +372,36 @@ class FuturesTradeView(TemplateView):
             'rng': rng
         }
 
-
-
-
         return render(request, FuturesTradeView.template_name, context=context)
+
+    def post(self, request, *args, **kwargs):
+        id = request.POST.get('id')
+        entry_tags = [x for x in request.POST.get('entrytags').split(';') if x]
+        exit_tags = [x for x in request.POST.get('exittags').split(';') if x]
+        # 태그 등록
+        tags = set(entry_tags+exit_tags)
+        Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
+
+        
+        trade = FuturesTrade.objects.get(id=id)
+        if request.POST.get('mental'):
+            trade.mental = request.POST.get('mental')
+        if request.POST.get('strategy'):
+            trade.strategy = FuturesStrategy.objects.get(id=request.POST.get('strategy'))
+        if request.POST.get('stopprice'):
+            trade.stop_price = D(request.POST.get('stopprice'))
+        trade.entry_tags.add(*Tags.objects.filter(name__in=entry_tags))
+        trade.exit_tags.add(*Tags.objects.filter(name__in=exit_tags))
+        trade.entry_reason = request.POST.get('entryreason').strip()
+        trade.exit_reason = request.POST.get('exitreason').strip()
+        trade.save()
+        trade.update()
+
+        return redirect('futurestrade', page=1)
+
+
+
+
 
 class TransactionView(TemplateView):
     template_name = "trading/futures/transaction.html"
