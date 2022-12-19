@@ -8,53 +8,89 @@
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
     <div>
+      <table class="table table-bordered">
+        <tr>
+          <td style="width:10%;"> 시작 </td>
+          <td style="width:10%;"> 종료 </td>
+          <td style="width:8%;"> 멘탈 </td>
+          <td style="width:20%;"> 전략 </td>
+          <td style="width:20%;"> 태그 </td>
+          <td style="width:20%;"> 기간 </td>
+          <td style="width:12%;">  </td>
+        </tr>
+        <tr>
+          <td> <input type="date" class="date" id='start' name="start"> </td>
+          <td> <input type="date" class="date" id='end' name="end"> </td>
+          <td> <select name="mental" id='mental'>
+            <option value=''>    </option>
+            <option value='Good'> Good </option>
+            <option value='Normal'> Normal </option>
+            <option value='Bad'> Bad </option>
+            </select>
+          </td>
+          <td> <select id='strategy' name="strategy">
+            <option value=''> </option>
+            {% for strategy in strategies%}
+            <option value={{strategy.id}} {% if strategy.id == trade.strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
+            {% endfor %}
+            </select>
+          </td>
+          <td> 
+            <input type="text" id='tags' name="tags">
+          </td>
+          <td><select id='timeframe' name="timeframe">
+            <option value=''>    </option>
+            <option value='day'> 1일 이내 </option>
+            <option value='swing'> 1일 - 1주 </option>
+            <option value='long'> 1주 이상 </option>
+            </select>
+          </td>
+          <td>
+            <input type="submit" value="조회" onclick="requestStatData('part');">
+          </td>
+        </tr>
+      </table>
       
       <div style="float: right;"> 업데이트: {{record.date | date:"Y-m-d H:i"}}</div>
     </div>
       <table class="table table-bordered">
           <tr class="table-secondary">
-            <th scope="col" style="width:16.6%">원금</th>
-            <th scope="col" style="width:16.6%">총자산</th>
-            <th scope="col" style="width:16.6%">수익</th>
-            <th scope="col" style="width:16.6%">KRW</th>
-            <th scope="col" style="width:16.6%">USD</th>
-            <th scope="col" style="width:16.6%">EUR</th>
+            <th scope="col" style="width:20%">원금</th>
+            <th scope="col" style="width:20%">총손익</th>
+            <th scope="col" style="width:20%">누적수익</th>
+            <th scope="col" style="width:20%">누적손실</th>
+            <th scope="col" style="width:20%">수수료</th>
           </tr>
           <tr>
-            <td>{{ account.principal | intcomma}}</td>
-            <td>{{ account.value| intcomma}}</td>
-            <td>{{ account.gross_profit | intcomma}}</td>
-            <td>{{ account.principal_krw | intcomma }}</td>
-            <td>&dollar;{{ account.value_usd | intcomma}}</td>
-            <td>&euro;{{ account.value_eur | intcomma }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="table-secondary">
+            <th scope="col" style="width:20%">수익률</th>
+            <th scope="col" style="width:20%">자본인하율</th>
+            <th scope="col" style="width:20%">MDD</th>
+            <th scope="col" style="width:20%">CAGR</th>
+            <th scope="col" style="width:20%">수수료율</th>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
           </tr>
       </table>
-
-      <table class="table table-bordered">
+      <table class="table table-bordered">  
           <tr class="table-secondary">
-            <th scope="col" style="width:16.6%">수익률</th>
-            <th scope="col" style="width:16.6%">리스크</th>
-            <th scope="col" style="width:16.6%">리스크율</th>
-            <th scope="col" style="width:16.6%">CAGR</th>
-            <th scope="col" style="width:16.6%">자본인하율</th>
-            <th scope="col" style="width:16.6%">MDD</th>
-          </tr>
-          <tr>
-            <td>{{ record.rate_profit| floatformat:1}} %</td>
-            <td>{{ account.risk | intcomma }}</td>
-            <td>{{ record.rate_risk | floatformat:1 }} %</td>
-            <td>{{ record.cagr | floatformat:1}} %</td>
-            <td>{{ record.drawdown | floatformat:1}} %</td>
-            <td>{{ record.mdd | floatformat:1}} %</td>
-          </tr>
-          </tr>
-          <tr class="table-secondary">
-            <th scope="col" style="width:16.6%">진입리스크</th>
-            <th scope="col" style="width:16.6%">평균수익</th>
-            <th scope="col" style="width:16.6%">손익비</th>
+            <th scope="col" style="width:16.6%">평균손익</th>
+            <th scope="col" style="width:16.6%">손익표준편차</th>
             <th scope="col" style="width:16.6%">승률</th>
-            <th scope="col" style="width:16.6%">수수료</th>
-            <th scope="col" style="width:16.6%">평균보유기간</th>
+            <th scope="col" style="width:16.6%">손익비</th>
+            <th scope="col" style="width:16.6%">보유기간</th>
+            <th scope="col" style="width:16.6%"></th>
           </tr>
           <tr>
             <td>{{ account.avg_entry_risk  | intcomma }}</td>
@@ -65,55 +101,25 @@
             <td>{{ account.duration }} 일</td>
           </tr>
       </table>
-
-      <h5 style="margin-top:20px;"> 기간별 통계 </h5>
-    <div style="float:left;padding-bottom:10px;">
-      <input type="number" placeholder="기간(20일)" id="duration" style="height:25px">
-      <select placeholder="전략" id="strategy" style="width:200px;height:25px;">
-        <option value=''> 전략 </option>
-        {% for strategy in strategies%}
-        <option value={{strategy.id}}> {{ strategy.name }} </option>
-        {% endfor %}
-      </select>
-      <button id="durationbtn" style="border-width: thin;">Run</button>
-    </div>
-    <table class="table table-bordered">
-        <tr>
-          <th scope="col" class="table-secondary" style="width:16.6%">누적손익</th>
-          <td scope="col" style="width:16.6%" id='gross_profit'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">순손익</th>
-          <td scope="col" style="width:16.6%" id='net_profit'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">승률</th>
-          <td scope="col" style="width:16.6%" id='winrate'></td>
+      <table class="table table-bordered">  
+        <tr class="table-secondary">
+          <th scope="col" style="width:16.6%">평균손익</th>
+          <th scope="col" style="width:16.6%">손익표준편차</th>
+          <th scope="col" style="width:16.6%">승률</th>
+          <th scope="col" style="width:16.6%">손익비</th>
+          <th scope="col" style="width:16.6%">수수료</th>
+          <th scope="col" style="width:16.6%">매매횟수</th>
         </tr>
         <tr>
-          <th scope="col" class="table-secondary table-bordered" style="width:16.6%">누적수익</th>
-          <td scope="col" style="width:16.6%" id='cum_profit'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">누적손실</th>
-          <td scope="col" style="width:16.6%" id='cum_loss'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">손익비</th>
-          <td scope="col" style="width:16.6%" id='pnl_per_trade'></td>
-        </tr>
-        <tr>
-          <th scope="col" class="table-secondary" style="width:16.6%">일평균 손익</th>
-          <td scope="col" style="width:16.6%" id='avg_profit_day'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">매매당 손익</th>
-          <td scope="col" style="width:16.6%" id='avg_profit_trade'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">손익 표준편차</th>
-          <td scope="col" style="width:16.6%" id='avg_profit_std'></td>
-        </tr>
-        <tr>
-          <th scope="col" class="table-secondary" style="width:16.6%">일평균 매매횟수</th>
-          <td scope="col" style="width:16.6%" id='avg_trade_day'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">누적 수수료</th>
-          <td scope="col" style="width:16.6%" id='cum_commission'></td>
-          <th scope="col" class="table-secondary" style="width:16.6%">일 평균 수수료</th>
-          <td scope="col" style="width:16.6%" id='avg_commision'></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
     </table>
-  </div>
   </br>
-
   <div id="history" style="width:100%"></div>
 </div>
 {% endblock content2%}
@@ -122,8 +128,20 @@
 
 <script>
 //데이터 요청 ajax call
-(RequestStatData = function(filter){
-  
+(requestStatData = function(arg){
+  if (arg == 'all'){
+    filter = '';
+  } else if(arg == 'part'){
+    filter = {
+      start: $('#start').val(),
+      end: $('#end').val(),
+      mental: $('#mental').val(),
+      strategy: $('#strategy').val(),
+      tags: $('#tags').val(),
+      timeframe: $('#timeframe').val(),
+    }
+  }
+
   $.ajax({
     url: "{% url 'statdata' %}",
     type: "get", //send it through get method
@@ -135,7 +153,7 @@
       //Do Something to handle error
     }
   });
-})();
+})('all');
 
 //차트 그리기
 Highcharts.setOptions({

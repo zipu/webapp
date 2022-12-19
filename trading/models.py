@@ -12,6 +12,38 @@ from datetime import datetime, timedelta, time
 import requests
 from bs4 import BeautifulSoup
 
+class Currency(models.Model):
+    """ 
+     환율 정보 모델
+    """
+    date = models.DateField(auto_now=True)
+    symbol = models.CharField(max_length=20)
+    rate = models.DecimalField(max_digits=12, decimal_places=5, null=True, blank=True)
+
+    @staticmethod
+    def update():
+        for currency in Currency.objects.all():
+            url = f'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRW{currency.symbol}'
+            response = requests.get(url)
+
+            if response.ok:
+                rate = response.json()
+                currency.rate = D(str(rate[0]['basePrice']))
+                currency.save()
+                print(f"날짜: {currency.date}, 심볼: {currency.symbol}, 환율: {currency.rate} ")
+            
+            else:
+                #print(f"환율정보 갱신 실패: {base}/{target}")
+                raise ValueError(f"환율정보 갱신 실패 {currency.symbol}")
+
+    def convert(self, amount):
+        converted = D(str(amount)) * self.rate
+        return converted
+
+    def __str__(self):
+        return f"{self.symbol}:{self.rate}"
+    
+
 class CurrencyRates(models.Model):
     """
     환율 계산 모듈
@@ -60,6 +92,8 @@ class CurrencyRates(models.Model):
             
         converted = D(str(amount)) * CurrencyRates.objects.last().__dict__[f'{target}{base}']
         return converted
+
+
 
 
 
@@ -478,7 +512,7 @@ class FuturesInstrument(models.Model):
 
     name = models.CharField("상품명", max_length=64) #상품명
     symbol = models.CharField("상품코드", max_length=16) #상품코드
-    currency = models.CharField("거래 통화", max_length=16, choices=CURRENCIES, default='USD') #통화
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, null=True, blank=True)
     exchange = models.CharField("거래소", max_length=16, choices=EXCHANGES) #거래소
     market = models.CharField("시장 구분", max_length=16, choices=MARKETS) #시장구분
     tickunit = models.DecimalField("호가 단위", max_digits=12, decimal_places=6) #틱 단위
@@ -515,10 +549,8 @@ class FuturesAccount2:
     principal = models.DecimalField("총시드(원)",blank=True, max_digits=12, decimal_places=0)
 
     def save(self, *args, **kwargs):
-        c = CurrencyRates()
-        self.principal = c.convert('USD','KRW',self.usd)+\
-                c.convert('CNY','KRW',self.cny)+\
-                self.krw
+        c = Currency().objects.get(symbol='USD')
+        self.principal = c.convert(self.usd) + self.principal_krw
         
         super(FuturesAccount, self).save(*args, **kwargs)
     
@@ -871,10 +903,12 @@ class FuturesTrade(models.Model):
     risk = models.DecimalField("리스크", max_digits=12, decimal_places=2, default=0)
     paper_profit = models.DecimalField("평가손익", max_digits=12, decimal_places=2, default=0)
     realized_profit = models.DecimalField("실현손익", max_digits=12, decimal_places=2, default=0)
-    commission = models.DecimalField("수수료", max_digits=6, decimal_places=2, default=0)
+    realized_profit_krw = models.DecimalField("실현손익(원)", max_digits=12, decimal_places=2, default=0)
+    commission = models.DecimalField("수수료", max_digits=6, decimal_places=0, default=0)
+    commission_krw = models.DecimalField("수수료(원)", max_digits=6, decimal_places=0, default=0)
 
     is_open = models.BooleanField("상태", default=True)
-    duration = models.IntegerField("보유기간(시간)", blank=True, null=True)
+    duration = models.IntegerField("보유기간(초)", blank=True, null=True)
 
     @staticmethod
     def add_transactions():
@@ -904,14 +938,14 @@ class FuturesTrade(models.Model):
     
     def update(self):
         # 매매내역 갱신. 손익 등 정보 갱신
-            
+        c = self.instrument.currency    
         entries = self.transactions.filter(position = self.position).order_by('date')
         exits = self.transactions.filter(position = self.position*-1).order_by('date')
         matches = [(entries[i], exits[i]) for i in range(exits.count()) ]
 
         
         self.commission = self.transactions.all().aggregate(Sum('commission'))['commission__sum']
-               
+        self.commission_krw = c.convert(self.commission)
         
         self.num_entry_cons = entries.count()
         self.num_exit_cons = exits.count()
@@ -920,8 +954,9 @@ class FuturesTrade(models.Model):
         
         elif self.num_entry_cons == self.num_exit_cons:
             self.end_date = exits.reverse()[0].date
-            self.is_open = False
             self.duration = (self.end_date - self.pub_date).total_seconds()
+            self.is_open = False
+            
         
         self.avg_entry_price = entries.aggregate(Avg('price'))['price__avg']
         self.avg_exit_price = exits.aggregate(Avg('price'))['price__avg']
@@ -931,7 +966,8 @@ class FuturesTrade(models.Model):
         for match in matches:
             self.realized_profit += self.instrument.calc_value(
                 match[0].price, match[1].price, 1, self.position
-            ) 
+            )
+        self.realized_profit_krw = c.convert(self.realized_profit)
             
         #평가 손익 계산
         if self.current_price:

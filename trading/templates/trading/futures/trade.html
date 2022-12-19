@@ -50,12 +50,9 @@
         <td scope="col" rowspan=2>포지션</td>
         <td scope="col" colspan=2>진입</td>
         <td scope="col" colspan=2>청산</td>
-        <td scope="col" rowspan=2>매입평균</td>
-        <td scope="col" rowspan=2>청산평균</td>
         <td scope="col" rowspan=2>평가</td>
         <td scope="col" rowspan=2>실현</td>
-        <td scope="col" rowspan=2>리스크</td>
-        <td scope="col" rowspan=2>수수료</td>
+        <td scope="col" rowspan=2>통화</td>
 
       </tr>
       <tr class="table table-secondary">
@@ -106,74 +103,90 @@
               {% endfor %}
             </table>
           </td>
-          <td>{{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-          <td>{{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
           <td style="color: {% if trade.paper_profit > 0 %} red {% elif trade.paper_profit < 0 %} blue {% endif%}">
             {{trade.paper_profit.normalize}}
           </td>
           <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
             {{trade.realized_profit.normalize}}
           </td>
-          <td style='color:blue'>{{trade.risk.normalize}} </td>
-          <td>{{trade.commission.normalize}} </td>
+          
+          <td>{{trade.instrument.currency.symbol}} </td>
       </tr>
       <!-- 매매 디테일 뷰 -->
       <tr id='{{trade.id}}' style='display:none;'> 
-        <td colspan=15 style='padding:0;'>
+        <td colspan=12 style='padding:0;'>
           <table class='table table-sm table-bordered' style='mrgin:0;padding:0;'>
             <tr>
-              <td style='width:10%; background-color: lightyellow'> 멘탈 </td>
-              <td style='width:10%'>  {{trade.mental}} </td>
-              <td style='width:10%; background-color: lightyellow'> 전략 </td>
-              <td style='width:10%'>  {{ trade.strategy.name }} </td>
-              <td style='width:10%; background-color: lightyellow'> 손절가 </td>
-              <td> {{ trade.stop_price.normalize }} </td>
-              <td style='width:10%; background-color: lightyellow'> 현재가 </td>
-              <td> {{ trade.current_price.normalize }} </td>
-              <td style='width:10%; background-color: lightyellow;'> 기간 </td>
-              <td>{{ duration }} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 평균매입가 </td>
+              <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
+              <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 현재가 </td>
+              <td style='width:12.5%;'> {{ trade.current_price.normalize }} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
+              <td style='width:12.5%;'> {{ trade.stop_price.normalize }} </td>
             </tr>
             <tr>
-              <td colspan=5 style="background-color: lightyellow;"> 진입 이유 </td>
-              <td colspan=5 style="background-color: lightyellow;"> 청산 이유 </td>
+              <td style='background-color: lightyellow'> 멘탈 </td>
+              <td>  {{trade.mental}} </td>
+              <td style='background-color: lightyellow'> 전략 </td>
+              <td > {{ trade.strategy.name }} </td>
+              <td style='background-color: lightyellow;'> 리스크 </td>
+              <td> {{trade.risk.normalize}} </td>
+              <td style='background-color: lightyellow;'> 수수료 </td>
+              <td> {{ trade.commission.normalize }} </td>
             </tr>
             <tr>
-              <td colspan=5> 
+              <td colspan=4 style="background-color: lightyellow;"> 진입 이유 </td>
+              <td colspan=4 style="background-color: lightyellow;"> 청산 이유 </td>
+            </tr>
+            <tr>
+              <td colspan=4> 
                 {% for tag in trade.entry_tags.all %}
                 <span style='background-color: lightgrey;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
                 {% endfor %}
               </td>
-              <td colspan=5 style="height:20px;"> 
+              <td colspan=4 style="height:20px;"> 
                 {% for tag in trade.exit_tags.all %}
                 <span style='background-color: lightgrey;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
                 {% endfor %}
               </td>
             </tr>
             <tr>
-              <td colspan=5> 
+              <td colspan=4> 
                 <span>
                   {{ trade.entry_reason |linebreaks }}
                 </span>
               </td>
-              <td colspan=5> 
+              <td colspan=4> 
                 <span>
                   {{ trade.exit_reason |linebreaks}}
                 </span>
               </td>
             </tr>
             <tr>
-              <td colspan=15> <input type="button" value="수정" onclick="ShowUpdateDetal({{trade.id}});"> </td>
+              <td colspan=13> <input type="button" value="수정" onclick="ShowUpdateDetal({{trade.id}});"> </td>
             </tr>
         </table>
       </td>
       </tr>
       <!-- 매매 디테일 업데이트 뷰 -->
       <tr id='{{trade.id}}-mod' style='display:none;'> 
-        <td colspan=15 style='padding:0;'>
+        <td colspan=12 style='padding:0;'>
           <form action="{% url 'futurestrade' page=1 %}" method='post'>
            {% csrf_token %}
            <input type='hidden' value='{{trade.id}}' name='id'></input>
           <table class='table table-sm table-bordered' style='mrgin:0;padding:0;'>
+            <tr>
+              <td style='width:12.5%; background-color: lightyellow'> 평균매입가 </td>
+              <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
+              <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 현재가 </td>
+              <td style='width:12.5%;'> {{ trade.current_price.normalize }} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
+              <td> <input type="number" value='{{trade.stop_price.normalize}}' name='stopprice'> </input> </td>
+            </tr>
             <tr>
               <td style='width:10%;background-color: lightyellow'> 멘탈 </td>
               <td style='width:10%'>  
@@ -193,36 +206,34 @@
                   {% endfor %}
                   </select>
               </td>
-              <td style='width:10%;background-color: lightyellow'> 손절가 </td>
-              <td> <input type="number" value='{{trade.stop_price.normalize}}' name='stopprice'> </input> </td>
-              <td style='width:10%;background-color: lightyellow'> 현재가 </td>
-              <td> {{ trade.current_price.normalize }} </td>
-              <td style='width:10%;background-color: lightyellow'> 기간 </td>
-              <td> </td>
+              <td style='background-color: lightyellow;'> 리스크 </td>
+              <td> {{trade.risk.normalize}} </td>
+              <td style='background-color: lightyellow;'> 수수료 </td>
+              <td> {{ trade.commission.normalize }} </td>
             </tr>
             <tr>
-              <td colspan=5 style="background-color: lightyellow"> 진입 이유 </td>
-              <td colspan=5 style="background-color: lightyellow"> 청산 이유 </td>
+              <td colspan=4 style="background-color: lightyellow"> 진입 이유 </td>
+              <td colspan=4 style="background-color: lightyellow"> 청산 이유 </td>
             </tr>
             <tr>
-              <td colspan=5>
+              <td colspan=4>
                 <input type="text" class="entrytags" name="entrytags" 
                   value="{% for tag in trade.entry_tags.all %}{{tag.name}};{% endfor %}" style='width:80%'>
               </td>
-              <td colspan=5> 
+              <td colspan=4> 
                 <input type="text" class="exittags" name="exittags" 
                   value="{% for tag in trade.exit_tags.all %}{{tag.name}};{% endfor %}" style='width:80%'>
               </td>
             </tr>
             <tr>
-              <td colspan=5> 
+              <td colspan=4> 
                 <textarea id="entryreason" name="entryreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.entry_reason }}</textarea>
               </td>
-              <td colspan=5><textarea id="exitreason" name="exitreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.exit_reason}}</textarea>
+              <td colspan=4><textarea id="exitreason" name="exitreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.exit_reason}}</textarea>
               </td>
             </tr>
             <tr>
-              <td colspan=15> <input type="submit" value="제출"> </td>
+              <td colspan=12> <input type="submit" value="제출"> </td>
             </tr>
           </table>
         </form>

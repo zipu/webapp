@@ -5,10 +5,10 @@ from trading.models import FuturesInstrument, FuturesAccount, FuturesEntry,\
      FuturesExit, FuturesStrategy, Transaction, FuturesTrade, Tags
 from trading.models import Record, CashAccount, Asset
 from trading.models import StockAccount, StockBuy, StockSell, StockTradeUnit
-from trading.models import Transfer
+from trading.models import Transfer, Currency
 
 admin.site.register(
- [FuturesAccount, FuturesStrategy, Transaction, FuturesTrade, Tags])
+ [FuturesAccount, FuturesStrategy, Transaction, FuturesTrade, Tags, Currency])
 admin.site.register(
  [Record, CashAccount, Asset]
 )
