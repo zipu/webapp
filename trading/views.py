@@ -313,21 +313,61 @@ class FuturesStatView(TemplateView):
     trading/futures 메인에서 통계자료를 ajax로 전송하는 뷰
     """
     def get(self, request, *args, **kwargs):
-        qr_string = request.GET
-        if qr_string:
-            filter ={
-                'start': qr_string.get('start'),
-                'end': qr_string.get('end'),
-                'mental': qr_string.get('mental'),
-
-            }
+        query= request.GET
+        print(query)
+        trades = FuturesTrade.objects.filter(is_open=False)
+        if query.get('start'):
+            trades = trades.filter(pub_date__gte=query.get('start'))
+            # 부분 통계를 위해 그 이전까지의 수익을 합산한것을 원금으로 잡음
+            profit_diff = trades.filter(pub_date__lt=query.get('start'))\
+                       .aggregate(Sum('realized_profit_krw'))['realized_profit_krw__sum']
         else:
-            trades = FuturesTrade.objects.all()
+            profit_diff = 0
+
+        if query.get('end'):
+            trades = trades.filter(pub_date__lte=query.get('end'))
+        if query.get('mental'):
+            trades = trades.filter(mental=query.get('mental'))
+        if query.get('strategy'):
+            trades = trades.filter(strategy__id=query.get('strategy'))
+        if query.get('tags'):
+            tags = [x for x in query.get('tags').split(';') if x]
+            trades = trades.filter(entry_tags__name__in=tags)\
+                           .filter(exit_tags__name__in=tags)
+        if query.get('timeframe'):
+            timeframe = query.get('timeframe')
+            if timeframe == 'day':
+                trades = trades.filter(duration__lte=24*3600)
+            elif timeframe == 'swing':
+                trades = trades.filter(duration__gt=24*3600)\
+                               .filter(duration__lte=3600*24*7)
+            elif timeframe == 'long':
+                trades = trades.filter(duration__gt=3600*24*7)
         
-        account = FuturesAccount.objects.order_by('-date').first()
+        account = FuturesAccount.objects.last()
         wins = trades.filter(realized_profit__gt=0)
         loses = trades.filter(realized_profit__lte=0)
         cnt = trades.count() #매매횟수
+
+        trades_agg = trades.aggregate(
+            Sum('realized_profit_krw'), Sum('paper_profit'), Sum('commission_krw'),
+            Avg('realized_profit_krw'), StdDev('realized_profit_krw')
+        )
+        wins_agg = wins.aggregate(
+            Avg('realized_profit_krw'), Sum('realized_profit_krw')
+        )
+        loses_agg = loses.aggregate(
+            Avg('realized_profit_krw'), Sum('realized_profit_krw')
+        )
+
+        
+        principal = account.principal + profit_diff
+        revenue = trades_agg['realized_profit__sum']
+        profit = wins_agg['realized_profit__sum']
+        loss = loses_agg['realized_profit__sum']
+        commission = trades_agg['commission__sum']
+
+
         
         # 일별로 그룹화된 쿼리셋
         trades_by_day = trades.values('pub_date__date')\
@@ -339,11 +379,7 @@ class FuturesStatView(TemplateView):
 
         
         
-        stat = trades.aggregate(
-            Sum('realized_profit'), Sum('paper_profit'), Sum('commission'),
-            Avg('realized_profit'), StdDev('realized_profit')
-        )
-
+        
         
         value = c.convert('USD','KRW', stat['realized_profit__sum']) + account.principal
         win_rate = wins.count()/cnt #승률
