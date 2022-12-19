@@ -118,72 +118,6 @@ class UpdateView(TemplateView):
         create_record('all')
         return JsonResponse(newdata, safe=False)
 
-
-
-# slack 으로 매매내역 요약 전송
-class ReportView(TemplateView):
-    def get(self, request, *args, **kwargs):
-        asset = Record.objects.filter(account_symbol='A').latest('date','id')
-        futures = FuturesAccount.objects.all().first()
-        stock = StockAccount.objects.all().first()
-
-        data={
-            'asset': {
-                'principal': int(asset.principal),
-                'value': int(asset.value),
-                'profit': int(asset.gross_profit),
-                'rate_profit': round(float(asset.rate_profit),2)
-            },
-            'futures': {
-                'principal': int(futures.principal),
-                'value': int(futures.value),
-                'profit': int(futures.gross_profit),
-                'risk': int(futures.risk),
-                'entries': []
-            },
-            'stock': {
-                'principal': int(stock.principal),
-                'value': int(stock.value),
-                'profit': int(stock.value - stock.principal),
-                'value_stock': int(stock.value_stock),
-                'balance': int(stock.balance),
-                'risk': int(stock.risk),
-                'trades': []
-            }
-        }
-
-        entries = futures.entries.filter(is_open=True).all()
-        for entry in entries:
-            e = {
-                'name': entry.instrument.name,
-                'position': entry.position,
-                'contracts': entry.num_open_cons,
-                'entry_price': float(entry.entry_price),
-                'cur_price': float(entry.current_price),
-                'stop_price': float(entry.stop_price),
-                'profit': int(entry.current_profit),
-                'risk': int(entry.current_risk),
-                'remains': (entry.expiration - datetime.today().date()).days
-            }
-            data['futures']['entries'].append(e)
-
-        trades = stock.trades.filter(is_open=True).all()
-        for trade in trades:
-            e = {
-                'name': trade.name,
-                'num': trade.num_hold,
-                'amount': int(trade.purchase_amount),
-                'buy_price': float(trade.avg_buy_price),
-                'cur_price': float(trade.cur_stock_price),
-                'stop_price': float(trade.stop_price),
-                'profit': int(trade.value_stock),
-                'risk': int(trade.risk)
-            }
-            data['stock']['trades'].append(e)
-
-        return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})
-
-
 class ChartView(View):
     """ 차트 데이터 반환용 뷰"""
     def get(self, request, *args, **kwargs):
@@ -191,85 +125,6 @@ class ChartView(View):
         data = list(records.all().values_list(
             'date', 'value', 'risk_excluded_value','volatility_day', 'volatility', 'principal')) 
         return JsonResponse(data, safe=False)
-
-class StatView(View):
-    """ 통계 데이터 반환용 뷰 """
-    
-    def get(self, request, *args, **kwargs):
-        
-
-        duration = int(request.GET.get('duration'))
-        system = FuturesAccount.objects.get(id=kwargs['account'])
-        since = datetime.now()-timedelta(days=duration)
-        
-        if request.GET.get('strategy'):
-            strategyid = int(request.GET.get('strategy'))
-            entries = system.entries.filter(date__gte=since, strategy__id=strategyid)
-        else:
-            entries = system.entries.filter(date__gte=since)
-        
-        stat = {
-            'gross_profit':0, #누적손익
-            'net_profit': 0, #순손익 (누적손인 - 수수료)
-            'cum_profit': 0, #누적수익
-            'cum_loss':0, #누적손실
-            'winrate':0, 
-            'pnl_per_trade': 0, #매매당 손익비
-            'avg_profit_day':0, #일평균 손익
-            'avg_profit_trade':0, #매매당 평균 손익
-            'avg_profit_std':0, #손익 표준편차
-            'avg_trade_day':0, #일 평균 매매횟수
-            'cum_commission':0, #누적 수수료
-            'avg_commission':0 #평균 수수료
-        }
-       
-
-        win_trades = []
-        loss_trades = []
-        for entry in entries:
-            stat['cum_commission'] += entry.commission
-            if entry.is_open:
-                #평가손익합산
-                cur_profit = entry.current_profit
-                stat['gross_profit'] += cur_profit
-                if cur_profit >= 0:
-                    stat['cum_profit'] += cur_profit
-                else: 
-                    stat['cum_loss'] += cur_profit
-
-            if entry.exits.all():
-                profit = sum([p.profit for p in entry.exits.all()])
-                if profit >= 0:
-                    win_trades.append(profit)
-                else:
-                    loss_trades.append(profit)
-
-        num_trades = entries.count() #매매횟수
-        days = round(duration*5/7)  #영업일 
-        trades = win_trades+loss_trades
-        
-        stat['cum_profit'] = sum(win_trades)
-        stat['cum_loss'] = sum(loss_trades)
-        gross_profit = stat['cum_profit'] + stat['cum_loss']
-        
-        stat['gross_profit'] += gross_profit
-        stat['net_profit'] = stat['gross_profit'] - stat['cum_commission']
-        if num_trades > 0:
-            stat['winrate'] = 100*len(win_trades)/num_trades
-            stat['avg_profit_trade'] = gross_profit/num_trades
-            
-        if loss_trades and win_trades:
-            stat['pnl_per_trade'] = -(stat['cum_profit']/len(win_trades))/(stat['cum_loss']/len(loss_trades))
-        stat['avg_profit_day'] = gross_profit/days
-        stat['avg_profit_std'] = statistics.pstdev(trades)
-        stat['avg_trade_day'] = num_trades/days
-        stat['avg_commission'] = stat['cum_commission']/days
-
-        #print(stat)
-
-        return JsonResponse(stat, safe=False)
-
-
 
 class AssetView(TemplateView):
     template_name = "trading/asset.html"
@@ -320,7 +175,7 @@ class FuturesStatView(TemplateView):
             trades = trades.filter(pub_date__gte=query.get('start'))
             # 부분 통계를 위해 그 이전까지의 수익을 합산한것을 원금으로 잡음
             profit_diff = trades.filter(pub_date__lt=query.get('start'))\
-                       .aggregate(Sum('realized_profit_krw'))['realized_profit_krw__sum']
+                       .aggregate(Sum('realized_profit_krw'))['realized_profit_krw__sum'] or 0
         else:
             profit_diff = 0
 
@@ -351,7 +206,8 @@ class FuturesStatView(TemplateView):
 
         trades_agg = trades.aggregate(
             Sum('realized_profit_krw'), Sum('paper_profit'), Sum('commission_krw'),
-            Avg('realized_profit_krw'), StdDev('realized_profit_krw')
+            Avg('realized_profit_krw'), StdDev('realized_profit_krw'),
+            Avg('duration')
         )
         wins_agg = wins.aggregate(
             Avg('realized_profit_krw'), Sum('realized_profit_krw')
@@ -360,70 +216,58 @@ class FuturesStatView(TemplateView):
             Avg('realized_profit_krw'), Sum('realized_profit_krw')
         )
 
-        
+        data ={}
         principal = account.principal + profit_diff
-        revenue = trades_agg['realized_profit__sum']
-        profit = wins_agg['realized_profit__sum']
-        loss = loses_agg['realized_profit__sum']
-        commission = trades_agg['commission__sum']
+        revenue = trades_agg['realized_profit_krw__sum']
+        profit = wins_agg['realized_profit_krw__sum']
+        loss = loses_agg['realized_profit_krw__sum']
+        commission = trades_agg['commission_krw__sum']
+        avg_profit = trades_agg['realized_profit_krw__avg']
+        std_profit = trades_agg['realized_profit_krw__stddev']
+        avg_duration = trades_agg['duration__avg']
+        roe = revenue/principal if principal else 0
+        if loses_agg['realized_profit_krw__avg']:
+            pnl = -1*wins_agg['realized_profit_krw__avg']/loses_agg['realized_profit_krw__avg']
+        else:
+            pnl = 0
+        win_rate = wins.count()/cnt
+        data['stat'] = {
+            'principal':principal,
+            'revenue': revenue,
+            'profit':profit,
+            'loss':loss,
+            'commission':commission,
+            'avg_profit':avg_profit,
+            'std_profit':std_profit,
+            'avg_duration':avg_duration,
+            'pnl':pnl,
+            'win_rate':win_rate,
+            'roe':roe
+        }
 
 
-        
         # 일별로 그룹화된 쿼리셋
         trades_by_day = trades.values('pub_date__date')\
             .order_by('pub_date__date')\
-            .annotate(realized_profit=Sum('realized_profit'),
-                      paper_profit=Sum('paper_profit'),
-                      commission=Sum('commission'),
-                      num_cons=Sum('num_entry_cons'))
+            .annotate(profit=Sum('realized_profit_krw'),
+                      commission=Sum('commission_krw'))
+        print(trades_by_day)
+        
 
-        
-        
-        
-        
-        value = c.convert('USD','KRW', stat['realized_profit__sum']) + account.principal
-        win_rate = wins.count()/cnt #승률
-        avg_win_profit = wins.aggregate(Avg('realized_profit'))['realized_profit__avg']
-        avg_loss_profit = loses.aggregate(Avg('realized_profit'))['realized_profit__avg']
-        pnl = (avg_win_profit/avg_loss_profit)*-1
-        
-        c = CurrencyRates()
-        data = {
-            'principal': account.principal,
-            'principal_krw': account.principal_krw,
-            'principal_usd': account.principal_usd,
 
-            'value': value,
-            'realized_profit': c.convert('USD','KRW', stat['realized_profit__sum']),
-            'paper_profit': c.convert('USD','KRW', stat['paper_profit__sum']),
-            'commission': c.convert('USD','KRW', stat['commission__sum']),
-            'avg_profit': c.convert('USD','KRW', stat['realized_profit__avg']),
-            'avg_win_profit':c.convert('USD','KRW', avg_win_profit),
-            'avg_loss_profit': c.convert('USD','KRW', avg_loss_profit),
-            'std_profit':c.convert('USD','KRW', stat['realized_profit__stddev']),
-            'pnl': pnl,
-            'win_rate': win_rate
+        data['day'] ={
+            'avg_profit': trades_by_day['realized_profit_krw__avg'],
+            'std_profit': trades_by_day['realized_profit_krw__stddev'],
+            'commission': trades_by_day['commission__krw__avg'],
+            'num_cons': trades_by_day['num_entry_cons__avg'],
+            'win_rate': win_rate,
+            'pnl': pnl
         }
 
+        print(data['day'])
+
+
         return JsonResponse(data, safe=False)
-
-
-class FuturesHistoryView(ListView):
-   template_name = "trading/futures/futures_history.html"
-   model = FuturesEntry
-   #queryset = FuturesEntry.objects.filter(system__id=1).order_by('-pk')
-   context_object_name = "entries"
-   paginate_by = 10
-
-   def get_queryset(self):
-    return FuturesAccount.objects.get(id=self.kwargs['system']).entries.order_by('-is_open','-exits__date','-date')
-
-   def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    start = int(context['page_obj'].number/10)+1
-    end = min(start+10, context['page_obj'].paginator.num_pages+1)
-    context['range'] = range(start, end)
-    return context
 
 class FuturesTradeView(TemplateView):
     template_name = "trading/futures/trade.html"
@@ -495,10 +339,6 @@ class FuturesTradeView(TemplateView):
         trade.update()
 
         return redirect('futurestrade', page=1)
-
-
-
-
 
 class TransactionView(TemplateView):
     template_name = "trading/futures/transaction.html"

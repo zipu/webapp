@@ -938,7 +938,7 @@ class FuturesTrade(models.Model):
     
     def update(self):
         # 매매내역 갱신. 손익 등 정보 갱신
-        c = self.instrument.currency    
+        c = self.instrument.currency 
         entries = self.transactions.filter(position = self.position).order_by('date')
         exits = self.transactions.filter(position = self.position*-1).order_by('date')
         matches = [(entries[i], exits[i]) for i in range(exits.count()) ]
@@ -981,18 +981,10 @@ class FuturesTrade(models.Model):
                 self.current_price, self.stop_price,
                 self.num_entry_cons - self.num_exit_cons, self.position
             )
-
         self.save()
-
 
     def __str__(self):
         return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"    
-
-
-
-
-
-
 
 
 @receiver(post_save, sender=FuturesExit,
