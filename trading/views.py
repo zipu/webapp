@@ -175,7 +175,7 @@ class FuturesStatView(TemplateView):
                         F('realized_profit')*F('instrument__currency__rate'), output_field=FloatField()),
                     commission_krw = ExpressionWrapper(
                         F('commission')*F('instrument__currency__rate'),output_field=FloatField())
-                )
+                ).order_by('end_date')
         
         if query.get('start'):
             # 부분 통계를 위해 그 이전까지의 수익을 합산한것을 원금으로 잡음
@@ -192,7 +192,7 @@ class FuturesStatView(TemplateView):
             profit_diff = 0
 
         if query.get('end'):
-            trades = trades.filter(pub_date__lte=query.get('end'))
+            trades = trades.filter(end_date__lte=query.get('end'))
         if query.get('mental'):
             trades = trades.filter(mental=query.get('mental'))
         if query.get('strategy'):
@@ -253,12 +253,9 @@ class FuturesStatView(TemplateView):
             'win_rate':f'{win_rate*100:.1f}',
             'roe':f'{roe*100:.1f}',
             'num_trades': cnt,
-            'profit_array': list(trades.values_list('profit_krw', flat=True)),
-            'commission_array': list(trades.values_list('commission_krw', flat=True))
+            'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
+            'principal_num': principal
         }
-
-        
-
 
         print("!!!")
         print(data)

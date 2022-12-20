@@ -107,55 +107,14 @@
 {% block script %}
 
 <script>
-//데이터 요청 ajax call
-(requestStatData = function(arg){
-  if (arg == 'all'){
-    filter = '';
-  } else if(arg == 'part'){
-    filter = {
-      start: $('#start').val(),
-      end: $('#end').val(),
-      mental: $('#mental').val(),
-      strategy: $('#strategy').val(),
-      tags: $('#tags').val(),
-      timeframe: $('#timeframe').val(),
-      pnl
-    }
-  }
-
-  $.ajax({
-    url: "{% url 'statdata' %}",
-    type: "get", //send it through get method
-    data: filter,
-    success: function(data) {
-      $('#principal').text(data.principal);
-      $('#revenue').text(data.revenue);
-      $('#profit').text(data.profit);
-      $('#loss').text(data.loss);
-      $('#commission').text(data.commission);
-      $('#roe').text(data.roe+' %');
-      $('#num_trades').text(data.num_trades);
-      $('#avg_profit').text(data.avg_profit);
-      $('#std_profit').text(data.std_profit);
-      $('#win_rate').text(data.win_rate+' %');
-      $('#pnl').text(data.pnl+' : 1');
-
-      console.log(data);
-    },
-    error: function(xhr) {
-      //Do Something to handle error
-    }
-  });
-})('all');
-
 //차트 그리기
 Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
 });
 var chart = Highcharts.chart('profit-chart', {
-            chart: { height: '75%' },// 16:9 ratio}
+            chart: { height: '60%' },// 16:9 ratio}
             legend: { enabled: false},
-            title: { text: "{{ account.account_name }}" },
+            title: { text: "Profit Curve" },
             xAxis: { 
                 type: 'datetime',
                 crosshair:{
@@ -178,19 +137,7 @@ var chart = Highcharts.chart('profit-chart', {
                 }],
                 lineColor: 'lightgrey',
                 lineWidth: 2,
-                height: '60%',
-            },{
-                //opposite: true,
-                title: {text: "원금(원)"},
-                labels: {
-                  enabled: false,
-                },
-                lineColor: 'lightgrey',
-                lineWidth: 2,
-                top: '63%',
-                height: '22%',
-                offset: 0,
-                margin: 300
+                height: '80%',
             },{
                 //opposite: true,
                 title: {text:"변동성(%)"},
@@ -199,8 +146,8 @@ var chart = Highcharts.chart('profit-chart', {
                 },
                 lineColor: 'lightgrey',
                 lineWidth: 2,
-                top: '87%',
-                height: '13%',
+                top: '83%',
+                height: '17%',
                 offset: 0
             }],
             tooltip: {
@@ -224,6 +171,82 @@ var chart = Highcharts.chart('profit-chart', {
             }
         });
 
+(requestStatData = function(arg){
+  if (arg == 'all'){
+    filter = '';
+  } else if(arg == 'part'){
+    filter = {
+      start: $('#start').val(),
+      end: $('#end').val(),
+      mental: $('#mental').val(),
+      strategy: $('#strategy').val(),
+      tags: $('#tags').val(),
+      timeframe: $('#timeframe').val(),
+      pnl:$('#timeframe').val()
+    }
+  }
+
+  $.ajax({
+    url: "{% url 'statdata' %}",
+    type: "get", //send it through get method
+    data: filter,
+    success: function(data) {
+      $('#principal').text(data.principal);
+      $('#revenue').text(data.revenue);
+      $('#profit').text(data.profit);
+      $('#loss').text(data.loss);
+      $('#commission').text(data.commission);
+      $('#roe').text(data.roe+' %');
+      $('#num_trades').text(data.num_trades);
+      $('#avg_profit').text(data.avg_profit);
+      $('#std_profit').text(data.std_profit);
+      $('#win_rate').text(data.win_rate+' %');
+      $('#pnl').text(data.pnl+' : 1');
+
+      //console.log(data);
+      //차트 데이터 
+      profit = data.principal_num;
+      commission =0;
+      cum_profit = [];
+      cum_commission = [];
+      //console.log(data.chart_data);
+      for (item of data.chart_data){
+        date = new Date(item[0]).getTime();
+        profit += item[1]-item[2];
+        cum_profit.push([date, profit]);
+        
+        commission += item[2];
+        cum_commission.push([date, commission]);
+      }
+      chart.addSeries({ 
+        name: "자산",
+        data: cum_profit,
+        yAxis: 0,
+        tooltip: {valueSuffix: ' 원'},
+        type: 'area',
+        lineColor:'#ADD8E6',
+        color: '#B0E0E6',
+        zIndex: 5,
+        //marker: { enabled: false}
+       });
+       chart.addSeries({
+        name: "수수료",
+        data: cum_commission,
+        yAxis: 0,
+        tooltip: {valueSuffix: ' 원'},
+        type:'line',
+        color:	'black', //#FFFFE0',
+        zIndex: 10,
+      });
+
+
+    },
+    error: function(xhr) {
+      //Do Something to handle error
+    }
+  });
+})('all');
+/*
 $.get( "{% url 'chart' account=record.account_symbol %}", function( data ) {
      value= [];
      r_value=[]; //리스크 제거 자산가치
@@ -286,5 +309,6 @@ $.get( "{% url 'chart' account=record.account_symbol %}", function( data ) {
        //marker: { enabled: false}
      });
 });
+*/
 </script>
 {% endblock script %}
