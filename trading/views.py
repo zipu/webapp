@@ -4,12 +4,12 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.middleware import csrf
 
-from django.db.models import Sum, Count, Avg, StdDev
+from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset, Record, CashAccount
 from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount,\
                            FuturesStrategy, FuturesTrade, Transaction, Tags
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
-from trading.models import create_record, CurrencyRates
+from trading.models import create_record
 
 from datetime import datetime, time, timedelta
 import json, csv
@@ -169,13 +169,25 @@ class FuturesStatView(TemplateView):
     """
     def get(self, request, *args, **kwargs):
         query= request.GET
-        print(query)
-        trades = FuturesTrade.objects.filter(is_open=False)
+        trades = FuturesTrade.objects.filter(is_open=False)\
+                .annotate(
+                    profit_krw = ExpressionWrapper(
+                        F('realized_profit')*F('instrument__currency__rate'), output_field=FloatField()),
+                    commission_krw = ExpressionWrapper(
+                        F('commission')*F('instrument__currency__rate'),output_field=FloatField())
+                )
+        
         if query.get('start'):
-            trades = trades.filter(pub_date__gte=query.get('start'))
             # 부분 통계를 위해 그 이전까지의 수익을 합산한것을 원금으로 잡음
-            profit_diff = trades.filter(pub_date__lt=query.get('start'))\
-                       .aggregate(Sum('realized_profit_krw'))['realized_profit_krw__sum'] or 0
+            olds = trades.filter(pub_date__lt=query.get('start'))\
+                         .annotate(
+                           profit=F('realized_profit')*F('instrument__currency__rate'),
+                           commission_krw = F('commission')*F('instrument__currency__rate'))\
+                       .aggregate(Sum('profit'), Sum('commission_krw'))
+            profit_diff = (olds['profit__sum'] or 0) - (olds['commission_krw__sum'] or 0) or 0
+            
+            trades = trades.filter(pub_date__gte=query.get('start'))
+            
         else:
             profit_diff = 0
 
@@ -200,73 +212,56 @@ class FuturesStatView(TemplateView):
                 trades = trades.filter(duration__gt=3600*24*7)
         
         account = FuturesAccount.objects.last()
-        wins = trades.filter(realized_profit__gt=0)
-        loses = trades.filter(realized_profit__lte=0)
+        wins = trades.filter(profit_krw__gt=0)
+        loses = trades.filter(profit_krw__lte=0)
         cnt = trades.count() #매매횟수
 
         trades_agg = trades.aggregate(
-            Sum('realized_profit_krw'), Sum('paper_profit'), Sum('commission_krw'),
-            Avg('realized_profit_krw'), StdDev('realized_profit_krw'),
-            Avg('duration')
+            Sum('profit_krw'), Sum('commission_krw'),
+            Avg('profit_krw'), StdDev('profit_krw'),
         )
+        
         wins_agg = wins.aggregate(
-            Avg('realized_profit_krw'), Sum('realized_profit_krw')
+            Avg('profit_krw'), Sum('profit_krw')
         )
         loses_agg = loses.aggregate(
-            Avg('realized_profit_krw'), Sum('realized_profit_krw')
+            Avg('profit_krw'), Sum('profit_krw')
         )
 
-        data ={}
-        principal = account.principal + profit_diff
-        revenue = trades_agg['realized_profit_krw__sum']
-        profit = wins_agg['realized_profit_krw__sum']
-        loss = loses_agg['realized_profit_krw__sum']
-        commission = trades_agg['commission_krw__sum']
-        avg_profit = trades_agg['realized_profit_krw__avg']
-        std_profit = trades_agg['realized_profit_krw__stddev']
-        avg_duration = trades_agg['duration__avg']
-        roe = revenue/principal if principal else 0
-        if loses_agg['realized_profit_krw__avg']:
-            pnl = -1*wins_agg['realized_profit_krw__avg']/loses_agg['realized_profit_krw__avg']
+        principal = float(account.principal + profit_diff)
+        revenue = trades_agg['profit_krw__sum'] or 0
+        profit = wins_agg['profit_krw__sum'] or 0
+        loss = loses_agg['profit_krw__sum'] or 0
+        commission = trades_agg['commission_krw__sum'] or 0
+        avg_profit = trades_agg['profit_krw__avg'] or 0
+        std_profit = trades_agg['profit_krw__stddev'] or 0
+        roe = revenue/principal if revenue and principal else 0
+        if loses_agg['profit_krw__avg']:
+            pnl = -1*wins_agg['profit_krw__avg']/loses_agg['profit_krw__avg']
         else:
             pnl = 0
-        win_rate = wins.count()/cnt
-        data['stat'] = {
-            'principal':principal,
-            'revenue': revenue,
-            'profit':profit,
-            'loss':loss,
-            'commission':commission,
-            'avg_profit':avg_profit,
-            'std_profit':std_profit,
-            'avg_duration':avg_duration,
-            'pnl':pnl,
-            'win_rate':win_rate,
-            'roe':roe
+        win_rate = wins.count()/cnt if cnt else 0
+        data = {
+            'principal':f'{principal:,.0f}',
+            'revenue': f'{revenue:,.0f}',
+            'profit':f'{profit:,.0f}',
+            'loss':f'{loss:,.0f}',
+            'commission':f'{commission:,.0f}',
+            'avg_profit':f'{avg_profit:,.0f}',
+            'std_profit':f'{std_profit:,.0f}',
+            'pnl':f'{pnl:.2f}',
+            'win_rate':f'{win_rate*100:.1f}',
+            'roe':f'{roe*100:.1f}',
+            'num_trades': cnt,
+            'profit_array': list(trades.values_list('profit_krw', flat=True)),
+            'commission_array': list(trades.values_list('commission_krw', flat=True))
         }
 
-
-        # 일별로 그룹화된 쿼리셋
-        trades_by_day = trades.values('pub_date__date')\
-            .order_by('pub_date__date')\
-            .annotate(profit=Sum('realized_profit_krw'),
-                      commission=Sum('commission_krw'))
-        print(trades_by_day)
         
 
 
-        data['day'] ={
-            'avg_profit': trades_by_day['realized_profit_krw__avg'],
-            'std_profit': trades_by_day['realized_profit_krw__stddev'],
-            'commission': trades_by_day['commission__krw__avg'],
-            'num_cons': trades_by_day['num_entry_cons__avg'],
-            'win_rate': win_rate,
-            'pnl': pnl
-        }
-
-        print(data['day'])
-
-
+        print("!!!")
+        print(data)
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):
@@ -292,9 +287,8 @@ class FuturesTradeView(TemplateView):
                             .values('price').annotate(cnt=Count('price'))
             exits = trade.transactions.filter(position = trade.position*-1)\
                             .values('price').annotate(cnt=Count('price'))
-            duration = timedelta(seconds=trade.duration) if trade.duration else ''
             data.append(
-                (trade, entries, exits, duration)
+                (trade, entries, exits)
             )
         context['strategies'] = FuturesStrategy.objects.all()
 

@@ -62,63 +62,43 @@
             <th scope="col" style="width:20%">수수료</th>
           </tr>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td id="principal"></td>
+            <td id="revenue"></td>
+            <td id="profit"></td>
+            <td id="loss"></td>
+            <td id="commission"></td>
           </tr>
           <tr class="table-secondary">
             <th scope="col" style="width:20%">수익률</th>
             <th scope="col" style="width:20%">자본인하율</th>
             <th scope="col" style="width:20%">MDD</th>
             <th scope="col" style="width:20%">CAGR</th>
-            <th scope="col" style="width:20%">수수료율</th>
+            <th scope="col" style="width:20%">매매횟수</th>
           </tr>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td id="roe"></td>
+            <td id="dd"></td>
+            <td id="mdd"></td>
+            <td id="cagr"></td>
+            <td id="num_trades"></td>
           </tr>
       </table>
       <table class="table table-bordered">  
           <tr class="table-secondary">
-            <th scope="col" style="width:16.6%">평균손익</th>
-            <th scope="col" style="width:16.6%">손익표준편차</th>
-            <th scope="col" style="width:16.6%">승률</th>
-            <th scope="col" style="width:16.6%">손익비</th>
-            <th scope="col" style="width:16.6%">보유기간</th>
-            <th scope="col" style="width:16.6%"></th>
+            <th scope="col" style="width:20%">평균손익</th>
+            <th scope="col" style="width:20%">손익표준편차</th>
+            <th scope="col" style="width:20%">승률</th>
+            <th scope="col" style="width:20%">손익비</th>
+            <th scope="col" style="width:20%">보유기간</th>
           </tr>
           <tr>
-            <td>{{ account.avg_entry_risk  | intcomma }}</td>
-            <td>{{ account.avg_profit | intcomma }}</td>
-            <td>{{ account.avg_ptr | floatformat:1}} : 1</td>
-            <td>{{ account.winning_rate | floatformat:1 }} %</td>
-            <td>{{ account.commission | intcomma }}</td>
-            <td>{{ account.duration }} 일</td>
+            <td id="avg_profit"></td>
+            <td id="std_profit"></td>
+            <td id="win_rate"></td>
+            <td id="pnl"></td>
+            <td></td>
           </tr>
       </table>
-      <table class="table table-bordered">  
-        <tr class="table-secondary">
-          <th scope="col" style="width:16.6%">평균손익</th>
-          <th scope="col" style="width:16.6%">손익표준편차</th>
-          <th scope="col" style="width:16.6%">승률</th>
-          <th scope="col" style="width:16.6%">손익비</th>
-          <th scope="col" style="width:16.6%">수수료</th>
-          <th scope="col" style="width:16.6%">매매횟수</th>
-        </tr>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-    </table>
   </br>
   <div id="history" style="width:100%"></div>
 </div>
@@ -139,6 +119,7 @@
       strategy: $('#strategy').val(),
       tags: $('#tags').val(),
       timeframe: $('#timeframe').val(),
+      pnl
     }
   }
 
@@ -146,8 +127,20 @@
     url: "{% url 'statdata' %}",
     type: "get", //send it through get method
     data: filter,
-    success: function(response) {
-      console.log(response)
+    success: function(data) {
+      $('#principal').text(data.principal);
+      $('#revenue').text(data.revenue);
+      $('#profit').text(data.profit);
+      $('#loss').text(data.loss);
+      $('#commission').text(data.commission);
+      $('#roe').text(data.roe+' %');
+      $('#num_trades').text(data.num_trades);
+      $('#avg_profit').text(data.avg_profit);
+      $('#std_profit').text(data.std_profit);
+      $('#win_rate').text(data.win_rate+' %');
+      $('#pnl').text(data.pnl+' : 1');
+
+      console.log(data);
     },
     error: function(xhr) {
       //Do Something to handle error

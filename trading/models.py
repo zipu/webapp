@@ -44,60 +44,6 @@ class Currency(models.Model):
         return f"{self.symbol}:{self.rate}"
     
 
-class CurrencyRates(models.Model):
-    """
-    환율 계산 모듈
-    """
-    RATES = {
-        'KRWUSD': 0,
-        'KRWEUR': 0,
-        'KRWCNY': 0,
-        'KRWHKD': 0,
-        'KRWJPY': 0
-    }
-
-    date = models.DateField(auto_now=True)
-    KRWUSD = models.DecimalField(max_digits=12, decimal_places=5)
-    KRWEUR = models.DecimalField(max_digits=12, decimal_places=5)
-    KRWCNY = models.DecimalField(max_digits=12, decimal_places=5)
-    KRWHKD = models.DecimalField(max_digits=12, decimal_places=5)
-    KRWJPY = models.DecimalField(max_digits=12, decimal_places=5)
-
-
-    @staticmethod
-    def update():
-        url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD,FRX.KRWEUR,FRX.KRWCNY,FRX.KRWHKD,FRX.KRWJPY'
-        response = requests.get(url)
-
-        if response.ok:
-            rates = response.json()
-            rate = CurrencyRates(
-                KRWUSD=D(str(rates[0]['basePrice'])),
-                KRWEUR=D(str(rates[1]['basePrice'])),
-                KRWCNY=D(str(rates[2]['basePrice'])),
-                KRWHKD=(str(rates[3]['basePrice'])),
-                KRWJPY=D(str(rates[4]['basePrice']))
-            )
-            rate.save()
-            return rate
-            
-        else:
-            #print(f"환율정보 갱신 실패: {base}/{target}")
-            raise ValueError(f"환율정보 갱신 실패")
-
-    @staticmethod
-    def convert(base, target, amount):
-        if base == target: 
-            return amount
-            
-        converted = D(str(amount)) * CurrencyRates.objects.last().__dict__[f'{target}{base}']
-        return converted
-
-
-
-
-
-
 def convert_to_decimal(value, system):
     "8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환"
     a,b = [float(i) for i in value.split("'")]
@@ -475,13 +421,6 @@ def update_stock_account(sender, instance, **kwargs):
 # 선물 거래 관련 모델                         #
 ##############################################
 class FuturesInstrument(models.Model):
-    CURRENCIES = [
-        ('USD', 'Dollar'),
-        ('EUR', 'EURO'),
-        ('HKD', 'Hongkong Dollar'),
-        ('JYP', 'Japanese Yen')
-    ]
-
     EXCHANGES = [
         ('CME', 'CME'),
         ('NYMEX', 'NYMEX'),
@@ -585,93 +524,6 @@ class FuturesAccount(models.Model):
     risk = models.DecimalField("현재총리스크", max_digits=12, decimal_places=0, blank=True)
     count = models.PositiveIntegerField("매매횟수", default=0)
 
-    def save(self, *args, **kwargs):
-        c = CurrencyRates()
-        if not self.id:
-            self.principal = self.principal_krw\
-                             + c.convert('USD', 'KRW', self.principal_usd)\
-                             + c.convert('EUR', 'KRW', self.principal_eur)
-            self.value = self.principal
-        
-        else:
-            self.principal = self.principal_krw\
-                             + c.convert('USD', 'KRW', self.principal_usd)\
-                             + c.convert('EUR', 'KRW', self.principal_eur)
-
-            usd_entry_agg = self.entries.filter(instrument__currency='USD').aggregate(Sum('commission'), Sum('entry_risk'))
-            eur_entry_agg = self.entries.filter(instrument__currency='EUR').aggregate(Sum('commission'), Sum('entry_risk'))
-            exits = FuturesExit.objects.filter(entry__account__id=self.id)
-            
-            usd_opens_agg = self.entries.filter(is_open=True).filter(instrument__currency='USD').aggregate(
-                Sum('current_risk'), Sum('current_profit'))
-            usd_exits = exits.filter(entry__instrument__currency='USD')
-
-            eur_opens_agg = self.entries.filter(is_open=True).filter(instrument__currency='EUR').aggregate(
-                Sum('current_risk'), Sum('current_profit'))
-            eur_exits = exits.filter(entry__instrument__currency='EUR')
-            
-            
-            current_profit = int(c.convert('USD','KRW', usd_opens_agg['current_profit__sum'] or 0))\
-                            + int(c.convert('EUR','KRW', eur_opens_agg['current_profit__sum'] or 0))
-            self.risk = int(c.convert('USD','KRW', usd_opens_agg['current_risk__sum'] or 0))\
-                        + int(c.convert('EUR','KRW', eur_opens_agg['current_risk__sum'] or 0))\
-            
-            #self.commission = c.convert('USD','KRW', entry_agg['commission__sum'])
-            self.avg_entry_risk = (int(c.convert('USD','KRW', usd_entry_agg['entry_risk__sum'] or 0))\
-                                   +int(c.convert('EUR','KRW', eur_entry_agg['entry_risk__sum'] or 0)))\
-                                   / self.entries.count() if self.entries.count() else 0
-            
-            self.count = self.entries.count()
-            if exits.count() > 0: 
-                usd_exit_agg = usd_exits.aggregate(Sum('profit'), Sum('commission'))
-                eur_exit_agg = eur_exits.aggregate(Sum('profit'), Sum('commission'))
-                
-                self.avg_profit = (int(c.convert('USD','KRW', usd_exit_agg['profit__sum'] or 0))\
-                                    + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum'] or 0)))\
-                                    / exits.count()
-                                
-                self.duration = exits.aggregate(Avg('duration'))['duration__avg']
-                self.winning_rate = 100 * exits.filter(profit__gt=0).count()/exits.count()
-                #self.std = c.convert('USD','KRW', exit_agg['profit__stddev'])
-                # 평균손익비 계산
-                if exits.filter(profit__lte=0).count() > 0:
-                    sum_wins_usd = int(c.convert('USD', 'KRW', usd_exits.filter(profit__gt=0).aggregate(Sum('profit'))['profit__sum'] or 0))
-                    sum_wins_eur = int(c.convert('EUR', 'KRW', eur_exits.filter(profit__gt=0).aggregate(Sum('profit'))['profit__sum'] or 0))
-                    sum_loses_usd = int(c.convert('USD', 'KRW', usd_exits.filter(profit__lte=0).aggregate(Sum('profit'))['profit__sum'] or 0))
-                    sum_loses_eur = int(c.convert('EUR', 'KRW', eur_exits.filter(profit__lte=0).aggregate(Sum('profit'))['profit__sum'] or 0))
-                    avg_wins = (sum_wins_usd + sum_wins_eur)/exits.filter(profit__gt=0).count() if exits.filter(profit__gt=0).count() > 0 else 0
-                    avg_loses = (sum_loses_usd + sum_loses_eur)/exits.filter(profit__lte=0).count() if exits.filter(profit__lte=0).count() > 0 else 0
-                    self.avg_ptr = abs(avg_wins/avg_loses) if avg_loses >0 else 0
-                profit = int(c.convert('USD','KRW', usd_exit_agg['profit__sum'] or 0))\
-                        + int(c.convert('EUR','KRW', eur_exit_agg['profit__sum'] or 0))
-                
-                usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum'] or 0))\
-                                + int(c.convert('USD','KRW', usd_exit_agg['commission__sum'] or 0))
-
-                eur_commission =  int(c.convert('EUR','KRW', eur_entry_agg['commission__sum'] or 0))\
-                                + int(c.convert('EUR','KRW', eur_exit_agg['commission__sum'] or 0))
-
-                self.commission = usd_commission + eur_commission
-                self.value = self.principal + profit + current_profit - self.commission
-                self.value_usd = self.principal_usd + (usd_opens_agg['current_profit__sum'] or 0)\
-                                + ( usd_exit_agg['profit__sum'] or 0 ) - (usd_entry_agg['commission__sum'] or 0) - (usd_exit_agg['commission__sum'] or 0)
-                self.value_eur = self.principal_eur + (eur_opens_agg['current_profit__sum'] or 0)\
-                                + ( eur_exit_agg['profit__sum'] or 0 ) - (eur_entry_agg['commission__sum'] or 0) - (eur_exit_agg['commission__sum'] or 0)
-                self.gross_profit = self.value - self.principal
-            else:
-                profit = 0
-                usd_commission = int(c.convert('USD','KRW', usd_entry_agg['commission__sum'] or 0))
-
-                eur_commission =  int(c.convert('EUR','KRW', eur_entry_agg['commission__sum'] or 0))
-
-                self.commission = usd_commission + eur_commission
-                self.value = self.principal + profit + current_profit - self.commission
-                self.value_usd = self.principal_usd + (usd_opens_agg['current_profit__sum'] or 0)\
-                               - (usd_entry_agg['commission__sum'] or 0)
-                self.value_eur = self.principal_eur + (eur_opens_agg['current_profit__sum'] or 0)\
-                               - (eur_entry_agg['commission__sum'] or 0)
-                self.gross_profit = self.value - self.principal
-        super(FuturesAccount, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.account_name}"
@@ -893,22 +745,17 @@ class FuturesTrade(models.Model):
                     "평균청산가", max_digits=12, decimal_places=6,
                     null=True, blank=True)
 
-    stop_price = models.DecimalField(
-        "손절가", max_digits=12, decimal_places=6,
-        null=True, blank=True)
-
     num_entry_cons = models.SmallIntegerField("총진입계약수", default=0)
     num_exit_cons = models.SmallIntegerField("총청산계약수", default=0, null=True, blank=True)
     
-    risk = models.DecimalField("리스크", max_digits=12, decimal_places=2, default=0)
     paper_profit = models.DecimalField("평가손익", max_digits=12, decimal_places=2, default=0)
+    
     realized_profit = models.DecimalField("실현손익", max_digits=12, decimal_places=2, default=0)
-    realized_profit_krw = models.DecimalField("실현손익(원)", max_digits=12, decimal_places=2, default=0)
-    commission = models.DecimalField("수수료", max_digits=6, decimal_places=0, default=0)
-    commission_krw = models.DecimalField("수수료(원)", max_digits=6, decimal_places=0, default=0)
 
+    commission = models.DecimalField("수수료", max_digits=6, decimal_places=0, default=0)
+
+    timeframe = models.CharField("타임프레임", max_length=20, blank=True, null=True)
     is_open = models.BooleanField("상태", default=True)
-    duration = models.IntegerField("보유기간(초)", blank=True, null=True)
 
     @staticmethod
     def add_transactions():
@@ -934,7 +781,7 @@ class FuturesTrade(models.Model):
                 trade = trades[0]
                 
             trade.transactions.add(transaction)
-            trade.update()
+            trade.update() #매매 정보 갱신
     
     def update(self):
         # 매매내역 갱신. 손익 등 정보 갱신
@@ -945,17 +792,10 @@ class FuturesTrade(models.Model):
 
         
         self.commission = self.transactions.all().aggregate(Sum('commission'))['commission__sum']
-        self.commission_krw = c.convert(self.commission)
         
         self.num_entry_cons = entries.count()
         self.num_exit_cons = exits.count()
-        if self.num_entry_cons < self.num_exit_cons:
-            raise ValueError("청산 계약수가 진입 계약수를 초과")
         
-        elif self.num_entry_cons == self.num_exit_cons:
-            self.end_date = exits.reverse()[0].date
-            self.duration = (self.end_date - self.pub_date).total_seconds()
-            self.is_open = False
             
         
         self.avg_entry_price = entries.aggregate(Avg('price'))['price__avg']
@@ -975,27 +815,30 @@ class FuturesTrade(models.Model):
                 self.avg_entry_price, self.current_price, 
                 self.num_entry_cons - self.num_exit_cons, self.position
             )
-        # 리스크 계산
-        if self.stop_price and self.current_price:
-            self.risk = self.instrument.calc_value(
-                self.current_price, self.stop_price,
-                self.num_entry_cons - self.num_exit_cons, self.position
-            )
+
+        # 매매 종료 여부 판단
+        if self.num_entry_cons < self.num_exit_cons:
+            raise ValueError("청산 계약수가 진입 계약수를 초과")
+        
+        elif self.num_entry_cons == self.num_exit_cons:
+            self.end_date = exits.reverse()[0].date
+            
+            duration = (self.end_date - self.pub_date).total_seconds()
+            if duration <= 3600: 
+                self.timeframe = 'scalping'
+            elif duration > 3600 and duration <= 3600*24:
+                self.timeframe = 'day'
+            elif duration > 3600*24 and duration <= 3600*24*7:
+                self.timeframe = 'swing'
+            elif duration > 3600*24*7:
+                self.timeframe = 'longterm'
+            self.is_open = False
+   
         self.save()
 
     def __str__(self):
         return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"    
 
-
-@receiver(post_save, sender=FuturesExit,
-          dispatch_uid="update_entry_after_exit")
-def update_entry_after_exit(sender, instance, **kwargs):
-    instance.entry.save()
-
-@receiver(post_save, sender=FuturesEntry,
-          dispatch_uid="update_system_record")
-def update_system_record(sender, instance, **kwargs):
-    instance.account.save()
 
 
 ###########################################
