@@ -5,10 +5,9 @@ from django.http import JsonResponse
 from django.middleware import csrf
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
-from trading.models import Asset, Record, CashAccount
+from trading.models import Asset
 from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy, FuturesTrade, Transaction, Tags
-from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
-from trading.models import create_record
+from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell
 
 from datetime import datetime, time, timedelta
 import json, csv
@@ -18,13 +17,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 import statistics 
 
-
-
-class CreateRecordView(TemplateView):
-    """ 수동 레코드 업데이트 """
-    def get(self, request, *args, **kwargs):
-        create_record('all')
-        return JsonResponse('done', safe=False)
 
 
 class UpdateView(TemplateView):
@@ -336,20 +328,21 @@ class TransactionView(TemplateView):
                 line[4] = symbol
             else:
                 symbol = line[4]
-            
             date = datetime.strptime(line[19], "%Y-%m-%d %H:%M:%S" )
             if not Transaction.objects.filter(ebest_id=line[3]):
                 num_cons = int(line[14])
                 # 체결 수량 1개당 한개의 transaction으로 함
                 for i in range(int(line[14])):
                     print(line[4][:-3])
+                    instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
+                    price = instrument.convert_to_decimal(line[13].replace(',',''))
                     Transaction(
-                        instrument = FuturesInstrument.objects.get(symbol=line[4][:-3]),
+                        instrument = instrument,
                         ebest_id = line[3],
                         ebest_code = line[4],
                         date = date,
                         position = 1 if line[12]=="매수" else -1,
-                        price = line[13].replace(',',''),
+                        price = price,
                         commission = float(line[16])/num_cons
                     ).save()
         # 거래 기록 생성

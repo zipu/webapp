@@ -44,83 +44,6 @@ class Currency(models.Model):
         return f"{self.symbol}:{self.rate}"
     
 
-def convert_to_decimal(value, system):
-    "8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환"
-    a,b = [float(i) for i in value.split("'")]
-    return a+b/system
-
-def create_record(account):
-    now = datetime.now()
-    if account=='all':
-        create_record('cash')
-        create_record('stock')
-        create_record('futures')
-        create_record('asset')
-
-    if account=='asset':
-        stock = StockAccount.objects.all().first()
-        cash = CashAccount.objects.all().latest('date','id')
-        futures = FuturesAccount.objects.all()
-
-        principal = stock.principal + cash.total\
-                    + futures.aggregate(Sum('principal'))['principal__sum']
-        value = stock.value + cash.total\
-                    + futures.aggregate(Sum('value'))['value__sum']
-        risk = stock.risk + futures.aggregate(Sum('risk'))['risk__sum']
-        Record(
-            date=now,
-            account_symbol='A', #total asset
-            principal=principal,
-            value=value,
-            risk=risk
-        ).save()
-
-    elif account=='cash':
-        acc = CashAccount.objects.all().latest('date','id')
-        Record(
-            date=now,
-            account_symbol=acc.symbol,
-            principal=acc.total,
-            value=acc.total,
-            risk=0
-        ).save()
-    
-    elif account=='stock':
-        acc = StockAccount.objects.all().first()
-        Record(
-            date=now,
-            account_symbol=acc.symbol,
-            principal=acc.principal,
-            value=acc.value,
-            risk=acc.risk
-        ).save()
-    
-    elif account=='futures':
-        accounts = FuturesAccount.objects.all()
-        for acc in accounts:
-            Record(
-                date=now,
-                account_symbol=acc.symbol,
-                principal=acc.principal,
-                value=acc.value,
-                risk=acc.risk
-            ).save()
-        
-        # 시스템 통합 정보 갱신
-        accounts = FuturesAccount.objects.all()
-        agg = accounts.aggregate(
-            Sum('principal'),
-            Sum('value'),
-            Sum('risk')
-            )
-        Record(
-            date=now,
-            account_symbol='FA', #total futures asset
-            principal=agg['principal__sum'],
-            value=agg['value__sum'],
-            risk=agg['risk__sum']
-        ).save()
-
 
 
 ##############################################
@@ -137,126 +60,6 @@ class Asset(models.Model):
     description = models.TextField("설명", null=True, blank=True)
     def __str__(self):
         return f"{self.name}({self.code})"
-
-class Record(models.Model):
-    """ 날짜별 자산 실적/평가가치/통계 """
-    account_symbol = models.CharField("계좌코드", max_length=50)
-    #account_id = models.PositiveIntegerField("account_id")
-    date = models.DateTimeField("날짜", auto_now_add=False)
-    principal = models.DecimalField("원금(원)", max_digits=12, decimal_places=0)
-    value = models.DecimalField("총자산(원)", max_digits=12, decimal_places=0)
-    risk = models.DecimalField("리스크(원)", max_digits=12, decimal_places=0)
-    # save method에서 계산
-    gross_profit = models.DecimalField("누적수익(원)", max_digits=12, decimal_places=0)
-    risk_excluded_value = models.DecimalField("위험제거자산(원)", max_digits=12, decimal_places=0)
-    rate_profit = models.FloatField("수익률")
-    rate_risk = models.FloatField("리스크율")
-    avg_risk = models.DecimalField("평균리스크", max_digits=12, decimal_places=0)
-    drawdown = models.FloatField("자본인하율")
-    mdd = models.FloatField("최대자본인하율")
-    cagr = models.FloatField("CAGR", blank=True)
-    volatility_day = models.FloatField("일변동성") 
-    volatility = models.FloatField("평균변동성") #최근 30일 변동성
-
-    def save(self, *args, **kwargs):
-        self.gross_profit = self.value - self.principal
-        self.risk_excluded_value = self.value - self.risk
-        self.rate_profit =  self.gross_profit/self.principal * 100 if self.principal > 0 else 0
-        
-
-        if self.value > 0:
-            self.rate_risk = self.risk/self.value * 100
-        else:
-            self.rate_risk = 0
-        
-        if not self.id:
-            records = Record.objects.filter(account_symbol=self.account_symbol).all()
-        else:
-            records = Record.objects.filter(account_symbol=self.account_symbol, id__lt=self.id).all()
-        
-        if records.count():
-            last_gross_profit = records.latest('date').gross_profit
-            #last_principal = records.latest('date').principal
-            last_mdd = records.latest('date').mdd
-            last_max = records.aggregate(Max('value'))['value__max']
-            
-            self.avg_risk = records.aggregate(Avg('risk'))['risk__avg']
-            
-            
-            self.volatility_day = 100*abs(last_gross_profit-self.gross_profit)\
-                                /(last_gross_profit+self.principal) if last_gross_profit+self.principal > 0 else 0
-            since = self.date - timedelta(days=30)
-            self.volatility = (records.filter(date__gte=since).all()\
-                            .aggregate(Avg('volatility_day'))['volatility_day__avg'] or 0)
-            
-            max_value = max(last_max, self.value)
-            self.drawdown = 100 * (max_value - self.value)/max_value if max_value > 0 else 0
-            self.mdd = max(self.drawdown, last_mdd)
-
-            #계좌오픈일 찾기
-            if self.account_symbol == 'A':
-                first_date = CashAccount.objects.all().earliest('date').date
-            elif self.account_symbol == 'C':
-                first_date = CashAccount.objects.all().earliest('date').date
-            elif self.account_symbol == 'S':
-                first_date = StockAccount.objects.first().date
-            elif self.account_symbol == 'FA': #(선물통합)
-                first_date = FuturesAccount.objects.all().earliest('date').date
-
-            else:
-                first_date = FuturesAccount.objects.get(symbol=self.account_symbol).date
-
-            days = (self.date.date() - first_date).days
-            if (days > 1) and (self.principal > 0) and (self.value > 0):
-                n = days/365
-                self.cagr = (pow(float(self.value/self.principal), 1/n) - 1)*100
-            else:
-                self.cagr = 0
-
-        else:
-            last_mdd = 0
-            last_max = 0
-            last_value = 0
-            self.volatility_day=0
-            self.volatility=0
-            self.avg_risk = 0
-            self.cagr = 0
-            self.drawdown = 0
-            self.mdd = 0
-
-        super(Record, self).save(*args, **kwargs)    
-    def __str__(self):
-        return f"{self.id}/{self.account_symbol}/{self.date}/{self.value}"
-    class Meta:
-        ordering = ['-id']
-    
-##############################################
-# 현금                                       #
-##############################################
-class CashAccount(models.Model):
-    asset = models.ForeignKey(
-        Asset,
-        related_name="cash",
-        verbose_name="자산종류",
-        on_delete=models.CASCADE)
-    date = models.DateField("날짜")
-    account_name = models.CharField("계좌명", max_length=20, default='cash')
-    symbol = models.CharField("계좌코드", max_length=16, default='C')
-    krw = models.DecimalField("원화", max_digits=12, decimal_places=0)
-    cny = models.DecimalField("위안화", max_digits=12, decimal_places=0)
-    usd = models.DecimalField("달러", max_digits=12, decimal_places=0)
-    total = models.DecimalField("합계(원)",blank=True, max_digits=12, decimal_places=0)
-
-    def save(self, *args, **kwargs):
-        c = CurrencyRates()
-        self.total = c.convert('USD','KRW',self.usd)+\
-                c.convert('CNY','KRW',self.cny)+\
-                self.krw
-        
-        super(CashAccount, self).save(*args, **kwargs)
-    def __str__(self):
-        return f"{self.total} won - {self.date}"
-    
 
 ##############################################
 # 주식/ETF                                   #
@@ -454,19 +257,29 @@ class FuturesInstrument(models.Model):
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, null=True, blank=True)
     exchange = models.CharField("거래소", max_length=16, choices=EXCHANGES) #거래소
     market = models.CharField("시장 구분", max_length=16, choices=MARKETS) #시장구분
-    tickunit = models.DecimalField("호가 단위", max_digits=12, decimal_places=6) #틱 단위
+    tickunit = models.DecimalField("호가 단위", max_digits=14, decimal_places=8) #틱 단위
     tickprice = models.DecimalField("호가당 가격", max_digits=5, decimal_places=2) #틱당 가격
     margin = models.DecimalField("증거금", max_digits=5, decimal_places=0) #증거금
     decimal_places = models.SmallIntegerField("소수점 자리수") #소수점 자리수
     number_system = models.SmallIntegerField("진법", choices=NUMBER_SYSTEMS, default=10)
     current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6, null=True, blank=True)
-    opentime = models.TimeField("거래 시작시간") #장 시작시간(한국)
-    closetime = models.TimeField("거래 종료시간") #장 종료시간(한국)
 
     def calc_value(self, entry_price, exit_price, num_cons, position):
         # 가격 차이를 돈 가치로 변환
         return position * (exit_price-entry_price)*num_cons*self.tickprice/self.tickunit
 
+    def convert_to_decimal(self, value):
+        """8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환
+           예) 2년물 국채는 32진법을 사용하고  123'15.125 형식을 갖음
+              ' 마크 뒤의 값을 32로 나눈값이 10진법으로 변환된 가격임
+        """
+        if self.number_system != 10:
+            a,b = [float(i) for i in value.split("'")]
+            return str(a+b/self.number_system)
+        else:
+            return value
+        
+    
     def __str__(self):
         return f"{self.name} ({self.symbol})"
 
