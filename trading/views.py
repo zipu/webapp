@@ -6,8 +6,7 @@ from django.middleware import csrf
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset, Record, CashAccount
-from trading.models import FuturesInstrument, FuturesEntry, FuturesExit, FuturesAccount,\
-                           FuturesStrategy, FuturesTrade, Transaction, Tags
+from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy, FuturesTrade, Transaction, Tags
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, CashAccount
 from trading.models import create_record
 
@@ -19,16 +18,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 import statistics 
 
-
-
-# Create your views here.
-class UpdateCurrencyRateView(TemplateView):
-    """
-     환율 갱신하는 뷰
-    """
-    def get(self, request, *args, **kwargs):
-        result = CurrencyRates.update()
-        return JsonResponse(result, safe=False)
 
 
 class CreateRecordView(TemplateView):
@@ -118,49 +107,16 @@ class UpdateView(TemplateView):
         create_record('all')
         return JsonResponse(newdata, safe=False)
 
-class ChartView(View):
-    """ 차트 데이터 반환용 뷰"""
-    def get(self, request, *args, **kwargs):
-        records = Record.objects.filter(account_symbol=kwargs['account']).order_by('date','id')
-        data = list(records.all().values_list(
-            'date', 'value', 'risk_excluded_value','volatility_day', 'volatility', 'principal')) 
-        return JsonResponse(data, safe=False)
-
-class AssetView(TemplateView):
-    template_name = "trading/asset.html"
-
-    def get_context_data(self, **kwargs):
-       context = super().get_context_data(**kwargs)
-       context['record'] = Record.objects.filter(account_symbol='A').latest('date', 'id')
-       context['cash'] = CashAccount.objects.all().latest('date','id').total
-       context['stock'] = StockAccount.objects.all().first().value
-       context['futures'] = FuturesAccount.objects.all().aggregate(Sum('value'))['value__sum']
-       context['activate'] = 'asset'
-
-       return context
-
 class FuturesView(TemplateView):
     template_name = "trading/futures/futures.html"
 
     def get_context_data(self, **kwargs):
         #기간 설정
-        #duration = self.request.GET.get('duration')
         context = super().get_context_data(**kwargs)
-        context['accounts'] = FuturesAccount.objects.all()
+        #context['accounts'] = FuturesAccount.objects.all()
         context['strategies'] = FuturesStrategy.objects.all()
-        #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-        #if kwargs['system'] == 0:
-        #    context['account'] = {'id':0, 'account_name': '시스템 합산'}
-        #    record = Record.objects.filter(account_symbol='FA')
-            #context['record'] = Record.objects.filter(account_symbol='FA').latest('date','id')
-        
-        #else:
-        context['account'] = FuturesAccount.objects.get(symbol='FM02')
-        record = Record.objects.filter(account_symbol=context['account'].symbol)
-            #context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-            #                     .latest('date','id')
-        context['record'] = record.latest('date','id')
-        context['active'] = 'futures'
+        #context['account'] = FuturesAccount.objects.get(symbol='FM02')
+        context['activate'] = 'futures'
         return context
 
 class FuturesStatView(TemplateView):
@@ -179,20 +135,21 @@ class FuturesStatView(TemplateView):
         
         if query.get('start'):
             # 부분 통계를 위해 그 이전까지의 수익을 합산한것을 원금으로 잡음
-            olds = trades.filter(pub_date__lt=query.get('start'))\
+            olds = trades.filter(end_date__lt=query.get('start'))\
                          .annotate(
                            profit=F('realized_profit')*F('instrument__currency__rate'),
                            commission_krw = F('commission')*F('instrument__currency__rate'))\
                        .aggregate(Sum('profit'), Sum('commission_krw'))
             profit_diff = (olds['profit__sum'] or 0) - (olds['commission_krw__sum'] or 0) or 0
             
-            trades = trades.filter(pub_date__gte=query.get('start'))
-            
+            trades = trades.filter(end_date__gte=query.get('start'))
+        
         else:
             profit_diff = 0
 
         if query.get('end'):
             trades = trades.filter(end_date__lte=query.get('end'))
+        
         if query.get('mental'):
             trades = trades.filter(mental=query.get('mental'))
         if query.get('strategy'):
@@ -236,7 +193,7 @@ class FuturesStatView(TemplateView):
         avg_profit = trades_agg['profit_krw__avg'] or 0
         std_profit = trades_agg['profit_krw__stddev'] or 0
         roe = revenue/principal if revenue and principal else 0
-        if loses_agg['profit_krw__avg']:
+        if loses_agg['profit_krw__avg'] and wins_agg['profit_krw__avg']:
             pnl = -1*wins_agg['profit_krw__avg']/loses_agg['profit_krw__avg']
         else:
             pnl = 0
@@ -253,12 +210,18 @@ class FuturesStatView(TemplateView):
             'win_rate':f'{win_rate*100:.1f}',
             'roe':f'{roe*100:.1f}',
             'num_trades': cnt,
-            'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
+            #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
             'principal_num': principal
         }
 
-        print("!!!")
-        print(data)
+        #차트 데이터
+        trades_by_day = trades.values('end_date__date')\
+            .order_by('end_date__date')\
+            .annotate(day_profit=Sum('profit_krw'),
+                      day_commission=Sum('commission_krw'))
+        data['chart_data'] = list(trades_by_day.values_list('end_date__date','day_profit','day_commission'))
+
+        #print(data)
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):
@@ -362,21 +325,6 @@ class TransactionView(TemplateView):
         return render(request, TransactionView.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
-        # 거래내역 생성
-        """
-        if request.GET.get('key') == 'create_trade': 
-            
-            # 체결내역에 시스템 연결
-            for tr, ac in request.POST.items():
-                transaction = Transaction.objects.get(id=tr)
-                account = FuturesAccount.objects.get(id=ac[0])
-                transaction.account = account
-                transaction.save()
-            
-            # 신규등록된 체
-            FuturesTrade.add_transactions()
-            return JsonResponse(True, safe=False)
-        """
         # 체결기록 등록
         
         file_data = csv.reader(request.FILES['file'].read().decode("cp949").splitlines())
@@ -394,6 +342,7 @@ class TransactionView(TemplateView):
                 num_cons = int(line[14])
                 # 체결 수량 1개당 한개의 transaction으로 함
                 for i in range(int(line[14])):
+                    print(line[4][:-3])
                     Transaction(
                         instrument = FuturesInstrument.objects.get(symbol=line[4][:-3]),
                         ebest_id = line[3],
@@ -432,17 +381,6 @@ class StockHistoryView(ListView):
         context['range'] = range(start, end)
         return context
 
-class CashView(TemplateView):
-    template_name = "trading/cash.html"
-
-    def get_context_data(self, **kwargs):
-       context = super().get_context_data(**kwargs)
-       #context['account'] = FuturesAccount.objects.get(id=kwargs['system'])
-       context['account'] = CashAccount.objects.all().latest('date', 'id')
-       context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-                            .latest('date', 'id')
-       context['activate'] = 'cash'
-       return context
 
 
 

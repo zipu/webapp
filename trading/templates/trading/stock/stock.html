@@ -173,7 +173,7 @@ var chart = Highcharts.chart('profit-chart', {
   }
 });
 
-$.get("{% url 'chart' account=record.account_symbol %}", function (data) {
+$.get("", function (data) {
   value = [];
   r_value = []; //리스크 제거 자산가치
   volatility = [] //평균변동성

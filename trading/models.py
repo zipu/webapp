@@ -473,60 +473,28 @@ class FuturesInstrument(models.Model):
     class Meta:
         ordering = ('name',)
 
-class FuturesAccount2:
-    asset = models.ForeignKey(
-        Asset,
-        related_name="futures",
-        verbose_name="자산종류",
-        on_delete=models.PROTECT)
-    date = models.DateField("날짜")
-    account_name = models.CharField("계좌명", max_length=20, default='futures')
-    symbol = models.CharField("계좌코드", max_length=16, default='F')
-    
-    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0)
-    pricnipal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1)
-    principal = models.DecimalField("총시드(원)",blank=True, max_digits=12, decimal_places=0)
-
-    def save(self, *args, **kwargs):
-        c = Currency().objects.get(symbol='USD')
-        self.principal = c.convert(self.usd) + self.principal_krw
-        
-        super(FuturesAccount, self).save(*args, **kwargs)
-    
-    def __str__(self):
-        return f"({self.account_name}){self.total} won - {self.date}"
-
 class FuturesAccount(models.Model):
     asset = models.ForeignKey(
         Asset,
         related_name="futures",
-        verbose_name="선물자산",
-        on_delete=models.CASCADE)
-    account_name = models.CharField("시스템명", max_length=64)
-    date = models.DateField("운용 시작일")
-    symbol = models.CharField("시스템코드", max_length=16)
-    principal = models.DecimalField("투자원금", max_digits=12, decimal_places=0, blank=True)
-    principal_krw = models.DecimalField("투자원금(KRW)", max_digits=9, decimal_places=0)
-    principal_usd = models.DecimalField("투자원금(USD)", max_digits=11, decimal_places=2)
-    principal_eur = models.DecimalField("투자원금(EUR)", max_digits=11, decimal_places=2,  default=0)
+        verbose_name="자산종류",
+        on_delete=models.PROTECT, null=True, blank=True)
+    date = models.DateTimeField("날짜", auto_now=True)
+    account_name = models.CharField("계좌명", max_length=20, default='futures')
+    symbol = models.CharField("계좌코드", max_length=16, default='F')
     
-    value_usd = models.DecimalField("달러자산가치(USD)", max_digits=11, decimal_places=2, default=0)
-    value_eur = models.DecimalField("유로자산가치(EUR)", max_digits=11, decimal_places=2,  default=0)
-    value = models.DecimalField("총자산가치", max_digits=12, decimal_places=0, blank=True)
-    gross_profit = models.DecimalField("누적수익", max_digits=12, decimal_places=0, blank=True)
-    commission = models.DecimalField("수수료", max_digits=9, decimal_places=0, blank=True)
-    avg_ptr = models.FloatField("평균손익비", blank=True)
-    winning_rate = models.FloatField("승률", blank=True)
-    avg_profit = models.DecimalField("평균수익", max_digits=12, decimal_places=0, blank=True)
-    #std = models.DecimalField("수익표준편차", max_digits=12, decimal_places=0, blank=True)
-    duration = models.PositiveIntegerField("평균보유기간", blank=True)
-    avg_entry_risk = models.DecimalField("평균진입리스크", max_digits=12, decimal_places=0, blank=True)
-    risk = models.DecimalField("현재총리스크", max_digits=12, decimal_places=0, blank=True)
-    count = models.PositiveIntegerField("매매횟수", default=0)
+    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0)
+    principal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1)
+    principal = models.DecimalField("총시드(원)",blank=True, max_digits=12, decimal_places=0)
 
-
+    def save(self, *args, **kwargs):
+        c = Currency.objects.get(symbol='USD')
+        self.principal = c.convert(self.principal_usd) + self.principal_krw
+        
+        super(FuturesAccount, self).save(*args, **kwargs)
+    
     def __str__(self):
-        return f"{self.account_name}"
+        return f"({self.account_name}){self.principal:,} 원 - {self.date}"
 
 class FuturesStrategy(models.Model):
     name = models.CharField("전략명", max_length=50)
@@ -535,95 +503,6 @@ class FuturesStrategy(models.Model):
 
     def __str__(self):
         return f"{self.name}/{self.code}"
-
-class  FuturesEntry(models.Model):
-    POSITIONS = [
-        (1, "Long"),
-        (-1, "Short")
-    ]
-    account = models.ForeignKey(
-                    FuturesAccount,
-                    verbose_name="선물계좌",
-                    related_name="entries",
-                    on_delete=models.PROTECT)
-    instrument = models.ForeignKey(
-                    FuturesInstrument,
-                    verbose_name="상품명",
-                    on_delete=models.PROTECT)
-
-    strategy = models.ForeignKey(
-               FuturesStrategy,
-               blank=True,
-               null=True,
-               related_name="strategies",
-               verbose_name="전략",
-               on_delete=models.CASCADE)
-    
-    date = models.DateField("진입 날짜")
-    code = models.CharField("종목코드", max_length=20)
-    expiration = models.DateField("만기일", null=True)
-    current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6)
-    position = models.SmallIntegerField("포지션", choices=POSITIONS)
-    num_cons = models.SmallIntegerField("진입계약수")
-    num_open_cons = models.SmallIntegerField("미청산계약수")
-    num_close_cons = models.SmallIntegerField("청산계약수", default=0)
-    
-    entry_price = models.DecimalField("진입가", max_digits=12, decimal_places=6)
-    stop_price = models.DecimalField("청산 예정가", max_digits=12, decimal_places=6)
-    commission = models.DecimalField("수수료", max_digits=6, decimal_places=2)
-    current_profit = models.DecimalField("평가손익", max_digits=12, decimal_places=2, blank=True)
-    entry_risk = models.DecimalField("진입 리스크", blank=True, max_digits=12, decimal_places=2)
-    current_risk = models.DecimalField("현재 리스크", blank=True, max_digits=12, decimal_places=2)
-    is_open = models.BooleanField("상태", default=True)
-
-    def save(self, *args, **kwargs):
-        c = CurrencyRates()
-        if not self.id:
-            entry_risk = ((self.entry_price - self.stop_price)*self.position/self.instrument.tickunit)\
-                             *self.instrument.tickprice*self.num_cons
-            
-            self.entry_risk = self.current_risk = c.convert(self.instrument.currency, 'USD', entry_risk)
-            
-        if self.id and self.exits.count() > 0:
-            self.num_close_cons = self.exits.aggregate(Sum('num_cons'))['num_cons__sum']
-            self.num_open_cons = self.num_cons - self.num_close_cons
-        current_risk = ((self.current_price - self.stop_price)*self.position/self.instrument.tickunit)\
-                         *self.instrument.tickprice*self.num_open_cons
-        self.current_risk = c.convert(self.instrument.currency, 'USD', current_risk)
-        current_profit = ((self.current_price - self.entry_price)*self.position/self.instrument.tickunit)\
-                         *self.instrument.tickprice*self.num_open_cons
-        self.current_profit = c.convert(self.instrument.currency, 'USD', current_profit)
-        self.is_open = True if self.num_open_cons > 0 else False
-        super(FuturesEntry, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f"({self.account.account_name}) {self.id}/{self.instrument.name}/{self.entry_price:.{self.instrument.decimal_places}f}/ r:{self.current_risk:.0f}/ ct:{self.num_open_cons}/{self.num_cons}"
-    class Meta:
-        ordering = ('-id',)
-
-class FuturesExit(models.Model):
-    date = models.DateField("청산날짜")
-    entry = models.ForeignKey(
-               FuturesEntry,
-               related_name="exits",
-               verbose_name="진입매매",
-               on_delete=models.CASCADE)
-    num_cons = models.SmallIntegerField("청산계약수")
-    price = models.DecimalField("청산가격", max_digits=12, decimal_places=6)
-    profit = models.DecimalField("손익", blank=True, max_digits=9, decimal_places=2)
-    commission = models.DecimalField("수수료", max_digits=6, decimal_places=2, default=0)
-    duration = models.PositiveIntegerField("보유기간", blank=True)
-
-    def save(self, *args, **kwargs):
-        self.profit = ((self.price - self.entry.entry_price)*self.entry.position/self.entry.instrument.tickunit)\
-                       * (self.entry.instrument.tickprice) * self.num_cons
-        self.duration = (self.date - self.entry.date).days
-        super(FuturesExit, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f"id = {self.id}, entry id = {self.entry.id}: {self.profit} / {self.date}"
-    class Meta:
-        ordering = ('-id',)
 
 class FuturesStat(models.Model):
     """
@@ -887,11 +766,14 @@ class Transfer(models.Model):
             acc.save()
 
         elif self.acc_from == "F":
-            acc = FuturesAccount.objects.latest('date')
+            last_acc = FuturesAccount.objects.latest('date')
+            acc = FuturesAccount()
             if self.currency_from == 'KRW':
-                acc.principal_krw = acc.principal_krw - self.amount_from
+                acc.principal_krw = last_acc.principal_krw - self.amount_from
+                acc.principal_usd = last_acc.principal_usd
             elif self.currency_from == 'USD':
-                acc.principal_usd = acc.principal_usd - self.amount_from
+                acc.principal_usd = last_acc.principal_usd - self.amount_from
+                acc.principal_krw = last_acc.principal_krw
             #elif self.currency_from == 'EUR':
             #    acc.principal_eur = acc.principal_eur - self.amount_from
             acc.save()
@@ -915,11 +797,15 @@ class Transfer(models.Model):
             acc.save()
 
         elif self.acc_to == "F":
-            acc = FuturesAccount.objects.latest('date')
+            last_acc = FuturesAccount.objects.latest('date')
+            acc = FuturesAccount(code="F")
             if self.currency_to == 'KRW':
-                acc.principal_krw = acc.principal_krw + self.amount_to
+                acc.principal_krw = last_acc.principal_krw + self.amount_to
+                acc.principal_usd = last_acc.principal_usd
+
             elif self.currency_to == 'USD':
-                acc.principal_usd = acc.principal_usd + self.amount_to
+                acc.principal_usd = last_acc.principal_usd + self.amount_to
+                acc.principal_krw = last_acc.principal_krw
             #elif self.currency_to == 'EUR':
             #    acc.principal_eur = acc.principal_eur + self.amount_to
             acc.save()

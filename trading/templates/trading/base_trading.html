@@ -25,17 +25,11 @@
   <nav class="navbar fixed-top bg-dark">
     <div style="width:100%">
     <ul class="nav" style="display:inline-flex">
-      <li class="nav-item {% if activate == 'asset' %}active {% endif %}">
-        <a class="nav-link" href="{% url 'asset'%}" style="color:grey;">Asset</a>
-      </li>
       <li class="nav-item {% if activate == 'futures' %}active {% endif %}">
         <a class="nav-link" href="{% url 'futures' %} " style="color:grey;">Futures</a>
       </li>
       <li class="nav-item {% if activate == 'stock' %}active {% endif %}">
         <a class="nav-link" href="{% url 'stock' %}" style="color:grey;">Stock/ETF</a>
-      </li>
-      <li class="nav-item {% if activate == 'cash' %}active {% endif %}">
-        <a class="nav-link" href="{% url 'cash' %}" style="color:grey;">Cash</a>
       </li>
        </ul>
        <div style="float:right;">

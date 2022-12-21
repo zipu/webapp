@@ -8,7 +8,7 @@
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
     <div>
-      <table class="table table-bordered">
+      <table class="table table-bordered table-sm">
         <tr>
           <td style="width:10%;"> 시작 </td>
           <td style="width:10%;"> 종료 </td>
@@ -191,41 +191,61 @@ var chart = Highcharts.chart('profit-chart', {
     type: "get", //send it through get method
     data: filter,
     success: function(data) {
-      $('#principal').text(data.principal);
-      $('#revenue').text(data.revenue);
-      $('#profit').text(data.profit);
-      $('#loss').text(data.loss);
-      $('#commission').text(data.commission);
+      $('#principal').text(data.principal+'원');
+      $('#revenue').text(data.revenue+'원');
+      $('#profit').text(data.profit+'원');
+      $('#loss').text(data.loss+'원');
+      $('#commission').text(data.commission+'원');
       $('#roe').text(data.roe+' %');
       $('#num_trades').text(data.num_trades);
-      $('#avg_profit').text(data.avg_profit);
-      $('#std_profit').text(data.std_profit);
-      $('#win_rate').text(data.win_rate+' %');
+      $('#avg_profit').text(data.avg_profit+'원');
+      $('#std_profit').text(data.std_profit+'원');
+      $('#win_rate').text(data.win_rate+'%');
       $('#pnl').text(data.pnl+' : 1');
 
       //console.log(data);
       //차트 데이터 
       profit = data.principal_num;
+      max_profit = profit;
+      mdd = 0
       commission =0;
       cum_profit = [];
       cum_commission = [];
-      //console.log(data.chart_data);
+      volatility = [];
+      console.log(data);
       for (item of data.chart_data){
-        date = new Date(item[0]).getTime();
-        profit += item[1]-item[2];
-        cum_profit.push([date, profit]);
         
+        date = new Date(item[0]).getTime();
+        //누적수익: 시드+수익-수수료
+        last_profit = profit;
+        profit += item[1]-item[2];
+
+        cum_profit.push([date, profit]);
+        volatility.push([date, Math.abs(profit/last_profit-1)]);
+
         commission += item[2];
         cum_commission.push([date, commission]);
+
+
+        // dd and mdd 계산
+        if (profit >= max_profit) { max_profit = profit; };
+        dd = 1 - profit/max_profit;
+        if (dd >= mdd){ mdd = dd; };
       }
+      $('#dd').text(dd.toFixed(2)+'%');
+      $('#mdd').text(mdd.toFixed(2)+'%');
+
+      //기존차트 데이터 삭제
+      while(chart.series.length > 0)
+        chart.series[0].remove(true);
+
       chart.addSeries({ 
         name: "자산",
         data: cum_profit,
         yAxis: 0,
         tooltip: {valueSuffix: ' 원'},
-        type: 'area',
-        lineColor:'#ADD8E6',
-        color: '#B0E0E6',
+        type: 'line',
+        lineColor:'blue',
         zIndex: 5,
         //marker: { enabled: false}
        });
@@ -235,19 +255,23 @@ var chart = Highcharts.chart('profit-chart', {
         yAxis: 0,
         tooltip: {valueSuffix: ' 원'},
         type:'line',
-        color:	'black', //#FFFFE0',
+        color:	'grey', //#FFFFE0',
         zIndex: 10,
       });
-
-
-    },
-    error: function(xhr) {
-      //Do Something to handle error
+      chart.addSeries({
+        name: "변동성",
+        data: volatility,
+        yAxis: 1,
+        tooltip: {valueSuffix: '%', valueDecimals: 2},
+        type: 'line',
+        color: 'red',
+        //marker: { enabled: false}
+      });
     }
   });
 })('all');
 /*
-$.get( "{% url 'chart' account=record.account_symbol %}", function( data ) {
+$.get( "", function( data ) {
      value= [];
      r_value=[]; //리스크 제거 자산가치
      volatility=[] //평균변동성
