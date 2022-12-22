@@ -51,7 +51,6 @@
         </tr>
       </table>
       
-      <div style="float: right;"> 업데이트: {{record.date | date:"Y-m-d H:i"}}</div>
     </div>
       <table class="table table-bordered">
           <tr class="table-secondary">
@@ -216,6 +215,7 @@ var chart = Highcharts.chart('profit-chart', {
       $('#std_profit').text(data.std_profit+'원');
       $('#win_rate').text(data.win_rate+'%');
       $('#pnl').text(data.pnl+' : 1');
+      $('#cagr').text(data.cagr)
 
       //console.log(data);
       //차트 데이터 

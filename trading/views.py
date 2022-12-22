@@ -189,6 +189,11 @@ class FuturesStatView(TemplateView):
         else:
             pnl = 0
         win_rate = wins.count()/cnt if cnt else 0
+        print(trades.last().pub_date)
+        print(trades.first().end_date)
+        print((trades.last().end_date - trades.first().pub_date).days/365)
+        duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
+        cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
         data = {
             'principal':f'{principal:,.0f}',
             'revenue': f'{revenue:,.0f}',
@@ -202,7 +207,8 @@ class FuturesStatView(TemplateView):
             'roe':f'{roe*100:.1f}',
             'num_trades': cnt,
             #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
-            'principal_num': principal
+            'principal_num': principal,
+            'cagr': f'{cagr:,.2f}'
         }
 
         #차트 데이터
@@ -213,8 +219,6 @@ class FuturesStatView(TemplateView):
                       volume=Count('id'))
         
         data['chart_data'] = list(trades_by_day.values_list('end_date__date','day_profit','day_commission', 'volume'))
-        print(data)
-
         #print(data)
         return JsonResponse(data, safe=False)
 

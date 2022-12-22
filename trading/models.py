@@ -377,6 +377,8 @@ class Transaction(models.Model):
     def __str__(self):
         return f"({self.id}/{self.ebest_id} ){self.date}/{self.instrument.name}/{self.position}"
     
+    class Meta:
+        ordering = ('-date',)
 
 
 class FuturesTrade(models.Model):
