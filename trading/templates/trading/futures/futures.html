@@ -137,7 +137,7 @@ var chart = Highcharts.chart('profit-chart', {
                 }],
                 lineColor: 'lightgrey',
                 lineWidth: 2,
-                height: '80%',
+                height: '60%',
             },{
                 //opposite: true,
                 title: {text:"변동성(%)"},
@@ -146,9 +146,23 @@ var chart = Highcharts.chart('profit-chart', {
                 },
                 lineColor: 'lightgrey',
                 lineWidth: 2,
-                top: '83%',
-                height: '17%',
-                offset: 0
+                top: '63%',
+                height: '22%',
+                offset: 0,
+                margin: 300
+            }, {
+              //opposite: true,
+              title: {
+                text: "거래량"
+              },
+              labels: {
+                enabled: false
+              },
+              lineColor: 'lightgrey',
+              lineWidth: 2,
+              top: '87%',
+              height: '13%',
+              offset: 0,
             }],
             tooltip: {
               valueDecimals: 0,
@@ -212,6 +226,7 @@ var chart = Highcharts.chart('profit-chart', {
       cum_profit = [];
       cum_commission = [];
       volatility = [];
+      volume = [];
       console.log(data);
       for (item of data.chart_data){
         
@@ -222,6 +237,7 @@ var chart = Highcharts.chart('profit-chart', {
 
         cum_profit.push([date, profit]);
         volatility.push([date, Math.abs(profit/last_profit-1)]);
+        volume.push([date, item[3]]);
 
         commission += item[2];
         cum_commission.push([date, commission]);
@@ -265,6 +281,14 @@ var chart = Highcharts.chart('profit-chart', {
         tooltip: {valueSuffix: '%', valueDecimals: 2},
         type: 'line',
         color: 'red',
+        //marker: { enabled: false}
+      });
+      chart.addSeries({
+        name: "거래량",
+        data: volume,
+        yAxis: 2,
+        type: 'column',
+        color: 'black',
         //marker: { enabled: false}
       });
     }

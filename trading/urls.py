@@ -7,7 +7,7 @@ from .views import UpdateView
 
 urlpatterns = [
     path('', RedirectView.as_view(url='futures', permanent=False)),
-    path('futures/stat', FuturesView.as_view(), name='futures'),
+    path('futures/', FuturesView.as_view(), name='futures'),
     path('futures/statdata', FuturesStatView.as_view(), name='statdata'),
     path('futures/transaction/<int:page>', TransactionView.as_view(), name='transaction'),
     path('futures/trade/<int:page>', FuturesTradeView.as_view(), name='futurestrade'),

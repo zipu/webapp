@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, ListView, View
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
-from django.middleware import csrf
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset
@@ -210,8 +209,11 @@ class FuturesStatView(TemplateView):
         trades_by_day = trades.values('end_date__date')\
             .order_by('end_date__date')\
             .annotate(day_profit=Sum('profit_krw'),
-                      day_commission=Sum('commission_krw'))
-        data['chart_data'] = list(trades_by_day.values_list('end_date__date','day_profit','day_commission'))
+                      day_commission=Sum('commission_krw'),
+                      volume=Count('id'))
+        
+        data['chart_data'] = list(trades_by_day.values_list('end_date__date','day_profit','day_commission', 'volume'))
+        print(data)
 
         #print(data)
         return JsonResponse(data, safe=False)
@@ -356,8 +358,6 @@ class StockView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['activate'] = 'stock'
         context['account'] = StockAccount.objects.all().order_by('-id').first()
-        context['record'] = Record.objects.filter(account_symbol=context['account'].symbol)\
-                            .latest('date','id')
         return context
 
 class StockHistoryView(ListView):
