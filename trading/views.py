@@ -150,14 +150,7 @@ class FuturesStatView(TemplateView):
             trades = trades.filter(entry_tags__name__in=tags)\
                            .filter(exit_tags__name__in=tags)
         if query.get('timeframe'):
-            timeframe = query.get('timeframe')
-            if timeframe == 'day':
-                trades = trades.filter(duration__lte=24*3600)
-            elif timeframe == 'swing':
-                trades = trades.filter(duration__gt=24*3600)\
-                               .filter(duration__lte=3600*24*7)
-            elif timeframe == 'long':
-                trades = trades.filter(duration__gt=3600*24*7)
+            trades = trades.filter(timeframe = query.get('timeframe'))
         
         account = FuturesAccount.objects.last()
         wins = trades.filter(profit_krw__gt=0)
@@ -189,24 +182,42 @@ class FuturesStatView(TemplateView):
         else:
             pnl = 0
         win_rate = wins.count()/cnt if cnt else 0
-        duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
-        cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
-        data = {
-            'principal':f'{principal:,.0f}',
-            'revenue': f'{revenue:,.0f}',
-            'profit':f'{profit:,.0f}',
-            'loss':f'{loss:,.0f}',
-            'commission':f'{commission:,.0f}',
-            'avg_profit':f'{avg_profit:,.0f}',
-            'std_profit':f'{std_profit:,.0f}',
-            'pnl':f'{pnl:.2f}',
-            'win_rate':f'{win_rate*100:.1f}',
-            'roe':f'{roe*100:.1f}',
-            'num_trades': cnt,
-            #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
-            'principal_num': principal,
-            'cagr': f'{cagr:,.2f}'
-        }
+        if trades.count():
+            duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
+            cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
+            data = {
+                'principal':f'{principal:,.0f}',
+                'revenue': f'{revenue:,.0f}',
+                'profit':f'{profit:,.0f}',
+                'loss':f'{loss:,.0f}',
+                'commission':f'{commission:,.0f}',
+                'avg_profit':f'{avg_profit:,.0f}',
+                'std_profit':f'{std_profit:,.0f}',
+                'pnl':f'{pnl:.2f}',
+                'win_rate':f'{win_rate*100:.1f}',
+                'roe':f'{roe*100:.1f}',
+                'num_trades': cnt,
+                #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
+                'principal_num': principal,
+                'cagr': f'{cagr:,.2f}'
+            }
+        else:
+            data = {
+                'principal':f'{principal:,.0f}',
+                'revenue': '0',
+                'profit':'0',
+                'loss':'0',
+                'commission':'0',
+                'avg_profit':'0',
+                'std_profit':'0',
+                'pnl':'0',
+                'win_rate':'',
+                'roe':'',
+                'num_trades': 0,
+                #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
+                'principal_num': principal,
+                'cagr': '0'
+            }
 
         #차트 데이터
         trades_by_day = trades.values('end_date__date')\
