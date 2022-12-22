@@ -121,8 +121,8 @@
               <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
               <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
               <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 현재가 </td>
-              <td style='width:12.5%;'> {{ trade.current_price.normalize }} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
+              <td style='width:12.5%;'> {{ trade.stop_price.normalize }} </td>
               <td style='width:12.5%; background-color: lightyellow'> 타임프레임 </td>
               <td style='width:12.5%;'> {{ trade.timeframe }} </td>
             </tr>
@@ -182,10 +182,10 @@
               <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
               <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
               <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 현재가 </td>
-              <td style='width:12.5%;'> {{ trade.current_price.normalize }} </td>
               <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
-              <td> <input type="number" value='{{trade.stop_price.normalize}}' name='stopprice'> </input> </td>
+              <td> <input type="float" value='{{trade.stop_price.normalize}}' name='stopprice'> </input> </td>
+              <td style='width:12.5%; background-color: lightyellow'> 타임프레임 </td>
+              <td style='width:12.5%;'> {{ trade.timeframe }} </td>
             </tr>
             <tr>
               <td style='width:10%;background-color: lightyellow'> 멘탈 </td>

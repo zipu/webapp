@@ -430,6 +430,9 @@ class FuturesTrade(models.Model):
     current_price = models.DecimalField(
                     "현재가", max_digits=12, decimal_places=6,
                     null=True, blank=True)
+    stop_price = models.DecimalField(
+                    "손절가", max_digits=12, decimal_places=6,
+                    null=True, blank=True)
 
     avg_entry_price = models.DecimalField(
                     "평균진입가", max_digits=12, decimal_places=6,
