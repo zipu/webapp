@@ -189,9 +189,6 @@ class FuturesStatView(TemplateView):
         else:
             pnl = 0
         win_rate = wins.count()/cnt if cnt else 0
-        print(trades.last().pub_date)
-        print(trades.first().end_date)
-        print((trades.last().end_date - trades.first().pub_date).days/365)
         duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
         cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
         data = {
