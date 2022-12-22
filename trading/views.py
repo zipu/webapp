@@ -5,7 +5,7 @@ from django.http import JsonResponse
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset
-from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy, FuturesTrade, Transaction, Tags
+from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy, FuturesTrade, Transaction, Tags, Currency
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell
 
 from datetime import datetime, time, timedelta
@@ -293,8 +293,13 @@ class TransactionView(TemplateView):
     template_name = "trading/futures/transaction.html"
 
     def get(self, request, *args, **kwargs):
+        if request.GET.get('currency'):
+            Currency.update()
+
+
         context = self.get_context_data()
         context['active'] = 'transaction'
+        context['currencies'] = Currency.objects.all()
         
         transactions = Transaction.objects.order_by('-date')
         paginate_by = 20 # 페이지당 30개

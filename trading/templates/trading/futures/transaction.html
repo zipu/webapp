@@ -84,8 +84,8 @@
 
   <table class="table table-sm table-bordered" id="management">
         <tr>
-          <td style='widtd:40%;background-color:#e9ecef;'> 이베스트 체결기록 추가 </td>
-          <td style='widtd:60%;'>
+          <td style='width:30%;'> 이베스트 체결기록 추가 </td>
+          <td style='width:70%;' >
             <form action="{% url 'transaction' page=1 %}" method='post' enctype="multipart/form-data">
               {% csrf_token %}
               <input type="file" id="file" name="file" accept=".csv" required>
@@ -93,6 +93,20 @@
             </form>
           </td>
         </tr>
+        <tr>
+          <td style='width:30%;background-color:#e9ecef;' colspan=2> 환율 ({{currencies.first.date |date:'Y년 m월 d일'}})</td>
+          
+        </tr>
+        {% for currency in currencies %}
+        <tr>
+          <td>{{currency.symbol}} </td>
+          <td>{{currency.rate |floatformat:2}} </td>
+        </tr>
+        {% endfor %}
+        <tr> 
+          <td colspan=2>
+            <input type='submit' value='업데이트'  onclick="location.href='{% url 'transaction' page=1%}?currency=rate'"></td>
+         </tr>
   </table>
   <br>
 {% endblock content2 %}
