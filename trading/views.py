@@ -352,7 +352,7 @@ class TransactionView(TemplateView):
                 symbol = line[4]
             date = datetime.strptime(line[19], "%Y-%m-%d %H:%M:%S" )
             transactions = []
-            if not Transaction.objects.filter(ebest_id=line[3]):
+            if not Transaction.objects.filter(order_id=line[1], ebest_id=line[3]):
                 num_cons = int(line[14])
                 # 체결 수량 1개당 한개의 transaction으로 함
                 for i in range(int(line[14])):
@@ -360,6 +360,7 @@ class TransactionView(TemplateView):
                     price = instrument.convert_to_decimal(line[13].replace(',',''))
                     transactions.append(Transaction(
                         instrument = instrument,
+                        order_id = line[1],
                         ebest_id = line[3],
                         ebest_code = line[4],
                         date = date,

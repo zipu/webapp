@@ -358,6 +358,7 @@ class Transaction(models.Model):
                     verbose_name="상품",
                     on_delete=models.PROTECT)
 
+    order_id = models.PositiveSmallIntegerField("주문번호")
     ebest_id = models.PositiveSmallIntegerField("이베스트 체결번호")
     ebest_code = models.CharField("이베스트 상품코드", max_length=20)
     date = models.DateTimeField("체결날짜")
