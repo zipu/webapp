@@ -455,7 +455,7 @@ class FuturesTrade(models.Model):
     is_open = models.BooleanField("상태", default=True)
 
     @staticmethod
-    def add_transactions():
+    def create_trades():
         """
         transaction(체결기록)가 기존 거래와 관련된 체결이면 기존 거래에 추가하고
         그렇지 않으면 신규 거래를 생성

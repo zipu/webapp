@@ -1,5 +1,6 @@
 media_dev/
 /static/
+/logs/
 
 *.pyc
 

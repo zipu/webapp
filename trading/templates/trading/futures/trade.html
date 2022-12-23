@@ -50,7 +50,7 @@
         <td scope="col" rowspan=2>포지션</td>
         <td scope="col" colspan=2>진입</td>
         <td scope="col" colspan=2>청산</td>
-        <td scope="col" rowspan=2>평가</td>
+        <td scope="col" rowspan=2>잔여</td>
         <td scope="col" rowspan=2>실현</td>
         <td scope="col" rowspan=2>통화</td>
 
@@ -62,7 +62,7 @@
         <td scope="col"> 수량 </td>
       </tr>
  
-      {% for trade, entries, exits in data %}
+      {% for trade, entries, exits, cons in data %}
       <tr class='trade' {% if trade.is_open %}bgcolor='azure' {% endif %} onclick="ShowDetail({{trade.id}})">
           <td>{{trade.id}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
@@ -103,8 +103,8 @@
               {% endfor %}
             </table>
           </td>
-          <td style="color: {% if trade.paper_profit > 0 %} red {% elif trade.paper_profit < 0 %} blue {% endif%}">
-            {{trade.paper_profit.normalize}}
+          <td>
+            {{cons}}
           </td>
           <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
             {{trade.realized_profit.normalize}}

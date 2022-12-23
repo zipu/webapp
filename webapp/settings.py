@@ -16,6 +16,27 @@ from django.core.exceptions import ImproperlyConfigured
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR,'logs','webapp.log'),
+            'backupCount': 10, # keep at most 10 log files
+            'maxBytes': 5242880, # 5*1024*1024 bytes (5MB)
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    }
+}
+
 
 def get_secret(setting):
     """Get secret setting or fail with ImproperlyConfigured"""

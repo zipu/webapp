@@ -253,8 +253,9 @@ class FuturesTradeView(TemplateView):
                             .values('price').annotate(cnt=Count('price'))
             exits = trade.transactions.filter(position = trade.position*-1)\
                             .values('price').annotate(cnt=Count('price'))
+            cons = trade.num_entry_cons - trade.num_exit_cons
             data.append(
-                (trade, entries, exits)
+                (trade, entries, exits, cons)
             )
         context['strategies'] = FuturesStrategy.objects.all()
 
@@ -306,7 +307,9 @@ class TransactionView(TemplateView):
     def get(self, request, *args, **kwargs):
         if request.GET.get('currency'):
             Currency.update()
-
+        
+        if request.GET.get('create_trades'):
+            FuturesTrade.create_trades()
 
         context = self.get_context_data()
         context['active'] = 'transaction'
@@ -348,14 +351,14 @@ class TransactionView(TemplateView):
             else:
                 symbol = line[4]
             date = datetime.strptime(line[19], "%Y-%m-%d %H:%M:%S" )
+            transactions = []
             if not Transaction.objects.filter(ebest_id=line[3]):
                 num_cons = int(line[14])
                 # 체결 수량 1개당 한개의 transaction으로 함
                 for i in range(int(line[14])):
-                    print(line[4][:-3])
                     instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
                     price = instrument.convert_to_decimal(line[13].replace(',',''))
-                    Transaction(
+                    transactions.append(Transaction(
                         instrument = instrument,
                         ebest_id = line[3],
                         ebest_code = line[4],
@@ -363,9 +366,10 @@ class TransactionView(TemplateView):
                         position = 1 if line[12]=="매수" else -1,
                         price = price,
                         commission = float(line[16])/num_cons
-                    ).save()
+                    ))
+            Transaction.objects.bulk_create(transactions)
         # 거래 기록 생성
-        FuturesTrade.add_transactions()
+        #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
 
 class StockView(TemplateView):
