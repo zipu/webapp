@@ -63,7 +63,10 @@
       </tr>
  
       {% for trade, entries, exits, cons in data %}
-      <tr class='trade' {% if trade.is_open %}bgcolor='azure' {% endif %} onclick="ShowDetail({{trade.id}})">
+      <tr class='trade' onclick="ShowDetail({{trade.id}})"
+       {% if trade.is_open %} bgcolor='azure' 
+       {% elif not trade.strategy %} bgcolor='#FBEEE6'
+       {% endif %}>
           <td>{{trade.id}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
           <td>{{trade.instrument.name}} </td>

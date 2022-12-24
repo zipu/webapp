@@ -5,7 +5,8 @@ from django.http import JsonResponse
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset
-from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy, FuturesTrade, Transaction, Tags, Currency
+from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy\
+                          ,FuturesTrade, Transaction, Tags, Currency, FuturesNote
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell
 
 from datetime import datetime, time, timedelta
@@ -372,6 +373,59 @@ class TransactionView(TemplateView):
         # 거래 기록 생성
         #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
+
+class FuturesNoteView(TemplateView):
+    template_name = "trading/futures/note.html"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        context['active'] = 'note'
+        
+        notes = FuturesNote.objects.order_by('-date')
+        paginate_by = 20 # 페이지당 30개
+        cnt = notes.count()
+        num_pages = int(cnt/paginate_by)+1
+        page = kwargs['page']
+        obj_start = (page-1)*paginate_by
+        obj_end = obj_start + paginate_by
+        context['notes'] = notes.all()[obj_start:obj_end]
+
+        context['is_paginated'] = True if num_pages > 1 else False
+        pages = [ i for i in range(1,num_pages+1) ] 
+        ranges = [[i for i in range(k,k+10) if i <= pages[-1]] for k in pages[::10]]
+        rng = [k for k in ranges if page in k][0]
+
+        context['page_obj']={
+            'page': page,
+            'num_page': num_pages,
+            'previous': page-1,
+            'next': page+1,
+            'rng': rng
+        }
+
+        return render(request, FuturesNoteView.template_name, context=context)
+
+    def post(self, request, *args, **kwargs):
+        print(request.POST)
+        tags = [x for x in request.POST.get('tags').split(';') if x]
+        Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
+
+        note = FuturesNote(
+            title = request.POST.get('title'),
+            memo = request.POST.get('memo').strip(),
+        )
+       
+
+        if request.POST.get('tags'):
+            tags = [x for x in request.POST.get('tags').split(';') if x]
+            Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
+            note.tags.add(Tags.objects.filter(name__in=tags))
+
+        note.save()
+
+        return redirect('futuresnote', page=1)
+
+
 
 class StockView(TemplateView):
     template_name = "trading/stock/stock.html"

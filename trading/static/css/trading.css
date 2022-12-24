@@ -24,6 +24,10 @@ thead {
 }
 
 .trade:hover {
-    background-color: lightcyan;
+    background-color: lightgoldenrodyellow;
+}
+
+.memo p{
+  text-align:left;
 }
 

@@ -42,6 +42,7 @@
 
   <table class="table table-sm table-bordered" id="history">
       <tr class="table table-secondary">
+        <td scope="col">#</td>
         <td scope="col">체결일시</td>
         <td scope="col">체결번호</td>
         <td scope="col">상품</td>
@@ -53,6 +54,7 @@
       </tr>
       {% for transaction in transactions %}
         <tr class="transaction" id="{{ transaction.id }}">
+          <td>{{transaction.id}}</td>
           <td>{{transaction.date | date:"Y-m-d H:i"}}
           </td>
           <td>{{transaction.ebest_id}}

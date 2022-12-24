@@ -535,7 +535,23 @@ class FuturesTrade(models.Model):
         self.save()
 
     def __str__(self):
-        return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"    
+        return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"  
+
+class FuturesNote(models.Model):
+    date = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=100)
+    tags = models.ManyToManyField(
+        Tags,
+        related_name='tags',
+        verbose_name='태그',
+        blank=True, null=True
+    )
+    memo = models.TextField("메모")
+
+    def __str__(self):
+        return f"({self.date}) {self.title}"
+
+
 
 
 
@@ -566,20 +582,7 @@ class Transfer(models.Model):
     amount_to = models.DecimalField("입금액", max_digits=15, decimal_places=2)
 
     def save(self, *args, **kwargs):
-        if self.acc_from == "C":
-            latest_acc = CashAccount.objects.latest('date')
-            acc = CashAccount(
-                asset=latest_acc.asset,
-                date=datetime.now().date(),
-                symbol='C'
-            )
-            acc.krw = latest_acc.krw - self.amount_from if self.currency_from == 'KRW' else latest_acc.krw
-            acc.cny = latest_acc.cny - self.amount_from if self.currency_from == 'CNY' else latest_acc.cny
-            acc.usd = latest_acc.usd - self.amount_from if self.currency_from == 'USD' else latest_acc.usd
-            acc.save()
-        
-        
-        elif self.acc_from == "S":
+        if self.acc_from == "S":
             acc = StockAccount.objects.get(symbol=self.acc_from)
             acc.principal = acc.principal - self.amount_from
             acc.save()
@@ -598,19 +601,7 @@ class Transfer(models.Model):
             acc.save()
 
         
-        if self.acc_to == "C":
-            latest_acc = CashAccount.objects.latest('date')
-            acc = CashAccount(
-                asset=latest_acc.asset,
-                date=datetime.now().date(),
-                symbol='C'
-            )
-            acc.krw = latest_acc.krw + self.amount_to if self.currency_to == 'KRW' else latest_acc.krw
-            acc.cny = latest_acc.cny + self.amount_to if self.currency_to == 'CNY' else latest_acc.cny
-            acc.usd = latest_acc.usd + self.amount_to if self.currency_to == 'USD' else latest_acc.usd
-            acc.save()
-
-        elif self.acc_to == "S":
+        if self.acc_to == "S":
             acc = StockAccount.objects.get(symbol=self.acc_to)
             acc.principal = acc.principal + self.amount_to
             acc.save()

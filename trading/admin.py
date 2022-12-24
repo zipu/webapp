@@ -1,13 +1,14 @@
 from django.contrib import admin
 
 # Register your models here.
-from trading.models import FuturesAccount, FuturesInstrument, FuturesStrategy, Transaction, FuturesTrade, Tags
+from trading.models import FuturesAccount, FuturesInstrument, FuturesStrategy\
+                            ,Transaction, FuturesTrade, Tags, FuturesNote
 from trading.models import Asset
 from trading.models import StockAccount, StockBuy, StockSell, StockTradeUnit
 from trading.models import Transfer, Currency
 
 admin.site.register(
- [FuturesAccount, FuturesStrategy, Transaction, FuturesTrade, Tags, Currency])
+ [FuturesAccount, FuturesStrategy, Transaction, FuturesTrade, Tags, Currency, FuturesNote])
 admin.site.register(
  [Asset]
 )

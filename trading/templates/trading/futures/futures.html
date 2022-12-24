@@ -89,14 +89,14 @@
             <th scope="col" style="width:20%">손익표준편차</th>
             <th scope="col" style="width:20%">승률</th>
             <th scope="col" style="width:20%">손익비</th>
-            <th scope="col" style="width:20%">보유기간</th>
+            <th scope="col" style="width:20%">수수료율</th>
           </tr>
           <tr>
             <td id="avg_profit"></td>
             <td id="std_profit"></td>
             <td id="win_rate"></td>
             <td id="pnl"></td>
-            <td></td>
+            <td id='comm_ratio'></td>
           </tr>
       </table>
   </br>
@@ -112,7 +112,7 @@ Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
 });
 var chart = Highcharts.chart('profit-chart', {
-            chart: { height: '60%' },// 16:9 ratio}
+            chart: { height: '80%' },// 16:9 ratio}
             legend: { enabled: false},
             title: { text: "Profit Curve" },
             xAxis: { 
@@ -137,8 +137,20 @@ var chart = Highcharts.chart('profit-chart', {
                 }],
                 lineColor: 'lightgrey',
                 lineWidth: 2,
-                height: '60%',
+                height: '50%',
             },{
+              //opposite: true,
+              title: {text:"수익(일)"},
+              labels: {
+                enabled: false,
+              },
+              lineColor: 'lightgrey',
+              lineWidth: 2,
+              top: '51%',
+              height: '19%',
+              offset: 0,
+              margin: 300
+          },{
                 //opposite: true,
                 title: {text:"변동성(%)"},
                 labels: {
@@ -146,8 +158,8 @@ var chart = Highcharts.chart('profit-chart', {
                 },
                 lineColor: 'lightgrey',
                 lineWidth: 2,
-                top: '63%',
-                height: '22%',
+                top: '71%',
+                height: '14%',
                 offset: 0,
                 margin: 300
             }, {
@@ -160,8 +172,8 @@ var chart = Highcharts.chart('profit-chart', {
               },
               lineColor: 'lightgrey',
               lineWidth: 2,
-              top: '87%',
-              height: '13%',
+              top: '86%',
+              height: '14%',
               offset: 0,
             }],
             tooltip: {
@@ -181,6 +193,14 @@ var chart = Highcharts.chart('profit-chart', {
                 states: {
                   inactive: { opacity: 1  }
                 }
+              },
+              column: {
+                zones: [{
+                    value: 0, // Values up to 10 (not including) ...
+                    color: 'red' // ... have the color blue.
+                },{
+                    color: 'black' // Values from 10 (including) and up have the color red
+                }]
               }
             }
         });
@@ -225,6 +245,7 @@ var chart = Highcharts.chart('profit-chart', {
       mdd = 0
       commission =0;
       cum_profit = [];
+      day_profit = [];
       cum_commission = [];
       volatility = [];
       volume = [];
@@ -237,7 +258,8 @@ var chart = Highcharts.chart('profit-chart', {
         profit += item[1]-item[2];
 
         cum_profit.push([date, profit]);
-        volatility.push([date, Math.abs(profit/last_profit-1)]);
+        day_profit.push([date, item[1]-item[2]]);
+        volatility.push([date, Math.abs(profit/last_profit-1)*100]);
         volume.push([date, item[3]]);
 
         commission += item[2];
@@ -251,7 +273,7 @@ var chart = Highcharts.chart('profit-chart', {
       }
       $('#dd').text(dd.toFixed(2)+'%');
       $('#mdd').text(mdd.toFixed(2)+'%');
-
+      $('#comm_ratio').text((100*commission/(profit-data.principal_num)).toFixed(1)+'%');
       //기존차트 데이터 삭제
       while(chart.series.length > 0)
         chart.series[0].remove(true);
@@ -263,6 +285,15 @@ var chart = Highcharts.chart('profit-chart', {
         tooltip: {valueSuffix: ' 원'},
         type: 'line',
         lineColor:'blue',
+        zIndex: 5,
+        //marker: { enabled: false}
+       });
+       chart.addSeries({ 
+        name: "수익",
+        data: day_profit,
+        yAxis: 1,
+        tooltip: {valueSuffix: ' 원'},
+        type: 'column',
         zIndex: 5,
         //marker: { enabled: false}
        });
@@ -278,16 +309,16 @@ var chart = Highcharts.chart('profit-chart', {
       chart.addSeries({
         name: "변동성",
         data: volatility,
-        yAxis: 1,
-        tooltip: {valueSuffix: '%', valueDecimals: 2},
+        yAxis: 2,
+        tooltip: {valueSuffix: '%', valueDecimals: 1},
         type: 'line',
-        color: 'red',
+        color: 'purple',
         //marker: { enabled: false}
       });
       chart.addSeries({
         name: "거래량",
         data: volume,
-        yAxis: 2,
+        yAxis: 3,
         type: 'column',
         color: 'black',
         //marker: { enabled: false}

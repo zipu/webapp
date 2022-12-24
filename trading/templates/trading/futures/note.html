@@ -1,0 +1,123 @@
+{% extends "trading/futures/base.html"%}
+{% load humanize %}
+{% load static %}
+{% block content2 %}
+
+  
+  <div>
+    <input type="button" value="&#x2b;" onclick="ShowNewMemo();"> 
+    <form action="{% url 'futuresnote' page='1' %}" method="post" id="newmemo" style="display:none;">
+    </br>
+     {% csrf_token %}  
+      <table class="table table-sm table-bordered" style="font-size:small">
+      <tr>
+        <td style='width:15%'> 제목 </td>
+        <td> <input type="text" name="title" style="width:90%;"> </input></td>
+      </tr>
+      <tr>
+        <td> 태그 </td>
+        <td> <input type="text" name="tags" style="width:90%;"></input> </td>
+      </tr>
+      <tr>
+        <td> 내용 </td>
+        <td> <textarea name="memo" rows="20" style='width:90%'></textarea> </td>
+      </tr>
+      <tr>
+        <td colspan=2> <input type="submit" value="생성">  </td>
+      </tr>
+      </table>
+    </form>
+  </div>
+</br>
+ 
+
+  <table class="table table-sm table-bordered" style="font-size:small">
+      <tr class="table table-secondary">
+        <td scope="col" width='5%;'>#</td>
+        <td scope="col" width='10%'>날짜</td>
+        <td scope="col" width='45%'>제목</td>
+        <td scope="col" width='40%'>태그</td>
+      </tr>
+      {% for note in notes %}
+      <tr class='note' onclick="ShowMemo({{note.id}})">
+          <td>{{note.id}} </td>
+          <td>{{note.date | date:"Y-m-d"}} </td>
+          <td>{{note.title}} </td>
+          <td>
+            {% for tag in note.tags.all %}
+            <span style='background-color:#FBEEE6;;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
+            {% endfor %}
+          </td>
+      </tr>
+      <tr id='{{ note.id }}' style='display:none;'>
+          <td colspan=4 class="memo" style="text-align:left;padding-left:5%;padding-top:10px;"> {{note.memo |linebreaks}} </td>
+      </tr>
+      {% endfor %}
+  </table>
+
+  {% if is_paginated %}
+  <nav aria-label="Page navigator">
+    <ul class="pagination pagination-sm justify-content-center">
+      <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{% url 'futurestrade' page=1 %}" aria-label="First">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}" aria-label="Previous">
+          <span aria-hidden="true">&lt;</span>
+        </a>
+      </li>
+      {% for page in page_obj.rng %}
+        {% if page_obj.page == page %}
+          <li class="page-item active">
+            <a class="page-link" href="">{{page}}</a>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="{% url 'futurestrade' page=page %}">{{page}}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+        <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}" aria-label="Previous">
+          <span aria-hidden="true">&gt;</span>
+        </a>
+      </li>
+      <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+        <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+
+  
+{% endblock content2 %}
+
+{% block script %}
+
+<link rel="stylesheet" href="{% static 'css/trading.css' %}">
+<script>
+// 매매내역 디테일 드롭다운 보이기
+var ShowMemo = function(id){
+  if($('#'+id).css('display') == 'none'){
+     $('#'+id).css('display', 'table-row');
+  } else {
+    $('#'+id).css('display', 'none'); 
+  }
+};
+
+var ShowNewMemo = function(){
+  if($('#newmemo').css('display') == 'none'){
+    $('#newmemo').css('display', 'block');
+ } else {
+   $('#newmemo').css('display', 'none'); 
+ }
+
+};
+
+
+</script>
+{% endblock script%}
