@@ -544,7 +544,7 @@ class FuturesNote(models.Model):
         Tags,
         related_name='tags',
         verbose_name='태그',
-        blank=True, null=True
+        blank=True
     )
     memo = models.TextField("메모")
 

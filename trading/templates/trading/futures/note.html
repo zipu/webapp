@@ -49,9 +49,15 @@
             {% endfor %}
           </td>
       </tr>
-      <tr id='{{ note.id }}' style='display:none;'>
+      <tr class='{{ note.id }}' style='display:none;'>
           <td colspan=4 class="memo" style="text-align:left;padding-left:5%;padding-top:10px;"> {{note.memo |linebreaks}} </td>
       </tr>
+      <form action="{% url 'futuresnote' page=1 %}" method='get'>
+        <input type='hidden' value='{{note.id}}' name='id'></input>
+      <tr class='{{ note.id }}' style='display:none;'>
+        <td colspan=4> <input type='submit' value='삭제'></input> </td>
+      </tr>
+      </form>
       {% endfor %}
   </table>
 
@@ -102,10 +108,10 @@
 <script>
 // 매매내역 디테일 드롭다운 보이기
 var ShowMemo = function(id){
-  if($('#'+id).css('display') == 'none'){
-     $('#'+id).css('display', 'table-row');
+  if($('.'+id).css('display') == 'none'){
+     $('.'+id).css('display', 'table-row');
   } else {
-    $('#'+id).css('display', 'none'); 
+    $('.'+id).css('display', 'none'); 
   }
 };
 

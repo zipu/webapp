@@ -378,6 +378,11 @@ class FuturesNoteView(TemplateView):
     template_name = "trading/futures/note.html"
 
     def get(self, request, *args, **kwargs):
+        # 노트 삭제
+        if request.GET.get('id'):
+            note = FuturesNote.objects.get(id=request.GET.get('id'))
+            note.delete()
+
         context = self.get_context_data()
         context['active'] = 'note'
         
@@ -406,22 +411,19 @@ class FuturesNoteView(TemplateView):
         return render(request, FuturesNoteView.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
-        tags = [x for x in request.POST.get('tags').split(';') if x]
-        Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
-
         note = FuturesNote(
             title = request.POST.get('title'),
             memo = request.POST.get('memo').strip(),
         )
        
-
+        note.save()
         if request.POST.get('tags'):
             tags = [x for x in request.POST.get('tags').split(';') if x]
+            print(tags)
             Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
-            note.tags.add(Tags.objects.filter(name__in=tags))
+            note.tags.add(*Tags.objects.filter(name__in=tags))
 
-        note.save()
+        
 
         return redirect('futuresnote', page=1)
 
