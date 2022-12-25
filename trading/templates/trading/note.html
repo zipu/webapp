@@ -1,12 +1,12 @@
-{% extends "trading/futures/base.html"%}
+{% extends "trading/base_trading.html"%}
 {% load humanize %}
 {% load static %}
 {% block content2 %}
 
-  
-  <div>
+</br>
+<div>
     <input type="button" value="&#x2b;" onclick="ShowNewMemo();"> 
-    <form action="{% url 'futuresnote' page='1' %}" method="post" id="newmemo" style="display:none;">
+    <form action="{% url 'note' page='1' %}" method="post" id="newmemo" style="display:none;" enctype="multipart/form-data">
     </br>
      {% csrf_token %}  
       <table class="table table-sm table-bordered" style="font-size:small">
@@ -20,14 +20,22 @@
       </tr>
       <tr>
         <td> 내용 </td>
-        <td> <textarea name="memo" rows="20" style='width:90%'></textarea> </td>
+        <td style="text-align:left !important;"> <div id="editor" class="pell"></div> </td>
+        <!-- <td> <textarea name="memo" rows="20" style='width:90%'></textarea> </td> -->
+      </tr>
+      <tr>
+        <td> 첨부파일 </td>
+        <td style="float:left;"> 
+          <input type="file" id="file" name="file" multiple>
+        </td>
       </tr>
       <tr>
         <td colspan=2> <input type="submit" value="생성">  </td>
       </tr>
+      
       </table>
     </form>
-  </div>
+</div>
 </br>
  
 
@@ -50,9 +58,17 @@
           </td>
       </tr>
       <tr class='{{ note.id }}' style='display:none;'>
-          <td colspan=4 class="memo" style="text-align:left;padding-left:5%;padding-top:10px;"> {{note.memo |linebreaks}} </td>
+          <td colspan=4 class="memo" style="text-align:left !important;padding-left:5%;padding-top:10px;"> {{note.memo |safe}} </td>
       </tr>
-      <form action="{% url 'futuresnote' page=1 %}" method='get'>
+      <tr class='{{note.id }}' style='display:none;'>
+        <td colspan=2> 첨부파일 </td> 
+        <td colspan=2> 
+          {% for file in note.files.all %} 
+            <span><a href="{{MEDIA_URL}}{{file.file}}" download> {{file.name}}</a></span>
+          {% endfor %}
+        </td>
+      </tr>
+      <form action="{% url 'note' page=1 %}" method='get'>
         <input type='hidden' value='{{note.id}}' name='id'></input>
       <tr class='{{ note.id }}' style='display:none;'>
         <td colspan=4> <input type='submit' value='삭제'></input> </td>
@@ -105,6 +121,37 @@
 {% block script %}
 
 <link rel="stylesheet" href="{% static 'css/trading.css' %}">
+
+<!-- 텍스트 에디터 -->
+<link rel="stylesheet" href="{% static 'css/pell.min.css' %}">
+<script src="{% static 'js/pell.min.js' %}"></script>
+<script>
+pell.init({
+    element: document.getElementById('editor'),
+    actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
+    onChange: html => {
+    }
+});
+
+$( "#newmemo" ).submit(function( event ) {
+  var input = $("<input>")
+               .attr("type", "hidden")
+               .attr("name", "memo").val($('.pell-content').html());
+  $('#newmemo').append(input);
+});
+
+
+// 에디터 숨기기
+var ShowEditor = function(){
+  if($('#editor').css('display') == 'none'){
+    $('#editor').css('display', 'block');
+ } else {
+   $('#editor').css('display', 'none'); 
+ }
+};
+</script>
+<!-- 텍스트 에디터 끝-->
+
 <script>
 // 매매내역 디테일 드롭다운 보이기
 var ShowMemo = function(id){
@@ -123,6 +170,8 @@ var ShowNewMemo = function(){
  }
 
 };
+
+
 
 
 </script>

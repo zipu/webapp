@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset
 from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy\
-                          ,FuturesTrade, Transaction, Tags, Currency, FuturesNote
+                          ,FuturesTrade, Transaction, Tags, Currency, Note, NoteFile
 from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell
 
 from datetime import datetime, time, timedelta
@@ -374,19 +374,19 @@ class TransactionView(TemplateView):
         #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
 
-class FuturesNoteView(TemplateView):
-    template_name = "trading/futures/note.html"
+class NoteView(TemplateView):
+    template_name = "trading/note.html"
 
     def get(self, request, *args, **kwargs):
         # 노트 삭제
         if request.GET.get('id'):
-            note = FuturesNote.objects.get(id=request.GET.get('id'))
+            note = Note.objects.get(id=request.GET.get('id'))
             note.delete()
 
         context = self.get_context_data()
         context['active'] = 'note'
         
-        notes = FuturesNote.objects.order_by('-date')
+        notes = Note.objects.order_by('-date')
         paginate_by = 20 # 페이지당 30개
         cnt = notes.count()
         num_pages = int(cnt/paginate_by)+1
@@ -408,24 +408,30 @@ class FuturesNoteView(TemplateView):
             'rng': rng
         }
 
-        return render(request, FuturesNoteView.template_name, context=context)
+        return render(request, NoteView.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
-        note = FuturesNote(
+        note = Note(
             title = request.POST.get('title'),
             memo = request.POST.get('memo').strip(),
         )
-       
+        
         note.save()
+
         if request.POST.get('tags'):
             tags = [x for x in request.POST.get('tags').split(';') if x]
-            print(tags)
             Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
             note.tags.add(*Tags.objects.filter(name__in=tags))
-
         
+        if request.FILES.get('file'):
+            for file in request.FILES.getlist('file'):
+                NoteFile(
+                    file = file,
+                    note = note,
+                    name = str(file)
+                ).save()
 
-        return redirect('futuresnote', page=1)
+        return redirect('note', page=1)
 
 
 

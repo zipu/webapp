@@ -31,6 +31,9 @@
       <li class="nav-item {% if activate == 'stock' %}active {% endif %}">
         <a class="nav-link" href="{% url 'stock' %}" style="color:grey;">Stock/ETF</a>
       </li>
+      <li class="nav-item {% if activate == 'note' %}active {% endif %}">
+        <a class="nav-link" href="{% url 'note' page=1 %}" style="color:grey;">Note</a>
+      </li>
        </ul>
        <div style="float:right;">
         <a class="btn btn-outline-success" href="/admin" target="_blank">Admin</a>

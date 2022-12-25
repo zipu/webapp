@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Avg, Sum, Max, StdDev, F, ExpressionWrapper
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.conf import settings
 
 # Create your models here.
 from decimal import Decimal as D
@@ -537,7 +538,7 @@ class FuturesTrade(models.Model):
     def __str__(self):
         return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"  
 
-class FuturesNote(models.Model):
+class Note(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=100)
     tags = models.ManyToManyField(
@@ -550,6 +551,25 @@ class FuturesNote(models.Model):
 
     def __str__(self):
         return f"({self.date}) {self.title}"
+
+class NoteImage(models.Model):
+    image = models.ImageField(upload_to='trading/images', blank=True, null=True)
+
+    def __str__(self):
+        return f"{settings.MEDIA_URL}{self.image.name}"
+
+class NoteFile(models.Model):
+    file = models.FileField(upload_to='trading/files')
+    name = models.CharField(max_length=100)
+    note = models.ForeignKey(
+        Note,
+        on_delete=models.CASCADE,
+        related_name='files',
+        verbose_name='파일'
+    )
+
+    def __str__(self):
+        return f"({self.name}){settings.MEDIA_URL}{self.file.name}"
 
 
 

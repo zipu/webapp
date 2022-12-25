@@ -16,6 +16,19 @@ from django.core.exceptions import ImproperlyConfigured
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+def get_secret(setting):
+    """Get secret setting or fail with ImproperlyConfigured"""
+    
+    with open(os.path.join(BASE_DIR, 'secrets.json')) as secrets_file:
+        secrets = json.load(secrets_file)
+    
+    try:
+        return secrets[setting]
+    except KeyError:
+        raise ImproperlyConfigured("Set the {} setting".format(setting))
+
+DEBUG = get_secret("DEBUG")
+# 개발모드에서는 로그를 콘솔에 보여주고 서버에서는 파일에 기록함
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -27,6 +40,10 @@ LOGGING = {
             'backupCount': 10, # keep at most 10 log files
             'maxBytes': 5242880, # 5*1024*1024 bytes (5MB)
         },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
     },
     'loggers': {
         'django': {
@@ -36,18 +53,13 @@ LOGGING = {
         },
     }
 }
+if DEBUG:
+    # make all loggers use the console.
+    for logger in LOGGING['loggers']:
+        LOGGING['loggers'][logger]['handlers'] = ['console']
 
 
-def get_secret(setting):
-    """Get secret setting or fail with ImproperlyConfigured"""
-    
-    with open(os.path.join(BASE_DIR, 'secrets.json')) as secrets_file:
-        secrets = json.load(secrets_file)
-    
-    try:
-        return secrets[setting]
-    except KeyError:
-        raise ImproperlyConfigured("Set the {} setting".format(setting))
+
 
 
 
@@ -65,7 +77,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
 
-DEBUG = get_secret("DEBUG")
+
 
 if DEBUG == False:
     #SECURE_SSL_REDIRECT = True
