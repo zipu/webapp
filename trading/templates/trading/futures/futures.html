@@ -4,7 +4,7 @@
 
 <div class="row" id="system">
   <div style="width:100%">
-    <div id="profit-chart" style="margin: auto;"></div>
+    <div id="profit-chart" style="display:flex;justify-content:center"></div>
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
     <div>
@@ -112,7 +112,7 @@ Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
 });
 var chart = Highcharts.chart('profit-chart', {
-            chart: { height: '80%' },// 16:9 ratio}
+            chart: { height: '600', width:'900' },// 16:9 ratio}
             legend: { enabled: false},
             title: { text: "Profit Curve" },
             xAxis: { 
@@ -326,69 +326,5 @@ var chart = Highcharts.chart('profit-chart', {
     }
   });
 })('all');
-/*
-$.get( "", function( data ) {
-     value= [];
-     r_value=[]; //리스크 제거 자산가치
-     volatility=[] //평균변동성
-     volatility_day=[] //일변동성
-     principal = [] //원금
-     for (item of data){
-       date = new Date(item[0].slice(0,10)).getTime();
-       value.push([date, parseInt(item[1])-item[5]]);
-       r_value.push([date,parseInt(item[2])-item[5]]);
-       volatility_day.push([date, parseInt(item[3])]);
-       volatility.push([date, parseInt(item[4])]);
-       principal.push([date, parseInt(item[5])]);
-     }
-
-     chart.addSeries({ 
-       name: "수익",
-       data: value,
-       yAxis: 0,
-       tooltip: {valueSuffix: ' 원'},
-       type: 'area',
-       lineColor:'#ADD8E6',
-       color: '#B0E0E6',
-       zIndex: 5,
-       //marker: { enabled: false}
-      });
-     chart.addSeries({
-       name: "위험제거수익",
-       data: r_value,
-       yAxis: 0,
-       tooltip: {valueSuffix: ' 원'},
-       type:'area',
-       color:	'#EEE8AA', //#FFFFE0',
-       //lineColor: '#ADD8E6',
-       //marker: { enabled: false}
-     });
-     chart.addSeries({ 
-       name: "원금",
-       data: principal,
-       yAxis: 1,
-       //enableMouseTracking: false,
-       //dashStyle: 'dash',
-       type: 'line',
-       lineColor:'#808080',
-      });
-     chart.addSeries({
-       name: "일변동성",
-       data: volatility_day,
-       yAxis:2,
-       type: 'column',
-       color: 'black',
-       //marker: { enabled: false}
-     });
-     chart.addSeries({
-       name: "평균 변동성",
-       data: volatility,
-       yAxis:2,
-       type: 'line',
-       color:'tomato',
-       //marker: { enabled: false}
-     });
-});
-*/
 </script>
 {% endblock script %}
