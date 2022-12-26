@@ -318,31 +318,6 @@ class FuturesStrategy(models.Model):
     def __str__(self):
         return f"{self.name}/{self.code}"
 
-class FuturesStat(models.Model):
-    """
-    해선 계좌의 통계 기록
-    """
-    date = models.DateTimeField("날짜")
-    
-    principal = models.DecimalField("총시드(원)", max_digits=12, decimal_places=0)
-    principal_krw = models.DecimalField("시드(원)", max_digits=12, decimal_places=0)
-    principal_usd = models.DecimalField("시드(달러)", max_digits=12, decimal_places=1)
-
-    # 총가치: 시드 + 평가 + 실현 손익을 합산하여 원화로 계산
-    value = models.DecimalField("총자산(원)", max_digits=12, decimal_places=0)
-    value_usd = models.DecimalField("달러자산", max_digits=12, decimal_places=0)
-    commission = models.DecimalField("누적수수료", max_digits=9, decimal_places=0)
-
-    # 손익
-    realized_profit = models.DecimalField("누적실현손익", max_digits=12, decimal_places=0, default=0)
-    paper_profit =  models.DecimalField("평가손익", max_digits=12, decimal_places=0, default=0)
-    averge_realized_profit = models.DecimalField("평균실현손익", max_digits=12, decimal_places=0, blank=True)
-    average_ptr = models.FloatField("평균손익비")
-    winning_rate = models.FloatField("승률")
-
-
-    cagr = models.FloatField("승률")
-
 class Tags(models.Model):
     name = models.CharField("태그", max_length=100, unique=True)
 
@@ -451,7 +426,7 @@ class FuturesTrade(models.Model):
     
     realized_profit = models.DecimalField("실현손익", max_digits=12, decimal_places=2, default=0)
 
-    commission = models.DecimalField("수수료", max_digits=6, decimal_places=0, default=0)
+    commission = models.DecimalField("수수료", max_digits=8, decimal_places=2, default=0)
 
     timeframe = models.CharField("타임프레임", max_length=20, blank=True, null=True)
     is_open = models.BooleanField("상태", default=True)
