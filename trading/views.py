@@ -258,7 +258,8 @@ class FuturesTradeView(TemplateView):
             data.append(
                 (trade, entries, exits, cons)
             )
-        context['strategies'] = FuturesStrategy.objects.all()
+        context['entry_strategies'] = FuturesStrategy.objects.filter(type='entry')
+        context['exit_strategies'] = FuturesStrategy.objects.filter(type='exit')
 
         
         # 페이지 오브젝트
@@ -279,18 +280,18 @@ class FuturesTradeView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         id = request.POST.get('id')
-        entry_tags = [x for x in request.POST.get('entrytags').split(';') if x]
-        exit_tags = [x for x in request.POST.get('exittags').split(';') if x]
+        entry_tags = [x.strip(' ') for x in request.POST.get('entrytags').split(';') if x]
+        exit_tags = [x.strip(' ') for x in request.POST.get('exittags').split(';') if x]
         # 태그 등록
         tags = set(entry_tags+exit_tags)
         Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
-
-        
         trade = FuturesTrade.objects.get(id=id)
         if request.POST.get('mental'):
             trade.mental = request.POST.get('mental')
-        if request.POST.get('strategy'):
-            trade.strategy = FuturesStrategy.objects.get(id=request.POST.get('strategy'))
+        if request.POST.get('entry_strategy'):
+            trade.entry_strategy = FuturesStrategy.objects.get(id=request.POST.get('entry_strategy'))
+        if request.POST.get('exit_strategy'):
+            trade.exit_strategy = FuturesStrategy.objects.get(id=request.POST.get('exit_strategy'))
         if request.POST.get('stopprice'):
             trade.stop_price = D(request.POST.get('stopprice'))
         trade.entry_tags.add(*Tags.objects.filter(name__in=entry_tags))
@@ -419,7 +420,7 @@ class NoteView(TemplateView):
         note.save()
 
         if request.POST.get('tags'):
-            tags = [x for x in request.POST.get('tags').split(';') if x]
+            tags = [x.strip(' ') for x in request.POST.get('tags').split(';') if x]
             Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
             note.tags.add(*Tags.objects.filter(name__in=tags))
         

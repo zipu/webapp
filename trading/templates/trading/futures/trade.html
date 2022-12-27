@@ -131,11 +131,11 @@
             </tr>
             <tr>
               <td style='background-color: lightyellow'> 멘탈 </td>
-              <td>  {{trade.mental}} </td>
-              <td style='background-color: lightyellow'> 전략 </td>
-              <td > {{ trade.strategy.name }} </td>
-              <td style='background-color: lightyellow;'> 리스크 </td>
-              <td> {{trade.risk.normalize}} </td>
+              <td>  {{trade.mental |default_if_none:""}} </td>
+              <td style='background-color: lightyellow'> 진입전략 </td>
+              <td > {{ trade.entry_strategy.name }} </td>
+              <td style='background-color: lightyellow;'> 청산전략 </td>
+              <td> {{trade.exit_strategy.name}} </td>
               <td style='background-color: lightyellow;'> 수수료 </td>
               <td> {{ trade.commission.normalize }} </td>
             </tr>
@@ -200,17 +200,24 @@
                   <option value='Bad' {% if trade.mental == 'Bad' %} selected {% endif %}> Bad </option>
                   </select>
               </td>
-              <td style='width:10%;background-color: lightyellow'> 전략 </td>
+              <td style='width:10%;background-color: lightyellow'> 진입전략 </td>
               <td style='width:10%'>  
-                  <select placeholder="전략" id="strategy" name="strategy">
+                  <select placeholder="진입전략" name="entry_strategy">
                   <option value=''> </option>
-                  {% for strategy in strategies%}
-                  <option value={{strategy.id}} {% if strategy.id == trade.strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
+                  {% for strategy in entry_strategies%}
+                  <option value={{strategy.id}} {% if strategy.id == trade.entry_strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
                   {% endfor %}
                   </select>
               </td>
-              <td style='background-color: lightyellow;'> 리스크 </td>
-              <td> {{trade.risk.normalize}} </td>
+              <td style='background-color: lightyellow;'> 청산전략 </td>
+              <td>
+                <select placeholder="청산전략" name="exit_strategy">
+                  <option value=''> </option>
+                  {% for strategy in exit_strategies%}
+                  <option value={{strategy.id}} {% if strategy.id == trade.exit_strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
+                  {% endfor %}
+                  </select>
+              </td>
               <td style='background-color: lightyellow;'> 수수료 </td>
               <td> {{ trade.commission.normalize }} </td>
             </tr>

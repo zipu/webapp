@@ -311,8 +311,19 @@ class FuturesAccount(models.Model):
         return f"({self.account_name}){self.principal:,} 원 - {self.date}"
 
 class FuturesStrategy(models.Model):
+    Target = [
+        ("Volatility", "변동성흡수"),
+        ("Direction", "방향성")
+    ]
+    Type = [
+        ("entry", "진입"),
+        ("exit", "청산")
+    ]
+
     name = models.CharField("전략명", max_length=50)
     code = models.CharField("전략코드", max_length=10)
+    target = models.CharField("수익대상", max_length=50, choices=Target, blank=True, null=True)
+    type = models.CharField("진입/청산", max_length=10, choices=Type, default='Entry')
     description = models.TextField("설명", null=True, blank=True)
 
     def __str__(self):
@@ -374,12 +385,20 @@ class FuturesTrade(models.Model):
                     verbose_name="상품",
                     on_delete=models.PROTECT)
 
-    strategy = models.ForeignKey(
+    entry_strategy = models.ForeignKey(
                     FuturesStrategy,
                     on_delete=models.PROTECT,
-                    related_name='trades',
-                    verbose_name="전략",
+                    related_name='entry_trades',
+                    verbose_name="진입전략",
                     null=True, blank=True)
+    
+    exit_strategy = models.ForeignKey(
+                    FuturesStrategy,
+                    on_delete=models.PROTECT,
+                    related_name='exit_trades',
+                    verbose_name="청산전략",
+                    null=True, blank=True)
+    
     
     entry_tags = models.ManyToManyField(
         Tags,
