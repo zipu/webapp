@@ -238,7 +238,7 @@ class FuturesTradeView(TemplateView):
         context = self.get_context_data()
         
         context['active'] = 'trade'
-        trades = FuturesTrade.objects.order_by('-is_open', '-pub_date')
+        trades = FuturesTrade.objects.order_by('-is_open', '-end_date')
         paginate_by = 20 # 페이지당 30개
         cnt = trades.count()
         num_pages = int(cnt/paginate_by)+1
