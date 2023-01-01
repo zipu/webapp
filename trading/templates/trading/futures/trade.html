@@ -52,6 +52,7 @@
         <td scope="col" colspan=2>청산</td>
         <td scope="col" rowspan=2>잔여</td>
         <td scope="col" rowspan=2>실현</td>
+        <td scope="col" rowspan=2>틱</td>
         <td scope="col" rowspan=2>통화</td>
 
       </tr>
@@ -65,7 +66,7 @@
       {% for trade, entries, exits, cons in data %}
       <tr class='trade' onclick="ShowDetail({{trade.id}})"
        {% if trade.is_open %} bgcolor='azure' 
-       {% elif not trade.strategy %} bgcolor='#FBEEE6'
+       {% elif not trade.entry_strategy %} bgcolor='#FBEEE6'
        {% endif %}>
           <td>{{trade.id}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
@@ -112,7 +113,9 @@
           <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
             {{trade.realized_profit.normalize}}
           </td>
-          
+          <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
+            {{trade.realized_profit_ticks |floatformat:1}}
+          </td>
           <td>{{trade.instrument.currency.symbol}} </td>
       </tr>
       <!-- 매매 디테일 뷰 -->
