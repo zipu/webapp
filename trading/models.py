@@ -323,7 +323,7 @@ class FuturesStrategy(models.Model):
     name = models.CharField("전략명", max_length=50)
     code = models.CharField("전략코드", max_length=10)
     target = models.CharField("수익대상", max_length=50, choices=Target, blank=True, null=True)
-    type = models.CharField("진입/청산", max_length=10, choices=Type, default='Entry')
+    type = models.CharField("진입/청산", max_length=10, choices=Type, default='entry')
     description = models.TextField("설명", null=True, blank=True)
 
     def __str__(self):
@@ -444,6 +444,7 @@ class FuturesTrade(models.Model):
     paper_profit = models.DecimalField("평가손익", max_digits=12, decimal_places=2, default=0)
     
     realized_profit = models.DecimalField("실현손익", max_digits=12, decimal_places=2, default=0)
+    realized_profit_ticks = models.FloatField("실현손익(틱)", default=0)
 
     commission = models.DecimalField("수수료", max_digits=8, decimal_places=2, default=0)
 
@@ -500,7 +501,7 @@ class FuturesTrade(models.Model):
             self.realized_profit += self.instrument.calc_value(
                 match[0].price, match[1].price, 1, self.position
             )
-        self.realized_profit_krw = c.convert(self.realized_profit)
+        #self.realized_profit_krw = c.convert(self.realized_profit)
             
         #평가 손익 계산
         if self.current_price:
@@ -514,8 +515,9 @@ class FuturesTrade(models.Model):
             raise ValueError("청산 계약수가 진입 계약수를 초과")
         
         elif self.num_entry_cons == self.num_exit_cons:
+            self.realized_profit_ticks = (self.realized_profit/self.num_exit_cons)/self.instrument.tickprice
+
             self.end_date = exits.reverse()[0].date
-            
             duration = (self.end_date - self.pub_date).total_seconds()
             if duration <= 3600: 
                 self.timeframe = 'scalping'

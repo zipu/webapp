@@ -106,7 +106,8 @@ class FuturesView(TemplateView):
         #기간 설정
         context = super().get_context_data(**kwargs)
         #context['accounts'] = FuturesAccount.objects.all()
-        context['strategies'] = FuturesStrategy.objects.all()
+        context['entry_strategies'] = FuturesStrategy.objects.filter(type='entry')
+        context['exit_strategies'] = FuturesStrategy.objects.filter(type='exit')
         #context['account'] = FuturesAccount.objects.get(symbol='FM02')
         context['activate'] = 'futures'
         return context
@@ -144,8 +145,10 @@ class FuturesStatView(TemplateView):
         
         if query.get('mental'):
             trades = trades.filter(mental=query.get('mental'))
-        if query.get('strategy'):
-            trades = trades.filter(strategy__id=query.get('strategy'))
+        if query.get('entry_strategy'):
+            trades = trades.filter(entry_strategy__id=query.get('entry_strategy'))
+        if query.get('exit_strategy'):
+            trades = trades.filter(exit_strategy__id=query.get('exit_strategy'))
         if query.get('tags'):
             tags = [x for x in query.get('tags').split(';') if x]
             trades = trades.filter(entry_tags__name__in=tags)\
@@ -161,22 +164,39 @@ class FuturesStatView(TemplateView):
         trades_agg = trades.aggregate(
             Sum('profit_krw'), Sum('commission_krw'),
             Avg('profit_krw'), StdDev('profit_krw'),
+            Sum('realized_profit_ticks'),
+            Avg('realized_profit_ticks'), StdDev('realized_profit_ticks'),
         )
         
         wins_agg = wins.aggregate(
-            Avg('profit_krw'), Sum('profit_krw')
+            Avg('profit_krw'), Sum('profit_krw'), 
+            Avg('realized_profit_ticks'), Sum('realized_profit_ticks')
         )
         loses_agg = loses.aggregate(
-            Avg('profit_krw'), Sum('profit_krw')
+            Avg('profit_krw'), Sum('profit_krw'),
+            Avg('realized_profit_ticks'), Sum('realized_profit_ticks')
         )
 
         principal = float(account.principal + profit_diff)
-        revenue = trades_agg['profit_krw__sum'] or 0
-        profit = wins_agg['profit_krw__sum'] or 0
-        loss = loses_agg['profit_krw__sum'] or 0
         commission = trades_agg['commission_krw__sum'] or 0
+        revenue = trades_agg['profit_krw__sum'] or 0
+        revenue_ticks = trades_agg['realized_profit_ticks__sum']
+        value = principal + revenue - commission
+        profit = revenue - commission
+        win = wins_agg['profit_krw__sum'] or 0
+        avg_win = wins_agg['profit_krw__avg'] or 0
+        win_ticks = wins_agg['realized_profit_ticks__sum'] or 0
+        avg_win_ticks = wins_agg['realized_profit_ticks__avg'] or 0
+        loss = loses_agg['profit_krw__sum'] or 0
+        avg_loss = loses_agg['profit_krw__avg'] or 0
+        loss_ticks = loses_agg['realized_profit_ticks__sum'] or 0
+        avg_loss_ticks = loses_agg['realized_profit_ticks__avg'] or 0
+        
         avg_profit = trades_agg['profit_krw__avg'] or 0
+        avg_profit_ticks = trades_agg['realized_profit_ticks__avg'] or 0
         std_profit = trades_agg['profit_krw__stddev'] or 0
+        std_profit_ticks = trades_agg['realized_profit_ticks__stddev'] or 0
+
         roe = revenue/principal if revenue and principal else 0
         if loses_agg['profit_krw__avg'] and wins_agg['profit_krw__avg']:
             pnl = -1*wins_agg['profit_krw__avg']/loses_agg['profit_krw__avg']
@@ -185,39 +205,60 @@ class FuturesStatView(TemplateView):
         win_rate = wins.count()/cnt if cnt else 0
         if trades.count():
             duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
-            cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
+            if duration_in_year > 0:
+                cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
+            else: 
+                cagr = 0
             data = {
-                'principal':f'{principal:,.0f}',
-                'revenue': f'{revenue:,.0f}',
-                'profit':f'{profit:,.0f}',
-                'loss':f'{loss:,.0f}',
-                'commission':f'{commission:,.0f}',
-                'avg_profit':f'{avg_profit:,.0f}',
-                'std_profit':f'{std_profit:,.0f}',
-                'pnl':f'{pnl:.2f}',
-                'win_rate':f'{win_rate*100:.1f}',
-                'roe':f'{roe*100:.1f}',
+                'value': value,
+                'principal':principal,
+                'revenue': revenue,
+                'revenue_ticks': revenue_ticks,
+                'profit':profit,
+                'win':win,
+                'win_ticks':win_ticks,
+                'avg_win':avg_win,
+                'avg_win_ticks':avg_win_ticks,
+                'loss':loss,
+                'avg_loss':avg_loss,
+                'loss_ticks':loss_ticks,
+                'avg_loss_ticks':avg_loss_ticks,
+                'commission':commission,
+                'avg_profit':avg_profit,
+                'avg_profit_ticks': avg_profit_ticks,
+                'std_profit':std_profit,
+                'std_profit_ticks':std_profit_ticks,
+                'pnl':pnl,
+                'win_rate':win_rate*100,
+                'roe':roe*100,
                 'num_trades': cnt,
-                #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
-                'principal_num': principal,
-                'cagr': f'{cagr:,.2f}'
+                'cagr': cagr
             }
         else:
             data = {
-                'principal':f'{principal:,.0f}',
-                'revenue': '0',
-                'profit':'0',
-                'loss':'0',
-                'commission':'0',
-                'avg_profit':'0',
-                'std_profit':'0',
-                'pnl':'0',
-                'win_rate':'',
-                'roe':'',
+                'value': value,
+                'principal':principal,
+                'revenue': 0,
+                'revenue_ticks': 0,
+                'profit':0,
+                'win':0,
+                'win_ticks':0,
+                'avg_win':0,
+                'avg_win_ticks':0,
+                'loss':0,
+                'avg_loss':0,
+                'loss_ticks':0,
+                'avg_loss_ticks':0,
+                'commission':0,
+                'avg_profit':0,
+                'avg_profit_ticks':0,
+                'std_profit':0,
+                'std_profit_ticks':0,
+                'pnl':0,
+                'win_rate':0,
+                'roe':0,
                 'num_trades': 0,
-                #'chart_data': list(trades.values_list('end_date', 'profit_krw','commission_krw')),
-                'principal_num': principal,
-                'cagr': '0'
+                'cagr': 0
             }
 
         #차트 데이터
@@ -238,7 +279,7 @@ class FuturesTradeView(TemplateView):
         context = self.get_context_data()
         
         context['active'] = 'trade'
-        trades = FuturesTrade.objects.order_by('-is_open', '-pub_date')
+        trades = FuturesTrade.objects.order_by('-is_open', '-end_date')
         paginate_by = 20 # 페이지당 30개
         cnt = trades.count()
         num_pages = int(cnt/paginate_by)+1
