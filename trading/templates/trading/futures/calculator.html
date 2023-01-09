@@ -31,13 +31,17 @@
     <td> 베팅비율 </td>
     <td> <input type='number' step='any' class='parameter' id='betratio'></input> </td> 
   </tr>
+  <tr>
+    <td> 슬리피지+수수료(틱) </td>
+    <td> <input type='number' class='parameter' id='slippage'></input> </td> 
+  </tr>
   </table>
 
   <table class='table table-bordered'>
     <tr>
       <td style='width:10%'> 손익비 </td>
       <td style='width:10%' id='pnl'> </td>
-      <td style='width:10%'> 필요확률 </td>
+      <td style='width:10%'> 요구승률 </td>
       <td style='width:10%' id='prob_win'> </td>
       <td style='width:10%'> 계약수 </td>
       <td style='width:10%' id='num_cons'> </td>
@@ -87,24 +91,22 @@
       stopprice = $('#stopprice').val();
       exitprice = $('#exitprice').val();
       betratio = $('#betratio').val();
+      slippage = $('#slippage').val();
 
-      pnl = Math.abs((exitprice-entryprice)/(stopprice-entryprice));
-      $('#pnl').text(pnl);
+      win_ticks = Math.round(Math.abs((exitprice-entryprice)/instrument.tickunit));
+      $('#win_ticks').text(win_ticks);
+      loss_ticks = Math.round(Math.abs((stopprice-entryprice)/instrument.tickunit)+Number(slippage));
+      $('#loss_ticks').text(loss_ticks);
+
+      pnl = win_ticks/loss_ticks;
+      $('#pnl').text(pnl.toFixed(2));
       
       prob_win = (pnl*betratio+1)/(pnl+1)*100;
       $('#prob_win').text(prob_win.toFixed(2)+'%');
 
-      loss_ticks = Math.abs((stopprice-entryprice)/instrument.tickunit);
-      $('#loss_ticks').text(loss_ticks);
+      num_cons = principal*betratio/(loss_ticks*instrument.tickprice);
+      $('#num_cons').text(num_cons.toFixed(1));
 
-      win_ticks = Math.abs((exitprice-entryprice)/instrument.tickunit);
-      $('#win_ticks').text(win_ticks);
-      
-
-
-
-
-      
     }
   })
   
