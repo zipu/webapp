@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
-from django.views.generic import TemplateView, ListView, View
-from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView, ListView
+#from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.core.serializers import serialize
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
 from trading.models import Asset
@@ -415,6 +416,15 @@ class TransactionView(TemplateView):
         # 거래 기록 생성
         #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
+
+class CalculatorView(TemplateView):
+    template_name = "trading/futures/calculator.html"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        context['instruments'] = serialize("json", FuturesInstrument.objects.filter(is_micro=False))
+        return render(request, CalculatorView.template_name, context=context)
+
 
 class NoteView(TemplateView):
     template_name = "trading/note.html"

@@ -1,0 +1,114 @@
+{% extends "trading/futures/base.html"%}
+{% load humanize %}
+{% block content2 %}
+<div class="row">
+  <table class='table table-bordered'>
+  <tr>
+    <td style='width:20%; height:66px;'> 종목 </td>
+    <td> <select id='instrument'><option></option></select>
+    </br>
+         <span id='tickunit'> </span>
+         <span id='tickprice'> </span>
+    </td>
+  </tr>
+  <tr>
+    <td> 매매가능금액 </td>
+    <td> <input type='number' step='any' class='parameter' id='principal'></input> </td> 
+  </tr>
+  <tr>
+    <td> 진입가 </td>
+    <td> <input type='number' step='any' class='parameter' id='entryprice'></input> </td> 
+  </tr>
+  <tr>
+    <td> 손절가 </td>
+    <td> <input type='number' step='any' class='parameter' id='stopprice'></input> </td> 
+  </tr>
+  <tr>
+    <td> 청산가 </td>
+    <td> <input type='number' step='any' class='parameter' id='exitprice'></input> </td> 
+  </tr>
+  <tr>
+    <td> 베팅비율 </td>
+    <td> <input type='number' step='any' class='parameter' id='betratio'></input> </td> 
+  </tr>
+  </table>
+
+  <table class='table table-bordered'>
+    <tr>
+      <td style='width:10%'> 손익비 </td>
+      <td style='width:10%' id='pnl'> </td>
+      <td style='width:10%'> 필요확률 </td>
+      <td style='width:10%' id='prob_win'> </td>
+      <td style='width:10%'> 계약수 </td>
+      <td style='width:10%' id='num_cons'> </td>
+      <td style='width:10%'> 손실틱 </td>
+      <td style='width:10%' id='loss_ticks'> </td>
+      <td style='width:10%'> 수익틱 </td>
+      <td style='width:10%' id='win_ticks'> </td>
+    </tr>
+    </table>
+</div>
+
+
+<script>
+  const instruments_server = {{ instruments |safe}};
+  let instruments = {};
+  var instrument;
+  
+  for(ins of instruments_server){
+    ins.fields.tickprice = Number(ins.fields.tickprice);
+    ins.fields.tickunit = Number(ins.fields.tickunit);
+    instruments[ins.fields.symbol] = ins.fields;
+    
+  }
+
+  $.each(instruments, function (i, item) {
+    $('#instrument').append($('<option>', { 
+        value: item.symbol,
+        text : item.name 
+    }));
+  });
+
+  $('#instrument').on('change',function(){
+    instrument = instruments[$('option:selected').val()];
+    $('#tickunit').text('틱단위: '+ instrument.tickunit);
+    $('#tickprice').text('틱가치: '+ instrument.tickprice);
+  });
+
+  $('.parameter').on('change', function(){
+    let params = $(".parameter").filter(function () {
+                    return $.trim($(this).val()).length == 0
+                  }).length;
+
+    
+    if (params == 0){
+      principal = $('#principal').val();
+      entryprice = $('#entryprice').val();
+      stopprice = $('#stopprice').val();
+      exitprice = $('#exitprice').val();
+      betratio = $('#betratio').val();
+
+      pnl = Math.abs((exitprice-entryprice)/(stopprice-entryprice));
+      $('#pnl').text(pnl);
+      
+      prob_win = (pnl*betratio+1)/(pnl+1)*100;
+      $('#prob_win').text(prob_win.toFixed(2)+'%');
+
+      loss_ticks = Math.abs((stopprice-entryprice)/instrument.tickunit);
+      $('#loss_ticks').text(loss_ticks);
+
+      win_ticks = Math.abs((exitprice-entryprice)/instrument.tickunit);
+      $('#win_ticks').text(win_ticks);
+      
+
+
+
+
+      
+    }
+  })
+  
+
+</script>
+{% endblock content2 %}
+

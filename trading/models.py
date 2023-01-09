@@ -264,6 +264,7 @@ class FuturesInstrument(models.Model):
     decimal_places = models.SmallIntegerField("소수점 자리수") #소수점 자리수
     number_system = models.SmallIntegerField("진법", choices=NUMBER_SYSTEMS, default=10)
     current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6, null=True, blank=True)
+    is_micro = models.BooleanField("마이크로", default=False)
 
     def calc_value(self, entry_price, exit_price, num_cons, position):
         # 가격 차이를 돈 가치로 변환

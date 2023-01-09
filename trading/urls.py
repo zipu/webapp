@@ -1,8 +1,9 @@
 from django.urls import path, include
 from django.contrib import admin
 from django.views.generic import RedirectView
-from .views import FuturesView, TransactionView, FuturesTradeView, FuturesStatView, NoteView
+from .views import FuturesView, TransactionView, FuturesTradeView, FuturesStatView, CalculatorView
 from .views import StockView, StockHistoryView
+from .views import NoteView
 from .views import UpdateView
 
 urlpatterns = [
@@ -11,6 +12,7 @@ urlpatterns = [
     path('futures/statdata', FuturesStatView.as_view(), name='statdata'),
     path('futures/transaction/<int:page>', TransactionView.as_view(), name='transaction'),
     path('futures/trade/<int:page>', FuturesTradeView.as_view(), name='futurestrade'),
+    path('futures/calculator', CalculatorView.as_view(), name='calculator'),
     path('note/<int:page>', NoteView.as_view(), name='note'),
     path('stock/', StockView.as_view(), name='stock'),
     path('stock/history/', StockHistoryView.as_view(), name='stockhistory'),
