@@ -204,12 +204,19 @@ class FuturesStatView(TemplateView):
         else:
             pnl = 0
         win_rate = wins.count()/cnt if cnt else 0
+
+        optimal_f = ((pnl+1)*win_rate-1)/pnl if pnl else 0
+
         if trades.count():
             duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
             if duration_in_year > 0:
                 cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
             else: 
                 cagr = 0
+            
+            
+            
+            
             data = {
                 'value': value,
                 'principal':principal,
@@ -233,7 +240,8 @@ class FuturesStatView(TemplateView):
                 'win_rate':win_rate*100,
                 'roe':roe*100,
                 'num_trades': cnt,
-                'cagr': cagr
+                'cagr': cagr,
+                'optimal_f': optimal_f
             }
         else:
             data = {
@@ -259,7 +267,8 @@ class FuturesStatView(TemplateView):
                 'win_rate':0,
                 'roe':0,
                 'num_trades': 0,
-                'cagr': 0
+                'cagr': 0,
+                'optimal_f': 0
             }
 
         #차트 데이터

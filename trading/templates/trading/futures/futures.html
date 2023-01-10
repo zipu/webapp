@@ -95,14 +95,14 @@
           <th scope="col" style="width:20%">손익표준편차</th>
           <th scope="col" style="width:20%">승률</th>
           <th scope="col" style="width:20%">손익비</th>
-          <th scope="col" style="width:20%">수수료율</th>
+          <th scope="col" style="width:20%">Optimal F</th>
         </tr>
         <tr>
           <td id="avg_profit"></td>
           <td id="std_profit"></td>
           <td id="win_rate"></td>
           <td id="pnl"></td>
-          <td id="comm_ratio"></td>
+          <td id="optimal_f"></td>
         </tr>
       </table>
 
@@ -279,6 +279,7 @@ var chart = Highcharts.chart('profit-chart', {
       $('#win_rate').text(data.win_rate.toFixed(2)+'%');
       $('#pnl').text(data.pnl.toFixed(2)+' : 1');
       $('#cagr').text(data.cagr.toFixed(2));
+      $('#optimal_f').text(data.optimal_f.toFixed(2));
 
       $('#revenue_2').text(data.revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
       $('#win').text(data.win.toLocaleString('en-US', {maximumFractionDigits: 0}));
@@ -327,7 +328,7 @@ var chart = Highcharts.chart('profit-chart', {
       }
       $('#dd').text(dd.toFixed(2)+'%');
       $('#mdd').text(mdd.toFixed(2)+'%');
-      $('#comm_ratio').text((100*commission/(profit-data.principal)).toFixed(1)+'%');
+      //$('#comm_ratio').text((100*commission/(profit-data.principal)).toFixed(1)+'%');
       //기존차트 데이터 삭제
       while(chart.series.length > 0)
         chart.series[0].remove(true);
