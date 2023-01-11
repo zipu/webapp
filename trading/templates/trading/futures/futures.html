@@ -62,7 +62,7 @@
       
     </div>
       <table class="table table-bordered">
-        <tr class="table-secondary">
+        <tr class="table-success">
           <th scope="col" style="width:20%">총자산</th>
           <th scope="col" style="width:20%">원금</th>
           <th scope="col" style="width:20%">누적손익</th>
@@ -76,7 +76,7 @@
           <td id="commission"></td>
           <td id="profit"></td>
         </tr>
-        <tr class="table-secondary">
+        <tr class="table-success">
           <th scope="col" style="width:20%">수익률</th>
           <th scope="col" style="width:20%">자본인하율</th>
           <th scope="col" style="width:20%">MDD</th>
@@ -90,7 +90,7 @@
           <td id="cagr"></td>
           <td id="num_trades"></td>
         </tr>
-        <tr class="table-secondary">
+        <tr class="table-success">
           <th scope="col" style="width:20%">평균손익</th>
           <th scope="col" style="width:20%">손익표준편차</th>
           <th scope="col" style="width:20%">승률</th>
@@ -103,6 +103,22 @@
           <td id="win_rate"></td>
           <td id="pnl"></td>
           <td id="optimal_f"></td>
+        </tr>
+      </table>
+      <table class="table table-bordered">
+        <tr class="table-info">
+          <th scope="col" style="width:20%">거래일</th>
+          <th scope="col" style="width:20%">일평균 손익</th>
+          <th scope="col" style="width:20%">일간 승률</th>
+          <th scope="col" style="width:20%">일간 손익비</th>
+          <th scope="col" style="width:20%">Optimal F</th>
+        </tr>
+        <tr>
+          <td id="days"></td>
+          <td id="day_avg_revenue"></td>
+          <td id="day_win_rate"></td>
+          <td id="day_pnl"></td>
+          <td id="day_optimal_f"></td>
         </tr>
       </table>
 
@@ -292,6 +308,13 @@ var chart = Highcharts.chart('profit-chart', {
       $('#avg_win_ticks').text(data.avg_win_ticks.toFixed(1));
       $('#loss_ticks').text(data.loss_ticks.toFixed(1));
       $('#avg_loss_ticks').text(data.avg_loss_ticks.toFixed(1));
+
+      $('#days').text(data.days+'일');
+      $('#day_avg_revenue').text(data.day_avg_revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
+      $('#day_win_rate').text(data.day_win_rate.toFixed(2)*100+'%');
+      $('#day_pnl').text(data.day_pnl.toFixed(2)+' : 1');
+      $('#day_optimal_f').text(data.day_optimal_f.toFixed(2));
+
 
       //console.log(data);
       //차트 데이터 

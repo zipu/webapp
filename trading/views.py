@@ -279,7 +279,25 @@ class FuturesStatView(TemplateView):
                       volume=Count('id'))
         
         data['chart_data'] = list(trades_by_day.values_list('end_date__date','day_profit','day_commission', 'volume'))
-        #print(data)
+        
+        # 일간 데이터
+        cnt = trades_by_day.count()
+        revenue = trades_by_day.annotate(
+                        revenue=F('day_profit') - F('day_commission'),
+               )
+        wins = revenue.filter(revenue__gt=0)
+        win_revenue =  wins.aggregate(
+                            Avg('revenue')
+                        )['revenue__avg']
+        lose_revenue = revenue.filter(revenue__lte=0).aggregate(
+                            Avg('revenue')
+                        )['revenue__avg']
+        data['days'] = cnt
+        data['day_avg_revenue'] = revenue.aggregate(Avg('revenue'))['revenue__avg']
+        data['day_win_rate'] = wins.count()/cnt if cnt else 0
+        data['day_pnl'] = abs(win_revenue/lose_revenue) if lose_revenue else 0
+        data['day_optimal_f'] = ((1+data['day_pnl'])*data['day_win_rate']-1)/data['day_pnl'] if data['day_pnl'] else 0
+
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):
