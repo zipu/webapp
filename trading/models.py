@@ -625,7 +625,7 @@ class Transfer(models.Model):
 
         elif self.acc_to == "F":
             last_acc = FuturesAccount.objects.latest('date')
-            acc = FuturesAccount(code="F")
+            acc = FuturesAccount()
             if self.currency_to == 'KRW':
                 acc.principal_krw = last_acc.principal_krw + self.amount_to
                 acc.principal_usd = last_acc.principal_usd
