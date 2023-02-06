@@ -21,7 +21,7 @@ lazy-object-proxy==1.7.1
 mccabe==0.7.0
 msrest==0.7.1
 mysqlclient==2.1.1
-oauthlib==3.2.1
+oauthlib==3.2.2
 Pillow==9.2.0
 platformdirs==2.5.2
 protobuf==4.21.6
