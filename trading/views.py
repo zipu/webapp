@@ -426,11 +426,10 @@ class TransactionView(TemplateView):
             if not Transaction.objects.filter(date=date, ebest_id=line[3]):
                 num_cons = int(line[14])
                 # 체결 수량 1개당 한개의 transaction으로 함
-                product_code = line[4]
-                if '_' in product_code:
+                if '_' in symbol:
                     tradetype = 'Option'
                     instrument = FuturesInstrument.objects.get(symbol=symbol[1:-8])
-                elif '-' in product_code:
+                elif '-' in symbol:
                     tradetype = 'Spread'
                 else:
                     tradetype = 'Futures'
@@ -438,14 +437,12 @@ class TransactionView(TemplateView):
                 
                 for i in range(int(line[14])):
                     #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
-                    print(tradetype)
-                    print(line[13])
                     if tradetype == 'Option' and not line[13]:
                         price = 0
                     elif tradetype == 'Option' and line[13]:
-                        price = line[13]
+                        price = instrument.convert_to_decimal(line[13].replace(',',''))
                     else:
-                        price = instrument.convert_to_decimal(line[13].replace(',','')) or 0
+                        price = instrument.convert_to_decimal(line[13].replace(',',''))
 
                     transactions.append(Transaction(
                         instrument = instrument,

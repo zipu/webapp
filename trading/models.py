@@ -273,6 +273,7 @@ class FuturesInstrument(models.Model):
         if type == 'Futures':
             return position * (exit_price-entry_price)*num_cons*self.tickprice/self.tickunit
         elif type == 'Option':
+            
             return self.option_weight*position * (exit_price-entry_price)*num_cons
 
     def convert_to_decimal(self, value):
@@ -280,7 +281,7 @@ class FuturesInstrument(models.Model):
            예) 2년물 국채는 32진법을 사용하고  123'15.125 형식을 갖음
               ' 마크 뒤의 값을 32로 나눈값이 10진법으로 변환된 가격임
         """
-        if self.number_system != 10:
+        if (self.number_system != 10) and ("'" in value):
             a,b = [float(i) for i in value.split("'")]
             return str(a+b/self.number_system)
         else:
