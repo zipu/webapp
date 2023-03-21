@@ -426,18 +426,37 @@ class TransactionView(TemplateView):
             if not Transaction.objects.filter(date=date, ebest_id=line[3]):
                 num_cons = int(line[14])
                 # 체결 수량 1개당 한개의 transaction으로 함
+                product_code = line[4]
+                if '_' in product_code:
+                    tradetype = 'Option'
+                    instrument = FuturesInstrument.objects.get(symbol=symbol[1:-8])
+                elif '-' in product_code:
+                    tradetype = 'Spread'
+                else:
+                    tradetype = 'Futures'
+                    instrument = FuturesInstrument.objects.get(symbol=symbol[:-3])
+                
                 for i in range(int(line[14])):
-                    instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
-                    price = instrument.convert_to_decimal(line[13].replace(',',''))
+                    #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
+                    print(tradetype)
+                    print(line[13])
+                    if tradetype == 'Option' and not line[13]:
+                        price = 0
+                    elif tradetype == 'Option' and line[13]:
+                        price = line[13]
+                    else:
+                        price = instrument.convert_to_decimal(line[13].replace(',','')) or 0
+
                     transactions.append(Transaction(
                         instrument = instrument,
+                        type = tradetype,
                         order_id = line[1],
                         ebest_id = line[3],
                         ebest_code = line[4],
                         date = date,
                         position = 1 if line[12]=="매수" else -1,
                         price = price,
-                        commission = float(line[16])/num_cons
+                        commission = float(line[16])/num_cons or 0
                     ))
             Transaction.objects.bulk_create(transactions)
         # 거래 기록 생성

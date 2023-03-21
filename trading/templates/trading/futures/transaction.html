@@ -46,6 +46,7 @@
         <td scope="col">체결일시</td>
         <td scope="col">체결번호</td>
         <td scope="col">상품</td>
+        <td scope="col">종류</td>
         <td scope="col">이베스트코드</td>
         <td scope="col">포지션</td>
         <td scope="col">체결가격</td>
@@ -60,6 +61,8 @@
           <td>{{transaction.ebest_id}}
           </td>
           <td>{{transaction.instrument.name}}
+          </td>
+          <td>{{transaction.type}}
           </td>
           <td>{{transaction.ebest_code}}
           </td>

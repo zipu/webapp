@@ -265,10 +265,15 @@ class FuturesInstrument(models.Model):
     number_system = models.SmallIntegerField("진법", choices=NUMBER_SYSTEMS, default=10)
     current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6, null=True, blank=True)
     is_micro = models.BooleanField("마이크로", default=False)
+    option_unit = models.SmallIntegerField("옵션단위", default=1)
+    option_weight = models.SmallIntegerField("옵션승수", default=50)
 
-    def calc_value(self, entry_price, exit_price, num_cons, position):
+    def calc_value(self, entry_price, exit_price, num_cons, position, type):
         # 가격 차이를 돈 가치로 변환
-        return position * (exit_price-entry_price)*num_cons*self.tickprice/self.tickunit
+        if type == 'Futures':
+            return position * (exit_price-entry_price)*num_cons*self.tickprice/self.tickunit
+        elif type == 'Option':
+            return self.option_weight*position * (exit_price-entry_price)*num_cons
 
     def convert_to_decimal(self, value):
         """8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환
@@ -341,6 +346,12 @@ class Transaction(models.Model):
         (1, "Long"),
         (-1, "Short")
     ]
+    TYPES = [
+        ("Futures","Futures"),
+        ("Option", "Option"),
+        ("Spread", "Spread")
+    ]
+
     instrument = models.ForeignKey(
                     FuturesInstrument,
                     verbose_name="상품",
@@ -349,6 +360,7 @@ class Transaction(models.Model):
     order_id = models.PositiveSmallIntegerField("주문번호")
     ebest_id = models.PositiveSmallIntegerField("이베스트 체결번호")
     ebest_code = models.CharField("이베스트 상품코드", max_length=20)
+    type = models.CharField("타입", max_length=20, choices=TYPES, default='Futures')
     date = models.DateTimeField("체결날짜")
     position = models.SmallIntegerField("포지션", choices=POSITIONS)
     price = models.DecimalField("진입가", max_digits=12, decimal_places=6)
@@ -380,11 +392,18 @@ class FuturesTrade(models.Model):
         ("Normal", "Normal"),
         ("Good", "Good")
     ]
+    TYPES = [
+        ("Futures","Futures"),
+        ("Option", "Option"),
+        ("Spread", "Spread")
+    ]
 
     instrument = models.ForeignKey(
                     FuturesInstrument,
                     verbose_name="상품",
                     on_delete=models.PROTECT)
+    
+    type = models.CharField("타입", max_length=20, choices=TYPES, default='Futures')
 
     entry_strategy = models.ForeignKey(
                     FuturesStrategy,
@@ -459,6 +478,7 @@ class FuturesTrade(models.Model):
         그렇지 않으면 신규 거래를 생성
         views/TransactionView/post 에서 사용함
         """
+        #1. 선물 매매 등록
         transactions = Transaction.objects.filter(trade=None).order_by('date')
         for transaction in transactions:
             trades = FuturesTrade.objects.filter(ebest_code = transaction.ebest_code, is_open=True)
@@ -466,6 +486,7 @@ class FuturesTrade(models.Model):
             if not trades:
                 trade = FuturesTrade(
                     instrument = transaction.instrument,
+                    type = transaction.type,
                     pub_date = transaction.date,
                     ebest_code = transaction.ebest_code,
                     position = transaction.position,
@@ -500,7 +521,7 @@ class FuturesTrade(models.Model):
         self.realized_profit = 0
         for match in matches:
             self.realized_profit += self.instrument.calc_value(
-                match[0].price, match[1].price, 1, self.position
+                match[0].price, match[1].price, 1, self.position, self.type
             )
         #self.realized_profit_krw = c.convert(self.realized_profit)
             
@@ -508,7 +529,7 @@ class FuturesTrade(models.Model):
         if self.current_price:
             self.paper_profit = self.instrument.calc_value(
                 self.avg_entry_price, self.current_price, 
-                self.num_entry_cons - self.num_exit_cons, self.position
+                self.num_entry_cons - self.num_exit_cons, self.position, self.type
             )
 
         # 매매 종료 여부 판단

@@ -46,6 +46,7 @@
         <td scope="col" rowspan=2>#</td>
         <td scope="col" rowspan=2>시작일</td>
         <td scope="col" rowspan=2>상품</td>
+        <td scope="col" rowspan=2>종류</td>
         <td scope="col" rowspan=2>코드</td>
         <td scope="col" rowspan=2>포지션</td>
         <td scope="col" colspan=2>진입</td>
@@ -71,6 +72,7 @@
           <td>{{trade.id}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
           <td>{{trade.instrument.name}} </td>
+          <td>{{trade.type}} </td>
           <td>{{trade.ebest_code}} </td>
           <td style={% if trade.position == 1 %} 'color:red' {% else %} 'color:blue' {% endif %}>
             {% if trade.position == 1 %}
