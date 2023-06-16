@@ -428,9 +428,16 @@ class TransactionView(TemplateView):
                 # 체결 수량 1개당 한개의 transaction으로 함
                 if '_' in symbol:
                     tradetype = 'Option'
-                    instrument = FuturesInstrument.objects.get(symbol=symbol[1:-8])
+                    code = symbol.split('_')[0][:-3]
+                    filter = FuturesInstrument.objects.filter(option_codes__contains=code)
+                    if not filter:
+                        raise LookupError(f"No Futures Instrument contains option code: {code}")
+                    else: 
+                        instrument = filter[0]
+
                 elif '-' in symbol:
                     tradetype = 'Spread'
+                
                 else:
                     tradetype = 'Futures'
                     instrument = FuturesInstrument.objects.get(symbol=symbol[:-3])
@@ -439,8 +446,8 @@ class TransactionView(TemplateView):
                     #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
                     if tradetype == 'Option' and not line[13]:
                         price = 0
-                    elif tradetype == 'Option' and line[13]:
-                        price = instrument.convert_to_decimal(line[13].replace(',',''))
+                    #elif tradetype == 'Option' and line[13]:
+                    #    price = instrument.convert_to_decimal(line[13].replace(',',''))
                     else:
                         price = instrument.convert_to_decimal(line[13].replace(',',''))
 

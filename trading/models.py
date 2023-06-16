@@ -266,15 +266,16 @@ class FuturesInstrument(models.Model):
     current_price = models.DecimalField("현재가", max_digits=12, decimal_places=6, null=True, blank=True)
     is_micro = models.BooleanField("마이크로", default=False)
     option_unit = models.SmallIntegerField("옵션단위", default=1)
-    option_weight = models.SmallIntegerField("옵션승수", default=50)
+    #option_weight = models.SmallIntegerField("옵션승수", default=50)
+    #option_codes = models.CharField("옵션명", max_length=100, default='') 
 
     def calc_value(self, entry_price, exit_price, num_cons, position, type):
         # 가격 차이를 돈 가치로 변환
-        if type == 'Futures':
+        #f type == 'Futures':
             return position * (exit_price-entry_price)*num_cons*self.tickprice/self.tickunit
-        elif type == 'Option':
+        #lif type == 'Option':
             
-            return self.option_weight*position * (exit_price-entry_price)*num_cons
+        #   return self.option_weight*position * (exit_price-entry_price)*num_cons
 
     def convert_to_decimal(self, value):
         """8진법 또는 32진법으로 들어오는 가격을 10진법으로 변환
