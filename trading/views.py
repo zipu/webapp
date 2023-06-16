@@ -209,7 +209,8 @@ class FuturesStatView(TemplateView):
 
         if trades.count():
             duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
-            if duration_in_year > 0:
+            
+            if duration_in_year > 0 and principal+revenue-commission > 0:
                 cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
             else: 
                 cagr = 0
@@ -297,7 +298,6 @@ class FuturesStatView(TemplateView):
         data['day_win_rate'] = wins.count()/cnt if cnt else 0
         data['day_pnl'] = abs(win_revenue/lose_revenue) if lose_revenue else 0
         data['day_optimal_f'] = ((1+data['day_pnl'])*data['day_win_rate']-1)/data['day_pnl'] if data['day_pnl'] else 0
-
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):
@@ -432,6 +432,7 @@ class TransactionView(TemplateView):
                     filter = FuturesInstrument.objects.filter(option_codes__contains=code)
                     if not filter:
                         raise LookupError(f"No Futures Instrument contains option code: {code}")
+                    
                     else: 
                         instrument = filter[0]
 
