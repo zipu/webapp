@@ -56,7 +56,7 @@
       {% for transaction in transactions %}
         <tr class="transaction" id="{{ transaction.id }}">
           <td>{{transaction.id}}</td>
-          <td>{{transaction.date | date:"Y-m-d H:i" }}
+          <td>{{transaction.date | date:"Y-m-d H:i"}}
           </td>
           <td>{{transaction.ebest_id}}
           </td>
@@ -91,8 +91,9 @@
         <tr>
           <td style='width:15%;background-color:#e9ecef;'> 체결기록 추가 </td>
           <td style='width:35%;' >
-            <form action="{% url 'transaction' page=1 %}" method='post'>
+            <form action="{% url 'transaction' page=1 %}" method='post' enctype="multipart/form-data">
               {% csrf_token %}
+              <input type="file" id="file" name="file" accept=".csv" required>
               <input type="submit">
             </form>
           </td>
@@ -103,17 +104,17 @@
         </tr>
     </table>
     <table class="table table-sm table-bordered">    
-      <tr>
-        <td style='background-color:#e9ecef;' colspan=4> 환율 ({{currencies.first.date |date:'Y년 m월 d일'}})</td>
-        {% for currency in currencies %}
-        <td>{{currency.symbol}} </td>
-        <td>{{currency.rate |floatformat:2}} </td>
-        {% endfor %}
-      </tr>
-      <tr> 
-        <td colspan='100%'>
-          <input type='submit' value='업데이트'  onclick="location.href='{% url 'transaction' page=1%}?currency=true'"></td>
-       </tr>
-</table>
+        <tr>
+          <td style='background-color:#e9ecef;' colspan=4> 환율 ({{currencies.first.date |date:'Y년 m월 d일'}})</td>
+          {% for currency in currencies %}
+          <td>{{currency.symbol}} </td>
+          <td>{{currency.rate |floatformat:2}} </td>
+          {% endfor %}
+        </tr>
+        <tr> 
+          <td colspan='100%'>
+            <input type='submit' value='업데이트'  onclick="location.href='{% url 'transaction' page=1%}?currency=true'"></td>
+         </tr>
+  </table>
   <br>
 {% endblock content2 %}

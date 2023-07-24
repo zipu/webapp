@@ -1,0 +1,284 @@
+{% extends "trading/futures/base.html"%}
+{% load humanize %}
+{% load static %}
+{% block content2 %}
+
+  {% if is_paginated %}
+    <nav aria-label="Page navigator">
+      <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=1 %}" aria-label="First">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}" aria-label="Previous">
+            <span aria-hidden="true">&lt;</span>
+          </a>
+        </li>
+        {% for page in page_obj.rng %}
+          {% if page_obj.page == page %}
+            <li class="page-item active">
+              <a class="page-link" href="">{{page}}</a>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="{% url 'futurestrade' page=page %}">{{page}}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}" aria-label="Previous">
+            <span aria-hidden="true">&gt;</span>
+          </a>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+
+  <table class="table table-sm table-bordered" style="font-size:small">
+      <tr class="table table-secondary">
+        <td scope="col" rowspan=2>#</td>
+        <td scope="col" rowspan=2>시작일</td>
+        <td scope="col" rowspan=2>상품</td>
+        <td scope="col" rowspan=2>종류</td>
+        <td scope="col" rowspan=2>코드</td>
+        <td scope="col" rowspan=2>포지션</td>
+        <td scope="col" colspan=2>진입</td>
+        <td scope="col" colspan=2>청산</td>
+        <td scope="col" rowspan=2>잔여</td>
+        <td scope="col" rowspan=2>실현</td>
+        <td scope="col" rowspan=2>틱</td>
+        <td scope="col" rowspan=2>통화</td>
+
+      </tr>
+      <tr class="table table-secondary">
+        <td scope="col"> 가격 </td>
+        <td scope="col"> 수량 </td>
+        <td scope="col"> 가격 </td>
+        <td scope="col"> 수량 </td>
+      </tr>
+ 
+      {% for trade, entries, exits, cons in data %}
+      <tr class='trade' onclick="ShowDetail({{trade.id}})"
+       {% if trade.is_open %} bgcolor='azure' 
+       {% elif not trade.entry_strategy %} bgcolor='#FBEEE6'
+       {% endif %}>
+          <td>{{trade.id}} </td>
+          <td>{{trade.pub_date | date:"Y-m-d"}} </td>
+          <td>{{trade.instrument.name}} </td>
+          <td>{{trade.type}} </td>
+          <td>{{trade.ebest_code}} </td>
+          <td style={% if trade.position == 1 %} 'color:red' {% else %} 'color:blue' {% endif %}>
+            {% if trade.position == 1 %}
+             Long
+            {% else %}
+             Short
+            {% endif %}
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for entry in entries %}
+              <tr><td> {{entry.price.normalize}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for entry in entries %}
+              <tr><td> {{entry.cnt}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for exit in exits %}
+              <tr><td> {{exit.price.normalize}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
+              {% for exit in exits %}
+              <tr><td> {{exit.cnt}} </td></tr>
+              {% endfor %}
+            </table>
+          </td>
+          <td>
+            {{cons}}
+          </td>
+          <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
+            {{trade.realized_profit.normalize}}
+          </td>
+          <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
+            {{trade.realized_profit_ticks |floatformat:1}}
+          </td>
+          <td>{{trade.instrument.currency.symbol}} </td>
+      </tr>
+      <!-- 매매 디테일 뷰 -->
+      <tr id='{{trade.id}}' style='display:none;'> 
+        <td colspan=12 style='padding:0;'>
+          <table class='table table-sm table-bordered' style='mrgin:0;padding:0;'>
+            <tr>
+              <td style='width:12.5%; background-color: lightyellow'> 평균매입가 </td>
+              <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
+              <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
+              <td style='width:12.5%;'> {{ trade.stop_price.normalize }} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 타임프레임 </td>
+              <td style='width:12.5%;'> {{ trade.timeframe }} </td>
+            </tr>
+            <tr>
+              <td style='background-color: lightyellow'> 멘탈 </td>
+              <td>  {{trade.mental |default_if_none:""}} </td>
+              <td style='background-color: lightyellow'> 진입전략 </td>
+              <td > {{ trade.entry_strategy.name }} </td>
+              <td style='background-color: lightyellow;'> 청산전략 </td>
+              <td> {{trade.exit_strategy.name}} </td>
+              <td style='background-color: lightyellow;'> 수수료 </td>
+              <td> {{ trade.commission.normalize }} </td>
+            </tr>
+            <tr>
+              <td colspan=4 style="background-color: lightyellow;"> 진입 이유 </td>
+              <td colspan=4 style="background-color: lightyellow;"> 청산 이유 </td>
+            </tr>
+            <tr>
+              <td colspan=4> 
+                {% for tag in trade.entry_tags.all %}
+                <span style='background-color: lightgrey;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
+                {% endfor %}
+              </td>
+              <td colspan=4 style="height:20px;"> 
+                {% for tag in trade.exit_tags.all %}
+                <span style='background-color: lightgrey;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
+                {% endfor %}
+              </td>
+            </tr>
+            <tr>
+              <td colspan=4> 
+                <span>
+                  {{ trade.entry_reason |linebreaks }}
+                </span>
+              </td>
+              <td colspan=4> 
+                <span>
+                  {{ trade.exit_reason |linebreaks}}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td colspan=13> <input type="button" value="수정" onclick="ShowUpdateDetal({{trade.id}});"> </td>
+            </tr>
+        </table>
+      </td>
+      </tr>
+      <!-- 매매 디테일 업데이트 뷰 -->
+      <tr id='{{trade.id}}-mod' style='display:none;'> 
+        <td colspan=12 style='padding:0;'>
+          <form action="{% url 'futurestrade' page=1 %}" method='post'>
+           {% csrf_token %}
+           <input type='hidden' value='{{trade.id}}' name='id'></input>
+          <table class='table table-sm table-bordered' style='mrgin:0;padding:0;'>
+            <tr>
+              <td style='width:12.5%; background-color: lightyellow'> 평균매입가 </td>
+              <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
+              <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
+              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
+              <td> <input type="float" value='{{trade.stop_price.normalize}}' name='stopprice'> </input> </td>
+              <td style='width:12.5%; background-color: lightyellow'> 타임프레임 </td>
+              <td style='width:12.5%;'> {{ trade.timeframe }} </td>
+            </tr>
+            <tr>
+              <td style='width:10%;background-color: lightyellow'> 멘탈 </td>
+              <td style='width:10%'>  
+                  <select placeholder="멘탈" id="mental" name="mental">
+                  <option value=''>    </option>
+                  <option value='Good' {% if trade.mental == 'Good' %} selected {% endif %}> Good </option>
+                  <option value='Normal' {% if trade.mental == 'Normal' %} selected {% endif %}> Normal </option>
+                  <option value='Bad' {% if trade.mental == 'Bad' %} selected {% endif %}> Bad </option>
+                  </select>
+              </td>
+              <td style='width:10%;background-color: lightyellow'> 진입전략 </td>
+              <td style='width:10%'>  
+                  <select placeholder="진입전략" name="entry_strategy">
+                  <option value=''> </option>
+                  {% for strategy in entry_strategies%}
+                  <option value={{strategy.id}} {% if strategy.id == trade.entry_strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
+                  {% endfor %}
+                  </select>
+              </td>
+              <td style='background-color: lightyellow;'> 청산전략 </td>
+              <td>
+                <select placeholder="청산전략" name="exit_strategy">
+                  <option value=''> </option>
+                  {% for strategy in exit_strategies%}
+                  <option value={{strategy.id}} {% if strategy.id == trade.exit_strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
+                  {% endfor %}
+                  </select>
+              </td>
+              <td style='background-color: lightyellow;'> 수수료 </td>
+              <td> {{ trade.commission.normalize }} </td>
+            </tr>
+            <tr>
+              <td colspan=4 style="background-color: lightyellow"> 진입 이유 </td>
+              <td colspan=4 style="background-color: lightyellow"> 청산 이유 </td>
+            </tr>
+            <tr>
+              <td colspan=4>
+                <input type="text" class="entrytags" name="entrytags" 
+                  value="{% for tag in trade.entry_tags.all %}{{tag.name}};{% endfor %}" style='width:80%'>
+              </td>
+              <td colspan=4> 
+                <input type="text" class="exittags" name="exittags" 
+                  value="{% for tag in trade.exit_tags.all %}{{tag.name}};{% endfor %}" style='width:80%'>
+              </td>
+            </tr>
+            <tr>
+              <td colspan=4> 
+                <textarea id="entryreason" name="entryreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.entry_reason }}</textarea>
+              </td>
+              <td colspan=4><textarea id="exitreason" name="exitreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.exit_reason}}</textarea>
+              </td>
+            </tr>
+            <tr>
+              <td colspan=12> <input type="submit" value="제출"> </td>
+            </tr>
+          </table>
+        </form>
+        </td>
+      </tr>
+      {% endfor %}
+  </table>
+  
+{% endblock content2 %}
+
+{% block script %}
+
+<link rel="stylesheet" href="{% static 'css/trading.css' %}">
+<script>
+// 매매내역 디테일 드롭다운 보이기
+var ShowDetail = function(id){
+  if($('#'+id).css('display') == 'none' & $('#'+id+'-mod').css('display')=='none'){
+     $('#'+id).css('display', 'table-row');
+  } else {
+    $('#'+id).css('display', 'none'); 
+    $('#'+id+'-mod').css('display','none');
+  }
+};
+
+var ShowUpdateDetal = function(id){
+  $('#'+id).css('display','none');
+  $('#'+id+'-mod').css('display','table-row');
+
+}
+
+
+</script>
+{% endblock script%}

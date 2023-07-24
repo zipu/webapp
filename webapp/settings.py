@@ -122,7 +122,8 @@ INSTALLED_APPS = [
     'maths.apps.MathsConfig', #수학자료
     'tutoring.apps.TutoringConfig', # 과외 
     'trading.apps.TradingConfig', #트레이딩 ,
-    'aops.apps.AopsConfig' #수학문제, art of problem solving
+    'aops.apps.AopsConfig', #수학문제, art of problem solving
+    'ebest.apps.EbestConfig', #이베스트
 ]
 
 MIDDLEWARE = [
@@ -172,6 +173,7 @@ DATABASE_ROUTERS = [
     'trading.dbRouter.TradingDBRouter',
     'aops.dbRouter.AopsDBRouter',
     'tutoring.dbRouter.TutoringDBRouter',
+    'ebest.dbRouter.EbestDBRouter',
 ]
 
 # [START db_setup]
@@ -214,6 +216,14 @@ DATABASES = {
         'HOST': get_secret('DB_HOST'),
         'PORT': PORT,
         'NAME': 'tutoring',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
+    },
+    'ebest' : {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'ebest',
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
     }

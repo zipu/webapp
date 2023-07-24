@@ -1,0 +1,18 @@
+.active * {
+  color: white !important;
+}
+
+nav a:hover {
+  color: white !important;
+}
+
+
+table, td, th {
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid black;
+}
+
+#products-list * {
+  border: 1px solid black;
+}
