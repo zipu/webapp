@@ -21,8 +21,9 @@ class Stock:
         self.appkey = self.secret["APPKEY"]
         self.appsecretkey = self.secret['APPSECRETKEY']
         self.access_token = None
+        self.token_issued_time = None
 
-    def login(self):
+    def get_access_token(self):
         path = "oauth2/token"
         url = f"{self.baseurl}/{path}"
         header = {"content-type":"application/x-www-form-urlencoded"}
@@ -35,24 +36,34 @@ class Stock:
         res = requests.post(url, headers=header, data=body)
         if res.ok:
             self.access_token = res.json()['access_token']
-            #print("*로그인성공*")
+            self.token_issued_time = time.time()
+            print("*로그인성공*")
             #print("*연결계좌: 국내주식")
             #print(f"*접속주소: {self.baseurl}")
-            return res
+            return True
         else: 
-            print(f"login failed: {res.text}")
-            return res
+            print(res.text)
+            return False
     
+    def update_access_token(self):
+        """ 액세스 토큰 12시간마다 갱신 """
+        if not self.token_issued_time or (time.time()-self.token_issued_time)/(60*60) > 12:
+            if self.get_access_token():
+                print("토큰 갱신 성공")
+                return True
+            else:
+                print("토큰 갱신 실패")
+                return False
     
     def favorites(self):
         """ 멀티 현재가 조회 """
+        # 토큰 만기 조회
+        self.update_access_token()
+
         path = "stock/market-data"
         url = f"{self.baseurl}/{path}"
         num = len(self.secret['FAVORITES'])
         codes = ''.join(self.secret['FAVORITES'])
-
-        if not self.access_token:
-            print("엑세스 토큰이 존재하지 않습니다")
 
         headers = {
             "content-type":"application/json; charset=UTF-8",
@@ -73,6 +84,9 @@ class Stock:
     
     def chart(self, shcode):
         """ 주식차트(일주월년)"""
+        # 토큰 만기 조회
+        self.update_access_token()
+
         path = "stock/chart"
         url = f"{self.baseurl}/{path}"
         headers = {

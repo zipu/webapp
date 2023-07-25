@@ -28,9 +28,8 @@ class EbestStockView(TemplateView):
        
       return render(request, EbestStockView.template_name, context=context)
     
-   def login(self):
-      res = Ebest.login()
-      if res.ok:
+   def get_access_token(self):
+      if Ebest.get_access_token():
           data = {
              'success': True,
              'server_url': Ebest.baseurl,

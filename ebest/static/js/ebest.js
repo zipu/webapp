@@ -19,25 +19,20 @@ setInterval(() => {
     $('#log').html(logs.join('<br/>'));
 }
 
-//서버 로그인
-setInterval(function login(){
-  let query = "?action=login"
-    $.get( url+query, function( data ) {
+//엑세스 토큰 발행
+let query = "?action=get_access_token"
+$.get( url+query, function( data ) {
       if (data.success){
         $('#server-url').text(data.server_url);
         $('#login-status').html("&#x1F7E2");
-        log("로그인성공")
+        log("엑세스 토큰 발행 성공")
       } else {
         $('#status').html("&#128308");
-        log("로그인실패");
-        login()
+        log("엑세스 토큰 발행 실패");
       }
-    });
-    return login
-}(), 6*60*60*1000);
+});
 
 // 관심종목 화면
-
 (function favorites(){
   var query = "?action=favorites"
   $.get( url+query, function( data ) {
