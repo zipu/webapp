@@ -1,7 +1,8 @@
 import os
 import requests
-import json, time
+import json
 from datetime import datetime
+from time import time
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..')
 def get_secret(setting):
@@ -21,8 +22,12 @@ class Stock:
         self.appkey = self.secret["APPKEY"]
         self.appsecretkey = self.secret['APPSECRETKEY']
         self.access_token = None
+        self.token_issued_time = None
 
-    def login(self):
+    def get_access_token(self):
+        if self.token_issued_time and (time()-self.token_issued_time)/(60*60) <12:
+            return True
+
         path = "oauth2/token"
         url = f"{self.baseurl}/{path}"
         header = {"content-type":"application/x-www-form-urlencoded"}
@@ -35,17 +40,18 @@ class Stock:
         res = requests.post(url, headers=header, data=body)
         if res.ok:
             self.access_token = res.json()['access_token']
-            #print("*로그인성공*")
-            #print("*연결계좌: 국내주식")
-            #print(f"*접속주소: {self.baseurl}")
-            return res
+            self.token_issued_time = time()
+            return True
         else: 
-            print(f"login failed: {res.text}")
-            return res
+            print(f"토큰 갱신 실패: {res.text}")
+            return False
     
     
     def favorites(self):
         """ 멀티 현재가 조회 """
+        if not self.get_access_token(): #액세스 토큰 필요시 갱신
+            return False
+        
         path = "stock/market-data"
         url = f"{self.baseurl}/{path}"
         num = len(self.secret['FAVORITES'])
@@ -71,8 +77,13 @@ class Stock:
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
     
+    
+    
     def chart(self, shcode):
         """ 주식차트(일주월년)"""
+        if not self.get_access_token(): #액세스 토큰 필요시 갱신
+            return False
+        
         path = "stock/chart"
         url = f"{self.baseurl}/{path}"
         headers = {
@@ -99,21 +110,20 @@ class Stock:
         return res
 
 
-        
-
-
-
-
 class OverseasFutures:
 
     def __init__(self):
-        secret = get_secret("Overseas")
-        self.baseurl = secret["BASEURL"]
-        self.appkey = secret["APPKEY"]
-        self.appsecretkey = secret['APPSECRETKEY']
+        self.secret = get_secret("Overseas")
+        self.baseurl = self.secret["BASEURL"]
+        self.appkey = self.secret["APPKEY"]
+        self.appsecretkey = self.secret['APPSECRETKEY']
         self.access_token = None
+        self.token_issued_time = None
 
-    def login(self):
+    def get_access_token(self):
+        if self.token_issued_time and (time()-self.token_issued_time)/(60*60) <12:
+            return True
+
         path = "oauth2/token"
         url = f"{self.baseurl}/{path}"
         header = {"content-type":"application/x-www-form-urlencoded"}
@@ -126,13 +136,11 @@ class OverseasFutures:
         res = requests.post(url, headers=header, data=body)
         if res.ok:
             self.access_token = res.json()['access_token']
-            print("*로그인성공*")
-            print("*접속서버: 해외선물 실서버")
-            print(f"*접속주소: {self.baseurl}")
-            return res
+            self.token_issued_time = time()
+            return True
         else: 
-            print(f"login failed: {res.text}")
-            return res 
+            print(f"토큰 갱신 실패: {res.text}")
+            return False
     
     def transactions(self, start, end=None):
         """ 주문체결내역상세조회"""

@@ -1,43 +1,43 @@
 const url = $(location).attr('href');
 var logs = [];
 
-//시계
+//한국시간 계산
 const gettime = function(){
     ctime = new Date();
     ktime = ctime.getTime() + (ctime.getTimezoneOffset() + 540)*60*1000;
     return new Date(ktime);
 }
 
+//시계
 setInterval(() => {
     $('#clock').text(gettime().toLocaleString('kr-KR'));
 }, 1000);
 
 //서버 메세지 로그
-  const log = function(msg){
+const log = function(msg){
     logs.push(msg);
     logs = logs.slice(-10);
     $('#log').html(logs.join('<br/>'));
 }
 
 //서버 로그인
-setInterval(function login(){
-  let query = "?action=login"
-    $.get( url+query, function( data ) {
-      if (data.success){
-        $('#server-url').text(data.server_url);
-        $('#login-status').html("&#x1F7E2");
-        log("로그인성공")
-      } else {
-        $('#status').html("&#128308");
-        log("로그인실패");
-        login()
-      }
-    });
-    return login
-}(), 6*60*60*1000);
+
+const get_access_token = function(){
+  let query = "?action=get_access_token"
+  $.get( url+query, function( data ) {
+        if (data.success){
+          $('#server-url').text(data.server_url);
+          $('#login-status').html("&#x1F7E2");
+          log("토큰 갱신 성공")
+        } else {
+          $('#status').html("&#128308");
+          log("토큰 갱신 실패");
+        }
+  });
+};
+get_access_token();
 
 // 관심종목 화면
-
 (function favorites(){
   var query = "?action=favorites"
   $.get( url+query, function( data ) {
@@ -63,7 +63,7 @@ setInterval(function login(){
                 $(`#${item.shcode} td:nth-child(3)`).text(parseInt(item.price).toLocaleString('en-US'));
                 $(`#${item.shcode} td:nth-child(4)`).text(sign+parseInt(item.change).toLocaleString('en-US'));
                 $(`#${item.shcode} td:nth-child(5)`).text(parseInt(item.volume).toLocaleString('en-US'));
-                $(`#${item.shcode} td:nth-child(6)`).text(sign+item.diff);
+                $(`#${item.shcode} td:nth-child(6)`).text(item.diff);
               };
               //log("업데이트..");
             } 

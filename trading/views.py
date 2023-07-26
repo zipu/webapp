@@ -376,7 +376,7 @@ class FuturesTradeView(TemplateView):
 
         return redirect('futurestrade', page=1)
 
-class TransactionView2(TemplateView):
+class TransactionView_old(TemplateView):
     template_name = "trading/futures/transaction.html"
 
     def get(self, request, *args, **kwargs):
@@ -515,10 +515,11 @@ class TransactionView(TemplateView):
     def post(self, request, *args, **kwargs):
         # 체결기록 등록
         api = ebest.OverseasFutures()
-        res = api.login()
-        if res.ok:
+        if api.get_access_token():
             start = Transaction.objects.order_by('-date').first().date.strftime('%Y%m%d')
             new_transactions = api.transactions(start=start)
+        else:
+            new_transactions = []
         
         for transaction in new_transactions:
             # 중복 신청시 코등 안보임 해결
