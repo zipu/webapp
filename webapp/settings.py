@@ -76,6 +76,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 
 
