@@ -9,4 +9,4 @@ media_dev/
 
 secrets.json
 credentials.json
-/tools/currencyrate.json
+/tools/currencyrates/
