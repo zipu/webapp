@@ -13,10 +13,9 @@ if response.ok:
         jsonobj = {"USD":[], "EUR":[], "CNY":[], "JPY":[], "HDK":[]}
 
     for currency in response.json():
-        jsonobj[currency['currencyCode']].append([currency['date'], currency['basePrice']])
+        jsonobj[currency['currencyCode']].append([currency['date'],currency['time'], currency['basePrice']])
 
     with open(filepath, mode='w+', encoding='utf-8') as f:
         json.dump(jsonobj, f)
     
     print("환율 갱신 완료")
-    print(os.path.join(os.path.dirname(__file__),filename))
