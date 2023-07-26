@@ -12,7 +12,3 @@ table, td, th {
     vertical-align: middle;
     border: 1px solid black;
 }
-
-#products-list * {
-  border: 1px solid black;
-}

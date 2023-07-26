@@ -5,47 +5,42 @@
 <div class="row">
   <table>
     <colgroup> 
-      {% for i in "x"|rjust:"120" %}
+      {% for i in "x"|rjust:"100" %}
       <col style="width:1%;"/>
       {% endfor %}
     </colgroup> 
     <tbody>
       <tr>
-        <td colspan=8>서버</td>
-        <td id='server-url' colspan=20></td>
-        <td colspan=8> 상태 </td>
-        <td colspan=6 id='login-status'> </td>
-        <td colspan=12>시간</td>
-        <td colspan=66 id='clock' style='font-weight:bold'> </td>
+        <td colspan=8>보유종목</td>
+        <td colspan=8>관심종목</td>
+        <td colspan=8>ETF</td>
+        <td colspan=16></td>
+        <th colspan=60 id="chart-title"></td>
       </tr>
       <tr>
-        <th colspan=50> 관심종목 </th>
-        <th colspan=70 id="chart-title"></td>
-      </tr>
-      <tr>
-        <th colspan=17>종목명</th>
-        <th colspan=5>코드</th>
-        <th colspan=7>현재가</th>
-        <th colspan=7>대비</th>
-        <th colspan=7>거래량</th>
-        <th colspan=7>등락률</th>
-        <td colspan=70 rowspan=2 style="max-width:500px;">
+        <td colspan=40 style='padding:0;vertical-align:baseline;'>
+          <table style="width:100%;margin: 0;border:1px solid black;display:block;max-height:300px;height:300px;overflow:auto;">
+            <tbody id='favorites' style="display:table; width:100%;">
+              <tr>
+                <th >종목명</th>
+                <th >코드</th>
+                <th >현재가</th>
+                <th >대비</th>
+                <th >거래량</th>
+                <th >등락률</th>
+              </tr>
+            <tbody>
+          </table>
+        </td>
+        <td colspan=60 style="max-width:500px;">
           <div id="chart"></div>
         </td>
       </tr>
       <tr>
-        <td colspan=50 style='padding:0'>
-          <table style="width:100%;margin: 0;border:1px solid black;display:block;max-height:300px;height:300px;overflow:auto;">
-            <tbody id='favorites' style="display:table; width:100%;">
-            <tbody>
-          </table>
-        </td>
+        <td colspan=100><input type='submit' value='test'  onclick='favorites()'></td>
       </tr>
       <tr>
-        <td colspan=120><input type='submit' value='test'  onclick='favorites()'></td>
-      </tr>
-      <tr>
-        <td colspan=120 id='log' style='height:200px;text-align:left'>
+        <td colspan=100 id='log' style='height:200px;text-align:left'>
 
         </td>
       </tr>

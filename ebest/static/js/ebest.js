@@ -9,7 +9,7 @@ const gettime = function(){
 }
 
 setInterval(() => {
-    $('#clock').text(gettime().toLocaleString('kr-KR'));
+    $('#top-quote').text(gettime().toLocaleString('kr-KR'));
 }, 1000);
 
 //서버 메세지 로그
@@ -23,11 +23,8 @@ setInterval(() => {
 let query = "?action=get_access_token"
 $.get( url+query, function( data ) {
       if (data.success){
-        $('#server-url').text(data.server_url);
-        $('#login-status').html("&#x1F7E2");
         log("엑세스 토큰 발행 성공")
       } else {
-        $('#status').html("&#128308");
         log("엑세스 토큰 발행 실패");
       }
 });
@@ -58,7 +55,7 @@ $.get( url+query, function( data ) {
                 $(`#${item.shcode} td:nth-child(3)`).text(parseInt(item.price).toLocaleString('en-US'));
                 $(`#${item.shcode} td:nth-child(4)`).text(sign+parseInt(item.change).toLocaleString('en-US'));
                 $(`#${item.shcode} td:nth-child(5)`).text(parseInt(item.volume).toLocaleString('en-US'));
-                $(`#${item.shcode} td:nth-child(6)`).text(sign+item.diff);
+                $(`#${item.shcode} td:nth-child(6)`).text(item.diff);
               };
               //log("업데이트..");
             } 
