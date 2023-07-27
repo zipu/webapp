@@ -1,5 +1,6 @@
 const url = $(location).attr('href');
 var logs = [];
+var realtime;
 
 /* 인터페이스 관련 */
 // 종목 tab 활성화
@@ -9,7 +10,6 @@ const activateTab = function(id){
     else { $(a).removeClass('active'); }
   })
 };
-activateTab('entries-tab');
 
 
 //시계
@@ -40,17 +40,63 @@ $.get( url+"?action=get_access_token", function( data ) {
   }
 });
 
-//보유종목 현황
-const items = function(tabid){
-  activateTab(tabid);
-  if (abid == 'entries-tab'){
-    let query = "?action=entries";
+//종목 현황
+const itemScreen = function(tabid){
+  activateTab(tabid);//탭 액티브 활성화
+  clearInterval(realtime);
+
+  if (tabid == 'entries-tab'){
+    $('#item-screen > thead').append(`
+      <tr>
+        <td style='width:30%'> 종목 </td>
+        <td style='width:20%'> 매입가 </td>
+        <td style='width:10%'> 수량 </td>
+        <td style='width:20%'> 현재가 </td>
+        <td style='width:20%'> 대비 </td>
+      </tr>
+      `);
     
+    let query = "?action=entries";
+    $.get( url+query, function( data ) {
+      if (data.success){
+        log(data.msg);
+        for (item of data.data){
+          entryprice = parseInt(item.entryprice);
+          price = parseInt(item.price);
+          diff = price - entryprice
+          diff > 0 ? color = 'red' : color = 'blue';
 
-  }
-  
-
+          let tr = `<tr id=${item.expcode} onclick="chartdata('${item.expcode}');">
+                        <td style='width:30%'>${item.hname}</td>
+                        <td style='width:20%'>${entryprice.toLocaleString('en-US')}</td>
+                        <td style='width:10%'>${parseInt(item.quantity).toLocaleString('en-US')}</td>
+                        <td style='width:20%'>${price.toLocaleString('en-US')}</td>
+                        <td style='width:20%; color:${color}'>${diff.toLocaleString('en-Us')}</td>
+                    </tr>`
+          $('#item-screen > tbody').append(tr);
+        };
+        realtime = setInterval(() => {
+          $.get( url+query, function( data ) {
+            if (data.success){
+              for (item of data.data){
+                diff = parseInt(item.price) - parseInt(entryprice)
+                diff > 0 ? color = 'red' : color = 'blue';
+                $(`#${item.shcode} td:nth-child(1)`).text(parseInt(item.entryprice).toLocaleString('en-US'));
+                $(`#${item.shcode} td:nth-child(2)`).text(parseInt(item.quantity).toLocaleString('en-US'));
+                $(`#${item.shcode} td:nth-child(3)`).text(parseInt(item.price).toLocaleString('en-US'));
+                $(`#${item.shcode} td:nth-child(4)`).text(diff);
+                $(`#${item.shcode} td:nth-child(4)`).css('color', color);
+              };
+              //log("업데이트..");
+            } 
+          });
+        }, 1000);
+      };
+    });
+  }; //잔고 화면 끝.
 };
+itemScreen('entries-tab'); //최초에 잔고
+
 
 
 // 관심종목 화면

@@ -87,4 +87,29 @@ class EbestStockView(TemplateView):
              'msg': res.json()['rsp_msg']
           }
       return JsonResponse(data, safe=False)
+   
+   def entries(self):
+      res = Ebest.entries()
+      if res:
+         entries = []
+         for entry in res:
+            entries.append({
+               'expcode': entry['expcode'], #종목번호
+               'hname': entry['hname'], #종목명
+               'entryprice': entry['pamt'], #평균단가
+               'quantity': entry['janqty'], #잔고수량
+               'price': entry['price'], #현재가
+            })
+
+         data = {
+             'success': True,
+             'data': entries,
+             'msg': "잔고조회 성공"
+          }
+      else:
+          data = {
+             'success': False,
+             'msg': "잔고조회 실패"
+          }
+      return JsonResponse(data, safe=False)
       

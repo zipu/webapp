@@ -3,7 +3,7 @@
 {% block content1 %}
 
 <div class="row">
-  <table class="table">
+  <table class="table" id='body-table'>
     <colgroup> 
       {% for i in "x"|rjust:"100" %}
       <col style="width:1%;"/>
@@ -14,13 +14,13 @@
         <td colspan=40>
           <ul class="nav nav-tabs" id="tabs">
             <li class="nav-item">
-              <a class="nav-link" id="entries-tab" onclick="items('entries-tab');" style="cursor:pointer">보유</a>
+              <a class="nav-link" id="entries-tab" onclick="itemScreen('entries-tab');" style="cursor:pointer">보유</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="favorites-tab" onclick="items('favorites-tab');" style="cursor:pointer">관심</a>
+              <a class="nav-link" id="favorites-tab" onclick="itemScreen('favorites-tab');" style="cursor:pointer">관심</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="etf-tab" onclick="items('etf-tab');"  style="cursor:pointer">ETF</a>
+              <a class="nav-link" id="etf-tab" onclick="itemScreen('etf-tab');"  style="cursor:pointer">ETF</a>
             </li>
             </li>
           </ul>
@@ -28,17 +28,10 @@
       </tr>
       <tr>
         <td colspan=40 style='padding:0;vertical-align:baseline;'>
-          <table style="width:100%;margin: 0;border:1px solid black;display:block;max-height:300px;height:300px;overflow:auto;">
-            <tbody id='favorites' style="display:table; width:100%;">
-              <tr>
-                <th >종목명</th>
-                <th >코드</th>
-                <th >현재가</th>
-                <th >대비</th>
-                <th >거래량</th>
-                <th >등락률</th>
-              </tr>
-            <tbody>
+          <table  class="table table-sm table-striped" id='item-screen'
+                  style="width:100%;margin: 0;border:1px solid black;display:block;max-height:300px;height:300px;overflow:auto;">
+            <thead style='display:table;width:100%;'></thead>
+            <tbody style="display:table; width:100%;"></tbody>
           </table>
         </td>
         <td colspan=60 style="max-width:500px;">

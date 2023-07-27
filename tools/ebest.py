@@ -135,6 +135,7 @@ class Stock:
             time.sleep(1) #초당 전송수: 1초당 1건
             headers['tr_cont'] = "Y"
             headers['tr_cont_key'] = res.headers['tr_cont_key']
+            body["cts_expcode"] = res.json()['t0424OutBlock']['cts_expcode']
             res = requests.post(url, headers=headers, data=json.dumps(body))
             data += res.json()["t0424OutBlock1"]
         
