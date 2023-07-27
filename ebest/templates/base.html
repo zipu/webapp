@@ -20,25 +20,25 @@
     integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 </head>
 
-<body class="container" style="max-width: 80%;">
-  <nav>
+<body class="container">
+  <nav class="navbar fixed-top bg-dark" style="width:100%">
     <div>
-      <ul class="nav" style="display:inline-flex">
-        <li class="nav-item {% if activate == 'futures' %}active {% endif %}">
-          <a class="nav-link" href="{% url 'futures' %} " style="color:grey;">주식/ETF</a>
-        </li>
-        <li class="nav-item {% if activate == 'stock' %}active {% endif %}">
-          <a class="nav-link" href="{% url 'stock' %}" style="color:grey;">해외선물</a>
-        </li>
-      </ul>
+    <ul class="nav" style="display:inline-flex">
+      <li class="nav-item {% if activate == 'futures' %}active {% endif %}">
+        <a class="nav-link" href="" style="color:grey;">Futures</a>
+      </li>
+      <li class="nav-item {% if activate == 'stock' %}active {% endif %}">
+        <a class="nav-link" href="" style="color:grey;">Stock/ETF</a>
+      </li>
+    </ul>
     </div>
-    <div style="color:white;display:inline;margin:0 auto;" id="top-quote">  </div>
+    <div style="color:white;display:inline;margin:0 auto;" id="header"></div>
     <div style="float:right;">
         <a class="btn btn-outline-success" href="/admin" target="_blank">Admin</a>
         <a class="btn btn-outline-success" href="/logout">Logout</a>
     </div>
-       
   </nav>
+  
   <main role="main" class="container-fluid" style="margin-top:60px;">
     {% block content1 %}{% endblock content1 %}
     {% block content2 %}{% endblock content2 %}

@@ -9,25 +9,26 @@ const gettime = function(){
 }
 
 setInterval(() => {
-    $('#top-quote').text(gettime().toLocaleString('kr-KR'));
+    $('#header').text(gettime().toLocaleString('kr-KR'));
 }, 1000);
 
 //서버 메세지 로그
-  const log = function(msg){
+const log = function(msg){
     logs.push(msg);
     logs = logs.slice(-10);
     $('#log').html(logs.join('<br/>'));
 }
 
 //엑세스 토큰 발행
-let query = "?action=get_access_token"
-$.get( url+query, function( data ) {
-      if (data.success){
-        log("엑세스 토큰 발행 성공")
-      } else {
-        log("엑세스 토큰 발행 실패");
-      }
+
+$.get( url+"?action=get_access_token", function( data ) {
+  if (data.success){
+       log("엑세스 토큰 발행 성공")
+  } else {
+       log("엑세스 토큰 발행 실패");
+  }
 });
+
 
 // 관심종목 화면
 (function favorites(){
