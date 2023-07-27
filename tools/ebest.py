@@ -108,9 +108,10 @@ class Stock:
     
     def entries(self):
         """ 보유 종목 """
+        self.get_access_token()
+
         path="stock/accno"
         url = f"{self.baseurl}/{path}"
-        
         headers = {  
             "content-type":"application/json; charset=utf-8", 
             "authorization": f"Bearer {self.access_token}",
@@ -129,18 +130,15 @@ class Stock:
         }
 
         res = requests.post(url, headers=headers, data=json.dumps(body))
-        data = res.json().get("CIDBQ02400OutBlock2")
+        data = res.json().get("t0424OutBlock1")
         while res.headers['tr_cont'] == "Y":
             time.sleep(1) #초당 전송수: 1초당 1건
             headers['tr_cont'] = "Y"
             headers['tr_cont_key'] = res.headers['tr_cont_key']
             res = requests.post(url, headers=headers, data=json.dumps(body))
-            data += res.json()["CIDBQ02400OutBlock2"]
+            data += res.json()["t0424OutBlock1"]
         
         return data
-
-
-        
 
 
 

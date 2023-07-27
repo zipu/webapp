@@ -3,7 +3,7 @@
 {% block content1 %}
 
 <div class="row">
-  <table>
+  <table class="table">
     <colgroup> 
       {% for i in "x"|rjust:"100" %}
       <col style="width:1%;"/>
@@ -11,11 +11,20 @@
     </colgroup> 
     <tbody>
       <tr>
-        <td colspan=8>보유종목</td>
-        <td colspan=8>관심종목</td>
-        <td colspan=8>ETF</td>
-        <td colspan=16></td>
-        <th colspan=60 id="chart-title"></td>
+        <td colspan=40>
+          <ul class="nav nav-tabs" id="tabs">
+            <li class="nav-item">
+              <a class="nav-link" id="entries-tab" onclick="items('entries-tab');" style="cursor:pointer">보유</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="favorites-tab" onclick="items('favorites-tab');" style="cursor:pointer">관심</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="etf-tab" onclick="items('etf-tab');"  style="cursor:pointer">ETF</a>
+            </li>
+            </li>
+          </ul>
+        </td>
       </tr>
       <tr>
         <td colspan=40 style='padding:0;vertical-align:baseline;'>

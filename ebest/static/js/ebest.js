@@ -1,6 +1,17 @@
 const url = $(location).attr('href');
 var logs = [];
 
+/* 인터페이스 관련 */
+// 종목 tab 활성화
+const activateTab = function(id){
+  $('#tabs > li > a').each(function(i,a){
+    if (a.id == id) { $(a).addClass('active');}
+    else { $(a).removeClass('active'); }
+  })
+};
+activateTab('entries-tab');
+
+
 //시계
 const gettime = function(){
     ctime = new Date();
@@ -28,6 +39,18 @@ $.get( url+"?action=get_access_token", function( data ) {
        log("엑세스 토큰 발행 실패");
   }
 });
+
+//보유종목 현황
+const items = function(tabid){
+  activateTab(tabid);
+  if (abid == 'entries-tab'){
+    let query = "?action=entries";
+    
+
+  }
+  
+
+};
 
 
 // 관심종목 화면
@@ -123,5 +146,3 @@ const chartdata = function(shcode){
 };
 
 
-
-  
