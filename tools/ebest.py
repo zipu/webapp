@@ -24,41 +24,35 @@ class Stock:
         self.token_issued_time = None
 
     def get_access_token(self):
-        path = "oauth2/token"
-        url = f"{self.baseurl}/{path}"
-        header = {"content-type":"application/x-www-form-urlencoded"}
-        body = {
-            "appkey": self.appkey,
-            "appsecretkey": self.appsecretkey,
-            "grant_type":"client_credentials",
-            "scope":"oob"
-        }
-        res = requests.post(url, headers=header, data=body)
-        if res.ok:
-            self.access_token = res.json()['access_token']
-            self.token_issued_time = time.time()
-            print("*로그인성공*")
-            #print("*연결계좌: 국내주식")
-            #print(f"*접속주소: {self.baseurl}")
-            return True
-        else: 
-            print(res.text)
-            return False
-    
-    def update_access_token(self):
-        """ 액세스 토큰 12시간마다 갱신 """
+        """ 엑세스 토큰 발행 및 갱신"""
         if not self.token_issued_time or (time.time()-self.token_issued_time)/(60*60) > 12:
-            if self.get_access_token():
-                print("토큰 갱신 성공")
+            path = "oauth2/token"
+            url = f"{self.baseurl}/{path}"
+            header = {"content-type":"application/x-www-form-urlencoded"}
+            body = {
+                "appkey": self.appkey,
+                "appsecretkey": self.appsecretkey,
+                "grant_type":"client_credentials",
+                "scope":"oob"
+            }
+            res = requests.post(url, headers=header, data=body)
+            if res.ok:
+                self.access_token = res.json()['access_token']
+                self.token_issued_time = time.time()
+                print("*로그인성공*")
+                #print("*연결계좌: 국내주식")
+                #print(f"*접속주소: {self.baseurl}")
                 return True
-            else:
-                print("토큰 갱신 실패")
+            else: 
+                print(res.text)
                 return False
+        
+        return True
     
     def favorites(self):
         """ 멀티 현재가 조회 """
         # 토큰 만기 조회
-        self.update_access_token()
+        self.get_access_token()
 
         path = "stock/market-data"
         url = f"{self.baseurl}/{path}"
@@ -85,7 +79,7 @@ class Stock:
     def chart(self, shcode):
         """ 주식차트(일주월년)"""
         # 토큰 만기 조회
-        self.update_access_token()
+        self.get_access_token()
 
         path = "stock/chart"
         url = f"{self.baseurl}/{path}"
@@ -111,6 +105,39 @@ class Stock:
 
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
+    
+    def entries(self):
+        """ 보유 종목 """
+        path="stock/accno"
+        url = f"{self.baseurl}/{path}"
+        
+        headers = {  
+            "content-type":"application/json; charset=utf-8", 
+            "authorization": f"Bearer {self.access_token}",
+            "tr_cd":"t0424", 
+            "tr_cont":"N",
+            "tr_cont_key":"",
+        }
+        body = {
+                "t0424InBlock": {
+                "prcgb": "",
+                "chegb": "",
+                "dangb": "",
+                "charge": "",
+                "cts_expcode": ""
+            }
+        }
+
+        res = requests.post(url, headers=headers, data=json.dumps(body))
+        data = res.json().get("CIDBQ02400OutBlock2")
+        while res.headers['tr_cont'] == "Y":
+            time.sleep(1) #초당 전송수: 1초당 1건
+            headers['tr_cont'] = "Y"
+            headers['tr_cont_key'] = res.headers['tr_cont_key']
+            res = requests.post(url, headers=headers, data=json.dumps(body))
+            data += res.json()["CIDBQ02400OutBlock2"]
+        
+        return data
 
 
         
