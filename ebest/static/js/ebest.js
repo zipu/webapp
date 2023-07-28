@@ -201,6 +201,22 @@ function favorites(){
 //차트화면
 // create the chart
 var chart = Highcharts.stockChart('chart', {
+  yAxis: [{
+      labels: {
+          align: 'left'
+      },
+      height: '85%',
+      resize: {
+          enabled: true
+      }
+  }, {
+      labels: {
+          align: 'left'
+      },
+      top: '85%',
+      height: '15%',
+      offset: 0
+  }],
   rangeSelector: {
       selected: 1
   },
@@ -212,6 +228,7 @@ var chart = Highcharts.stockChart('chart', {
         upLineColor: 'red',
     }
   },
+  navigator: { enabled: false },
   series: [{
       type: 'candlestick',
       dataGrouping: {
@@ -222,7 +239,20 @@ var chart = Highcharts.stockChart('chart', {
                 [1] // allowed multiples
             ]
         ]
-    }
+      }
+    },{
+      type: 'column',
+      yAxis: 1,
+      color: 'grey',
+      dataGrouping: {
+        enabled: false,
+        units: [
+            [
+                'week', // unit name
+                [1] // allowed multiples
+            ]
+        ]
+      }
   }]
 });
 
@@ -234,13 +264,15 @@ const chartdata = function(shcode){
     if (data.success){
       log("차트데이터 불러오기 성공");
       let quotes = []
+      let volume = []
       for (quote of data.data){
         date = new Date(quote.date.slice(0,4)+'/'+quote.date.slice(4,6)+'/'+quote.date.slice(6));
         timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
         quotes.push([timestamp, quote.open, quote.high, quote.low, quote.close]);
+        volume.push([timestamp, quote.value])
       };
-      console.log(quotes)
       chart.series[0].update({data: quotes, name:name});
+      chart.series[1].update({data: volume, name:'거래량'});
       $("#chart-title").text(name);
       
     } else {
@@ -264,7 +296,7 @@ const sector_chart = function(shcode){
         timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
         quotes.push([timestamp, parseFloat(quote.open), parseFloat(quote.high), parseFloat(quote.low), parseFloat(quote.close)]);
       };
-      console.log(quotes);
+      if (chart.series.length > 1) { chart.series[1].remove(false);};
       chart.series[0].update({data: quotes, name:name});
       $("#chart-title").text(name);
       
