@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import JsonResponse
 
-from tools import ebest
-Ebest = ebest.Stock()
+from .api import stockapi
+Ebest = stockapi()
 
 def is_ajax(request):
   """ 들어온 request 가 ajax인지 아닌지 확인"""
@@ -19,97 +19,13 @@ class EbestStockView(TemplateView):
            action = request.GET.get('action')
            params = request.GET.get('params')
            if params:
-            return getattr(self, action)(params)
+            return getattr(Ebest, action)(params)
            else:
-            return getattr(self, action)()
+            return getattr(Ebest, action)()
         
         
       context = self.get_context_data()
        
       return render(request, EbestStockView.template_name, context=context)
     
-   def get_access_token(self):
-      if Ebest.get_access_token():
-          data = {
-             'success': True,
-             'server_url': Ebest.baseurl,
-          }
-      else:
-          data = {
-             'success': False,
-          }
-      return JsonResponse(data, safe=False)
-    
-
-   def product_list(self):
-      res = Ebest.all_stocks()
-      if res.ok:
-          res.json()['t9945OutBlock']
-          
-          data = {
-             'success': True,
-             'products': [i for i in res.json()['t9945OutBlock'] if i['etfchk']=='1'],
-             'msg': res.json()['rsp_msg']
-          }
-      else:
-          data = {
-             'success': False,
-             'msg': res.json()['rsp_msg']
-          }
-      return JsonResponse(data, safe=False)
-    
-   def favorites(self):
-      res = Ebest.favorites()
-      if res.ok:
-          data = {
-             'success': True,
-             'data': res.json()['t8407OutBlock1'],
-             'msg': res.json()['rsp_msg']
-          }
-      else:
-          data = {
-             'success': False,
-             'msg': res.json()['rsp_msg']
-          }
-      return JsonResponse(data, safe=False)
-
-   def chartdata(self, shcode):
-      res = Ebest.chart(shcode)
-      if res.ok:
-         data = {
-             'success': True,
-             'data': res.json()['t8410OutBlock1'],
-             'msg': res.json()['rsp_msg']
-          }
-      else:
-          data = {
-             'success': False,
-             'msg': res.json()['rsp_msg']
-          }
-      return JsonResponse(data, safe=False)
    
-   def entries(self):
-      res = Ebest.entries()
-      if res:
-         entries = []
-         for entry in res:
-            entries.append({
-               'expcode': entry['expcode'], #종목번호
-               'hname': entry['hname'], #종목명
-               'entryprice': entry['pamt'], #평균단가
-               'quantity': entry['janqty'], #잔고수량
-               'price': entry['price'], #현재가
-            })
-
-         data = {
-             'success': True,
-             'data': entries,
-             'msg': "잔고조회 성공"
-          }
-      else:
-          data = {
-             'success': False,
-             'msg': "잔고조회 실패"
-          }
-      return JsonResponse(data, safe=False)
-      

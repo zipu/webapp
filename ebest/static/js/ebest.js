@@ -30,15 +30,6 @@ const log = function(msg){
     $('#log').html(logs.join('<br/>'));
 }
 
-//엑세스 토큰 발행
-
-$.get( url+"?action=get_access_token", function( data ) {
-  if (data.success){
-       log("엑세스 토큰 발행 성공")
-  } else {
-       log("엑세스 토큰 발행 실패");
-  }
-});
 
 //종목 현황
 const itemScreen = function(tabid){
@@ -46,18 +37,19 @@ const itemScreen = function(tabid){
   clearInterval(realtime);
 
   if (tabid == 'entries-tab'){
+    $('#item-screen > thead').html('')
+    $('#item-screen > tbody').html('')
     $('#item-screen > thead').append(`
-      <tr>
-        <td style='width:30%'> 종목 </td>
-        <td style='width:20%'> 매입가 </td>
-        <td style='width:10%'> 수량 </td>
-        <td style='width:20%'> 현재가 </td>
-        <td style='width:20%'> 대비 </td>
+      <tr style='font-size:0.8em'>
+        <th style='width:30%'> 종목 </th>
+        <th style='width:20%'> 매입가 </th>
+        <th style='width:10%'> 수량 </th>
+        <th style='width:20%'> 현재가 </th>
+        <th style='width:20%'> 대비 </th>
       </tr>
       `);
     
-    let query = "?action=entries";
-    $.get( url+query, function( data ) {
+    $.get( url+"?action=entries", function( data ) {
       if (data.success){
         log(data.msg);
         for (item of data.data){
@@ -76,7 +68,7 @@ const itemScreen = function(tabid){
           $('#item-screen > tbody').append(tr);
         };
         realtime = setInterval(() => {
-          $.get( url+query, function( data ) {
+          $.get( url+"?action=entries", function( data ) {
             if (data.success){
               for (item of data.data){
                 diff = parseInt(item.price) - parseInt(entryprice)
@@ -93,16 +85,83 @@ const itemScreen = function(tabid){
         }, 1000);
       };
     });
-  }; //잔고 화면 끝.
+  } //잔고 화면 끝.
+  //ETF 화면
+  else if (tabid == 'etf-tab'){
+    $('#item-screen > thead').html('')
+    $('#item-screen > tbody').html('')
+    $('#item-screen > thead').append(`
+      <tr style='font-size:0.8em';>
+        <th style='width:40%'> 종목 </th>
+        <th style='width:20%'> 현재가 </th>
+        <th style='width:10%'> 대비 </th>
+        <th style='width:10%'> 등락률 </th>
+        <th style='width:20%'> 거래량 </th>
+      </tr>
+      `);
+    
+    $.get( url+"?action=etf", function( data ) {
+      if (data.success){
+        log("ETF 불러오기 성공")
+        for (item of data.data){
+          item.sign == '2' ? sign='+' : sign='-';
+          item.sign == '2' ? color='red' : color='blue';
+          let tr = `<tr id=${item.shcode} onclick="chartdata('${item.shcode}');">
+                        <td style="width:40%">${item.hname}</td>
+                        <td style="width:20%;color:${color}">${parseInt(item.price).toLocaleString('en-US')}</td>
+                        <td style="width:10%;color:${color}">${sign+parseInt(item.change).toLocaleString('en-US')}</td>
+                        <td style="width:10%;color:${color}">${item.diff}</td>
+                        <td style="width:20%">${parseInt(item.volume).toLocaleString('en-US')}</td>
+                    </tr>`
+          $('#item-screen > tbody').append(tr);
+        };
+        realtime = setInterval(() => {
+          $.get( url+"?action=etf", function( data ) {
+            if (data.success){
+              for (item of data.data){
+                item.sign == '2' ? sign='+' : sign='-';
+                item.sign == '2' ? color='red' : color='blue';
+                $(`#${item.shcode} td:nth-child(2)`).text(parseInt(item.price).toLocaleString('en-US'));
+                $(`#${item.shcode} td:nth-child(2)`).css('color',color)
+                $(`#${item.shcode} td:nth-child(3)`).text(sign+parseInt(item.change).toLocaleString('en-US'));
+                $(`#${item.shcode} td:nth-child(3)`).css('color',color)
+                $(`#${item.shcode} td:nth-child(5)`).text(parseInt(item.volume).toLocaleString('en-US'));
+                $(`#${item.shcode} td:nth-child(4)`).text(item.diff);
+                $(`#${item.shcode} td:nth-child(4)`).css('color',color)
+              };
+              //log("업데이트..");
+            } 
+          });
+        }, 500);
+      }
+    });
+  } //etf 화면 끝.
+  // 업종 화면
+  else if (tabid == 'sectors-tab'){
+    $('#item-screen > thead').html('')
+    $('#item-screen > tbody').html('')
+    
+    $.get( url+"?action=sector_list", function( data ) {
+      if (data){
+        log("업종 목록 불러오기 성공")
+        for (item of data){
+          let tr = `<tr>
+                        <td style="width:50%" id='${item[0].upcode}' onclick="sector_chart('${item[0].upcode}');">${item[0].hname}</td>
+                        <td style="width:50%" id='${item[1].upcode}' onclick="sector_chart('${item[1].upcode}');">${item[1].hname}</td>
+                    </tr>`
+          $('#item-screen > tbody').append(tr);
+        };
+      }
+    });
+  }; //업종 화면 끝.
 };
 itemScreen('entries-tab'); //최초에 잔고
 
 
 
 // 관심종목 화면
-(function favorites(){
-  var query = "?action=favorites"
-  $.get( url+query, function( data ) {
+function favorites(){
+  $.get( url+"?action=favorites", function( data ) {
       if (data.success){
         log("관심종목 불러오기 성공")
         for (item of data.data){
@@ -118,7 +177,7 @@ itemScreen('entries-tab'); //최초에 잔고
           $('#favorites').append(tr);
         };
         setInterval(() => {
-          $.get( url+query, function( data ) {
+          $.get( url+"?action=favorites", function( data ) {
             if (data.success){
               for (item of data.data){
                 item.sign == '2' ? sign='+' : sign='-';
@@ -137,7 +196,7 @@ itemScreen('entries-tab'); //최초에 잔고
         favorites();
       }
   });
-})();
+}
 
 //차트화면
 // create the chart
@@ -180,6 +239,7 @@ const chartdata = function(shcode){
         timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
         quotes.push([timestamp, quote.open, quote.high, quote.low, quote.close]);
       };
+      console.log(quotes)
       chart.series[0].update({data: quotes, name:name});
       $("#chart-title").text(name);
       
@@ -190,5 +250,31 @@ const chartdata = function(shcode){
 
   });
 };
+
+//업종차트
+const sector_chart = function(shcode){
+  let query = `?action=sector_chart&params=${shcode}`
+  let name = $(`#${shcode}`).text();
+  $.get( url+query, function( data ) {
+    if (data.success){
+      log("차트데이터 불러오기 성공");
+      let quotes = []
+      for (quote of data.data){
+        date = new Date(quote.date.slice(0,4)+'/'+quote.date.slice(4,6)+'/'+quote.date.slice(6));
+        timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+        quotes.push([timestamp, parseFloat(quote.open), parseFloat(quote.high), parseFloat(quote.low), parseFloat(quote.close)]);
+      };
+      console.log(quotes);
+      chart.series[0].update({data: quotes, name:name});
+      $("#chart-title").text(name);
+      
+    } else {
+      log("차트데이터 불러오기 실패")
+      console.log(data.data)
+    }
+
+  });
+};
+
 
 

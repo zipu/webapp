@@ -8,6 +8,7 @@ media_dev/
 */__pycache__/
 
 tools/currencyrates/
+tools/ebest/secrets.json
 
 secrets.json
 credentials.json

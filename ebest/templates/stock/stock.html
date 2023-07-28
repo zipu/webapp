@@ -22,14 +22,17 @@
             <li class="nav-item">
               <a class="nav-link" id="etf-tab" onclick="itemScreen('etf-tab');"  style="cursor:pointer">ETF</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" id="sectors-tab" onclick="itemScreen('sectors-tab');"  style="cursor:pointer">업종</a>
             </li>
           </ul>
         </td>
+        <td colspan=60 id='chart-title'></td>
       </tr>
       <tr>
         <td colspan=40 style='padding:0;vertical-align:baseline;'>
           <table  class="table table-sm table-striped" id='item-screen'
-                  style="width:100%;margin: 0;border:1px solid black;display:block;max-height:300px;height:300px;overflow:auto;">
+                  style="width:100%;margin: 0;border:1px solid black;display:block;height:400px;overflow:auto;">
             <thead style='display:table;width:100%;'></thead>
             <tbody style="display:table; width:100%;"></tbody>
           </table>

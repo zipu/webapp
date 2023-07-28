@@ -18,10 +18,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 import statistics 
 
-from tools import ebest
-
-
-
+from tools.ebest.futures import Futures
 
 
 class UpdateView(TemplateView):
@@ -376,103 +373,6 @@ class FuturesTradeView(TemplateView):
 
         return redirect('futurestrade', page=1)
 
-class TransactionView2(TemplateView):
-    template_name = "trading/futures/transaction.html"
-
-    def get(self, request, *args, **kwargs):
-        if request.GET.get('currency'):
-            Currency.update()
-        
-        if request.GET.get('create_trades'):
-            FuturesTrade.create_trades()
-
-        context = self.get_context_data()
-        context['active'] = 'transaction'
-        context['currencies'] = Currency.objects.all()
-        
-        transactions = Transaction.objects.order_by('-date')
-        paginate_by = 20 # 페이지당 30개
-        cnt = transactions.count()
-        num_pages = int(cnt/paginate_by)+1
-        page = kwargs['page']
-        obj_start = (page-1)*paginate_by
-        obj_end = obj_start + paginate_by
-        context['transactions'] = transactions.all()[obj_start:obj_end]
-
-        context['is_paginated'] = True if num_pages > 1 else False
-        pages = [ i for i in range(1,num_pages+1) ] 
-        ranges = [[i for i in range(k,k+10) if i <= pages[-1]] for k in pages[::10]]
-        rng = [k for k in ranges if page in k][0]
-
-        context['page_obj']={
-            'page': page,
-            'num_page': num_pages,
-            'previous': page-1,
-            'next': page+1,
-            'rng': rng
-        }
-        return render(request, TransactionView.template_name, context=context)
-
-    def post(self, request, *args, **kwargs):
-        # 체결기록 등록
-        
-        file_data = csv.reader(request.FILES['file'].read().decode("cp949").splitlines())
-        for l, line in enumerate(file_data):
-            if l < 2:
-                continue
-            # 중복 신청시 코등 안보임 해결
-            if not line[4]:
-                line[4] = symbol
-            else:
-                symbol = line[4]
-            date = datetime.strptime(line[19], "%Y-%m-%d %H:%M:%S" )
-            transactions = []
-            if not Transaction.objects.filter(date=date, ebest_id=line[3]):
-                num_cons = int(line[14])
-                # 체결 수량 1개당 한개의 transaction으로 함
-                if '_' in symbol:
-                    tradetype = 'Option'
-                    code = symbol.split('_')[0][:-3]
-                    filter = FuturesInstrument.objects.filter(option_codes__contains=code)
-                    if not filter:
-                        raise LookupError(f"No Futures Instrument contains option code: {code}")
-                    
-                    else: 
-                        instrument = filter[0]
-
-                elif '-' in symbol:
-                    tradetype = 'Spread'
-                
-                else:
-                    tradetype = 'Futures'
-                    instrument = FuturesInstrument.objects.get(symbol=symbol[:-3])
-                
-                for i in range(int(line[14])):
-                    #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
-                    if tradetype == 'Option' and not line[13]:
-                        price = 0
-                    #elif tradetype == 'Option' and line[13]:
-                    #    price = instrument.convert_to_decimal(line[13].replace(',',''))
-                    else:
-                        price = instrument.convert_to_decimal(line[13].replace(',',''))
-
-                    transactions.append(Transaction(
-                        instrument = instrument,
-                        type = tradetype,
-                        order_id = line[1],
-                        ebest_id = line[3],
-                        ebest_code = line[4],
-                        date = date,
-                        position = 1 if line[12]=="매수" else -1,
-                        price = price,
-                        commission = float(line[16])/num_cons or 0
-                    ))
-            Transaction.objects.bulk_create(transactions)
-        # 거래 기록 생성
-        #FuturesTrade.add_transactions()
-        return redirect('transaction', page=1)
-    
-
 class TransactionView(TemplateView):
     template_name = "trading/futures/transaction.html"
 
@@ -514,11 +414,13 @@ class TransactionView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         # 체결기록 등록
-        api = ebest.OverseasFutures()
-        res = api.login()
-        if res.ok:
+        api = Futures()
+        
+        if api.get_access_token():
             start = Transaction.objects.order_by('-date').first().date.strftime('%Y%m%d')
             new_transactions = api.transactions(start=start)
+        else:
+            new_transactions = []
         
         for transaction in new_transactions:
             # 중복 신청시 코등 안보임 해결
