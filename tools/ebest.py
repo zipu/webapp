@@ -49,15 +49,15 @@ class Stock:
         
         return True
     
-    def favorites(self):
+    def etf(self):
         """ 멀티 현재가 조회 """
         # 토큰 만기 조회
         self.get_access_token()
 
         path = "stock/market-data"
         url = f"{self.baseurl}/{path}"
-        num = len(self.secret['FAVORITES'])
-        codes = ''.join(self.secret['FAVORITES'])
+        num = len(self.secret['ETF'])
+        codes = ''.join(self.secret['ETF'])
 
         headers = {
             "content-type":"application/json; charset=UTF-8",
@@ -75,6 +75,7 @@ class Stock:
 
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
+    
     
     def chart(self, shcode):
         """ 주식차트(일주월년)"""
