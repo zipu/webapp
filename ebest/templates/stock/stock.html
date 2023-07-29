@@ -1,7 +1,6 @@
 {% extends "base.html"%}
 {% load humanize %}
 {% block content1 %}
-
 <div class="row">
   <table class="table" id='body-table'>
     <colgroup> 
@@ -27,7 +26,9 @@
             </li>
           </ul>
         </td>
-        <td colspan=60 id='chart-title'></td>
+        <td colspan=60 rowspan=2 style="max-width:500px;height:600px;">
+          <div id="chart" style='height:600px;'></div>
+        </td>
       </tr>
       <tr>
         <td colspan=40 style='padding:0;vertical-align:baseline;'>
@@ -37,9 +38,7 @@
             <tbody style="display:table; width:100%;"></tbody>
           </table>
         </td>
-        <td colspan=60 style="max-width:500px;height:600px;">
-          <div id="chart" style='height:600px;'></div>
-        </td>
+        
       </tr>
       <tr>
         <td colspan=40 > <div id='currencyrate' style="width: 100%; height: 300px;"></div></td>
@@ -163,51 +162,6 @@ var chart = Highcharts.stockChart('chart', {
                 enableMouseTracking: false,
                 states: {inactive: { opacity: 0.1 } }
             }]
-});
-
-// 2. 투자자별 매매동향 차트 (안씀)
-var cot_chart = Highcharts.chart('cDot', {
-  credits: {
-    enabled: false,
-    
-  },
-  chart: {
-    height: 200,
-  },
-  title: {
-      text: '',
-  },
-  xAxis: {
-    type: 'datetime'
-  },
-  yAxis:{
-    title:'',
-    opposite:true,
-  },
-  plotOptions: {
-    series: {
-        lineWidth: 2,
-        states: {
-                hover: {
-                    enabled: false
-                }
-        }
-    }
-  },
-  legend: {
-    verticalAlign: 'top',
-  },
-  series: [{
-        name: '개인',
-    }, {
-        name: '기관',
-    }, {
-        name: '외인',
-    }, {
-        name: '프로그램',
-    }, {
-        name: '공매도',
-    }]
 });
 
 // 3. 환율차트 

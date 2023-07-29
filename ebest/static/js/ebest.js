@@ -220,7 +220,7 @@ const chartdata = function(shcode){
       };
       chart.series[0].update({data: quotes, name:name});
       chart.series[1].update({data: volume, name:'거래량'});
-      $("#chart-title").text(name);
+      chart.setTitle({'text':name});
 
       //COT 차트 불러오기
       COT(shcode);
@@ -246,9 +246,12 @@ const sector_chart = function(shcode){
         timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
         quotes.push([timestamp, parseFloat(quote.open), parseFloat(quote.high), parseFloat(quote.low), parseFloat(quote.close)]);
       };
-      if (chart.series.length > 1) { chart.series[1].remove(false);};
+      chart.series.slice(1).forEach( series => {
+          series.update({data:[]});
+      });
+
       chart.series[0].update({data: quotes, name:name});
-      $("#chart-title").text(name);
+      chart.setTitle({'text':name});
       
     } else {
       log("차트데이터 불러오기 실패")
