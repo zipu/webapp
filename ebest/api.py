@@ -26,8 +26,8 @@ class stockapi:
           }
       return JsonResponse(data, safe=False)
 
-   def chartdata(self, shcode):
-      res = self.ebest.chart(shcode)
+   def stockchart(self, shcode, period):
+      res = self.ebest.chart(shcode,period)
       if res.ok:
          data = {
              'success': True,
@@ -71,31 +71,35 @@ class stockapi:
       
       res = self.ebest.sector_list().json()['t8424OutBlock']
       kospi = []
+      kp200 = []
       kosdaq = []
       for item in res:
-         if item['upcode'][0] in ['0','1']:
+         if item['upcode'][0] == '0':
             kospi.append(item)
+         elif item['upcode'][0] == '1':
+            kp200.append(item)
          elif item['upcode'][0] == '3':
             kosdaq.append(item)
          
-      data = list(zip_longest(kospi, kosdaq,\
+      data = list(zip_longest(kospi,kp200, kosdaq,\
                               fillvalue={"hname":"", "upcode":""}))
       return JsonResponse(data, safe=False)
    
-   def sector_chart(self, shcode):
-      res = self.ebest.sector_chart(shcode)
+   def sector_chart(self, shcode, period):
+      res = self.ebest.sector_chart(shcode, period)
       if res.ok:
-         data = {
+
+         response = {
              'success': True,
              'data': res.json()['t8419OutBlock1'],
              'msg': res.json()['rsp_msg']
           }
       else:
-          data = {
+          response = {
              'success': False,
              'msg': res.json()['rsp_msg']
           }
-      return JsonResponse(data, safe=False)
+      return JsonResponse(response, safe=False)
    
    def get_currency_rate(self):
       path = os.path.join(BASEDIR, 'tools','currencyrates')
@@ -103,7 +107,7 @@ class stockapi:
       for currency in currencyrates.keys():
          filename  =os.path.join(path, f"{currency}.csv")
          with open(filename, 'r') as f:
-            currencyrates[currency]=list(csv.reader(f))[-24*60:] #최근 3개월 정도만.
+            currencyrates[currency]=list(csv.reader(f))[-24*365:] #최근 1년 정도만.
       return JsonResponse(currencyrates, safe=False)
    
 
@@ -113,8 +117,28 @@ class stockapi:
       if res.ok:
          data = []
          for day in reversed(res.json()['t1716OutBlock']):
-            data.append([day['date'], day['krx_0008'], day['krx_0018'], day['krx_0009'],\
+            data.append([day['date'], day['krx_0008'], day['krx_0018'],\
             day['fsc_0009'], day['pgmvol'], day['gm_volume']])
+         
+         response = {
+             'success': True,
+             'data': data,
+             'msg': res.json()['rsp_msg']
+         }
+      else: 
+         response = {
+             'success': False,
+             'msg': res.json()['rsp_msg']
+         }
+      return JsonResponse(response, safe=False)
+   
+   def market_COT(self, shcode):
+      # 기관/외국인 매매 동향
+      res = self.ebest.market_COT(shcode)
+      if res.ok:
+         data = []
+         for day in reversed(res.json()['t1665OutBlock1']):
+            data.append([day['date'], day['sv_08'], day['sv_18'], day['sv_17'], day['sv_11']])
          
          response = {
              'success': True,

@@ -19,7 +19,8 @@ class EbestStockView(TemplateView):
            action = request.GET.get('action')
            params = request.GET.get('params')
            if params:
-            return getattr(Ebest, action)(params)
+            args = params.split(',')
+            return getattr(Ebest, action)(*args)
            else:
             return getattr(Ebest, action)()
         

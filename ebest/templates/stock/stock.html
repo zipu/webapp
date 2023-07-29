@@ -26,8 +26,15 @@
             </li>
           </ul>
         </td>
-        <td colspan=60 rowspan=2 style="max-width:500px;height:600px;">
-          <div id="chart" style='height:600px;'></div>
+        <td colspan=60>
+          <div style="float:right;">
+            <button id='chart-period-day'>일</button>
+            <button id='chart-period-week'>주</button>
+            <button id='chart-period-month'>월</button>
+            <button>1분</button>
+            <button>5분</button>
+            <button>1시</button>
+          </div>
         </td>
       </tr>
       <tr>
@@ -38,7 +45,9 @@
             <tbody style="display:table; width:100%;"></tbody>
           </table>
         </td>
-        
+        <td colspan=60 style="max-width:500px;height:600px;">
+          <div id="chart" style='height:600px;'></div>
+        </td>
       </tr>
       <tr>
         <td colspan=40 > <div id='currencyrate' style="width: 100%; height: 300px;"></div></td>

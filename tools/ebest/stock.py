@@ -67,8 +67,11 @@ class Stock:
         
         return True
     
-    def chart(self, shcode):
-        """ 주식차트(일주월년)"""
+    def chart(self, shcode, period):
+        """ 주식차트(일주월년)
+            period: 2=일, 3=주, 4=월
+        """
+
         # 토큰 만기 조회
         self.get_access_token()
 
@@ -84,7 +87,7 @@ class Stock:
         body = {
                 "t8410InBlock" : {
                     "shcode" : shcode,
-                    "gubun" : "2",
+                    "gubun" : period,
                     "qrycnt" : 500,
                     "sdate" : "",
                     "edate" : datetime.today().strftime("%Y%m%d"),
@@ -183,7 +186,7 @@ class Stock:
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
     
-    def sector_chart(self, shcode):
+    def sector_chart(self, shcode, period):
         """ 업종차트"""
         # 토큰 만기 조회
         self.get_access_token()
@@ -200,7 +203,7 @@ class Stock:
         body = {
             "t8419InBlock": {
                 "shcode": shcode,
-                "gubun": "2",
+                "gubun": period,
                 "qrycnt": 500,
                 "sdate": " ",
                 "edate": "99999999",
@@ -239,6 +242,36 @@ class Stock:
                     "orggubun" : "0",
                     "frggubun" : "0"
                 }
+        }
+
+        res = requests.post(url, headers=headers, data=json.dumps(body))
+        return res
+    
+    def market_COT(self, shcode):
+        """ 업종별 기관/외인  매매 동향"""
+        # 토큰 만기 조회
+        self.get_access_token()
+        today = datetime.today()
+        start = today - timedelta(days=500)
+
+        path = "stock/chart"
+        url = f"{self.baseurl}/{path}"
+        headers = {
+            "content-type":"application/json; charset=UTF-8",
+            "authorization": f"Bearer {self.access_token}",
+            "tr_cd":"t1665", 
+            "tr_cont":"N",
+            "tr_cont_key":"",
+        }
+        body = {
+            "t1665InBlock" : {
+                "market" : shcode[0],
+                "upcode" : shcode,
+                "gubun2" : "2",
+                "gubun3" : "1",
+                "from_date" : start.strftime("%Y%m%d"),
+                "to_date" : today.strftime("%Y%m%d")
+            }
         }
 
         res = requests.post(url, headers=headers, data=json.dumps(body))
