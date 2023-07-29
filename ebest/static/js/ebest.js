@@ -330,11 +330,11 @@ const COT = function(shcode){
         short_sellers.push([timestamp, item[5]-initials[5]]);
         programs.push([timestamp, item[4]-initials[4]]);
       };
-      chart.series[2].update({data: indivisuals});
-      chart.series[3].update({data: institutions});
-      chart.series[4].update({data: foreigners});
-      chart.series[5].update({data: programs});
-      chart.series[6].update({data: short_sellers});
+      chart.series[2].update({data: indivisuals, name:'개인'});
+      chart.series[3].update({data: institutions, name:'기관'});
+      chart.series[4].update({data: foreigners, name:'외인'});
+      chart.series[5].update({data: programs , name:'프로그램'});
+      chart.series[6].update({data: short_sellers, name:'공매도'});
 
     } else {
       log("투자자별 매매 동향 불러오기 실패")
@@ -366,9 +366,9 @@ const market_COT = function(shcode){
         foreigners.push([timestamp, item[3]-initials[3]]);
         countries.push([timestamp, item[4]-initials[4]]);
       };
-      chart.series[2].update({data: indivisuals});
-      chart.series[3].update({data: institutions});
-      chart.series[4].update({data: foreigners});
+      chart.series[2].update({data: indivisuals, name:'개인'});
+      chart.series[3].update({data: institutions, name:'기관'});
+      chart.series[4].update({data: foreigners, name:'외인'});
       chart.series[5].update({data: countries, name:'국가'});
       chart.series[6].update({data:'', name:''})
     } else {
