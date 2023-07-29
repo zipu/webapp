@@ -1,9 +1,11 @@
-
-
 #body-table,
 #body-table > tbody> tr > td,
 #body-table > tbody > tr > th {
     text-align: center;
     vertical-align: middle;
     border: 1px solid black;
+}
+
+#item-screen > tbody > tr {
+    cursor: default;
 }

@@ -1,7 +1,7 @@
 import requests, os
 from csv import writer
 
-currencies = ["USD","EUR","CNY","JPY","HDK"]
+currencies = ["USD","EUR","CNY","JPY","HKD"]
 querystring = ",".join([f"FRX.KRW{currency}" for currency in currencies])
 url = f'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes={querystring}'
 response = requests.get(url)

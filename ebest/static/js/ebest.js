@@ -25,7 +25,8 @@ setInterval(() => {
 
 //서버 메세지 로그
 const log = function(msg){
-    logs.push(msg);
+    text = `[${gettime().toLocaleString()}] ${msg}`
+    logs.push(text);
     logs = logs.slice(-10);
     $('#log').html(logs.join('<br/>'));
 }
@@ -309,4 +310,60 @@ const sector_chart = function(shcode){
 };
 
 
+// 환율차트 
+var currency_chart = Highcharts.chart('currencyrate', {
+  title: {
+      text: '',
+  },
+  xAxis: {
+    type: 'datetime'
+  },
+  yAxis:{
+    title:''
+  },
+  tooltip: {
+    enabled: false
+  },
+  plotOptions: {
+    series: {
+        marker: {
+            enabled: false,
+            states: {
+                hover: {
+                    enabled: false
+                }
+            }
+        }
+    }
+  },
+  legend: {
+    verticalAlign: 'top',
+  },
+  series: [{
+        name: 'USD',
+    }, {
+        name: 'EUR',
+    }, {
+        name: 'JPY',
+    }, {
+        name: 'CNY',
+  }]
+});
 
+const get_currency_rates = function(){
+  $.get( url+'?action=get_currency_rate', function( data ) {
+    ['USD','EUR','JPY','CNY'].forEach( (name, i) => {
+      rates = []
+      initial  = parseFloat(data[name][0][2])//초기값
+      data[name].forEach(rate => {
+        date = new Date(rate[0]+'T'+rate[1]);
+        timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+        rates.push([timestamp, parseFloat(rate[2])/initial]);
+      });
+      currency_chart.series[i].update({data: rates, name:name});
+    })
+  });
+  log("환율 갱신")
+};
+get_currency_rates();
+setInterval(get_currency_rates, 60*60*1000); //한시간마다 갱신

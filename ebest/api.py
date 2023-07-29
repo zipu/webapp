@@ -1,7 +1,11 @@
-import json
+import os
+import json, csv
 from itertools import zip_longest
 from django.http import JsonResponse
 from tools.ebest.stock import Stock
+
+from django.conf import settings
+BASEDIR = settings.BASE_DIR
 
 class stockapi:
    def __init__(self):
@@ -92,3 +96,12 @@ class stockapi:
              'msg': res.json()['rsp_msg']
           }
       return JsonResponse(data, safe=False)
+   
+   def get_currency_rate(self):
+      path = os.path.join(BASEDIR, 'tools','currencyrates')
+      currencyrates = {'USD':[], 'EUR':[], 'JPY':[], 'CNY':[]}
+      for currency in currencyrates.keys():
+         filename  =os.path.join(path, f"{currency}.csv")
+         with open(filename, 'r') as f:
+            currencyrates[currency]=list(csv.reader(f))[-24*60:] #최근 3개월 정도만.
+      return JsonResponse(currencyrates, safe=False)
