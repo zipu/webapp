@@ -1,7 +1,7 @@
 import os
 import requests
 import json, time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 BASEDIR = os.path.dirname(__file__)
 def get_secret(setting):
@@ -208,5 +208,38 @@ class Stock:
                 "comp_yn": "N"
             }
         }
+        res = requests.post(url, headers=headers, data=json.dumps(body))
+        return res
+    
+    def COT(self, shcode):
+        """ 투자주체 (기관/외인 별 매매 동향)"""
+        # 토큰 만기 조회
+        self.get_access_token()
+        today = datetime.today()
+        start = today - timedelta(days=500)
+
+
+        path = "stock/frgr-itt"
+        url = f"{self.baseurl}/{path}"
+        headers = {
+            "content-type":"application/json; charset=UTF-8",
+            "authorization": f"Bearer {self.access_token}",
+            "tr_cd":"t1716", 
+            "tr_cont":"N",
+            "tr_cont_key":"",
+        }
+        body = {
+                "t1716InBlock" : {
+                    "shcode" : shcode,
+                    "gubun" : "1",
+                    "fromdt" : start.strftime("%Y%m%d"),
+                    "todt" : today.strftime("%Y%m%d"),
+                    "prapp" : 0,
+                    "prgubun" : "0",
+                    "orggubun" : "0",
+                    "frggubun" : "0"
+                }
+        }
+
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res

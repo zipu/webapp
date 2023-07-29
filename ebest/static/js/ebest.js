@@ -199,65 +199,11 @@ function favorites(){
   });
 }
 
+
+
+
+
 //차트화면
-// create the chart
-var chart = Highcharts.stockChart('chart', {
-  yAxis: [{
-      labels: {
-          align: 'left'
-      },
-      height: '85%',
-      resize: {
-          enabled: true
-      }
-  }, {
-      labels: {
-          align: 'left'
-      },
-      top: '85%',
-      height: '15%',
-      offset: 0
-  }],
-  rangeSelector: {
-      selected: 1
-  },
-  plotOptions: {
-    candlestick: {
-        color: 'blue',
-        lineColor: 'blue',
-        upColor: 'red',
-        upLineColor: 'red',
-    }
-  },
-  navigator: { enabled: false },
-  series: [{
-      type: 'candlestick',
-      dataGrouping: {
-        enabled: false,
-        units: [
-            [
-                'week', // unit name
-                [1] // allowed multiples
-            ]
-        ]
-      }
-    },{
-      type: 'column',
-      yAxis: 1,
-      color: 'grey',
-      dataGrouping: {
-        enabled: false,
-        units: [
-            [
-                'week', // unit name
-                [1] // allowed multiples
-            ]
-        ]
-      }
-  }]
-});
-
-
 const chartdata = function(shcode){
   let query = `?action=chartdata&params=${shcode}`
   let name = $(`#${shcode} td:nth-child(1)`).text();
@@ -275,6 +221,9 @@ const chartdata = function(shcode){
       chart.series[0].update({data: quotes, name:name});
       chart.series[1].update({data: volume, name:'거래량'});
       $("#chart-title").text(name);
+
+      //COT 차트 불러오기
+      COT(shcode);
       
     } else {
       log("차트데이터 불러오기 실패")
@@ -309,46 +258,45 @@ const sector_chart = function(shcode){
   });
 };
 
+// 투자자별 매매 동향
+const COT = function(shcode){
+  let query = `?action=COT&params=${shcode}`
+  $.get( url+query, function( res ) {
+    if (res.success){
+      log("투자자별 매매동향 불러오기(COT)");
+      let indivisuals =  [];
+      let institutions = [];
+      let foreigners = [];
+      let short_sellers = [];
+      let programs = [];
+      
+      //50 거래일 전날에 모든 값을 0으로 세팅
+      idx = res.data.length - 50;
+      initials = res.data[idx]; 
 
-// 환율차트 
-var currency_chart = Highcharts.chart('currencyrate', {
-  title: {
-      text: '',
-  },
-  xAxis: {
-    type: 'datetime'
-  },
-  yAxis:{
-    title:''
-  },
-  tooltip: {
-    enabled: false
-  },
-  plotOptions: {
-    series: {
-        marker: {
-            enabled: false,
-            states: {
-                hover: {
-                    enabled: false
-                }
-            }
-        }
-    }
-  },
-  legend: {
-    verticalAlign: 'top',
-  },
-  series: [{
-        name: 'USD',
-    }, {
-        name: 'EUR',
-    }, {
-        name: 'JPY',
-    }, {
-        name: 'CNY',
-  }]
-});
+      for (item of res.data){
+        date = new Date(item[0].slice(0,4)+'/'+item[0].slice(4,6)+'/'+item[0].slice(6));
+        timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+        
+        indivisuals.push([timestamp, item[1]-initials[1]]);
+        institutions.push([timestamp, item[2]-initials[2]]);
+        foreigners.push([timestamp, item[4]-initials[4]]);
+        short_sellers.push([timestamp, item[6]-initials[6]]);
+        programs.push([timestamp, item[5]-initials[5]]);
+      };
+      chart.series[2].update({data: indivisuals});
+      chart.series[3].update({data: institutions});
+      chart.series[4].update({data: foreigners});
+      chart.series[5].update({data: programs});
+      chart.series[6].update({data: short_sellers});
+
+    } else {
+      log("투자자별 매매 동향 불러오기 실패")
+    };
+  });
+}
+
+
 
 const get_currency_rates = function(){
   $.get( url+'?action=get_currency_rate', function( data ) {

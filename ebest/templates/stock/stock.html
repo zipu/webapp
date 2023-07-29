@@ -37,8 +37,8 @@
             <tbody style="display:table; width:100%;"></tbody>
           </table>
         </td>
-        <td colspan=60 style="max-width:500px;">
-          <div id="chart"></div>
+        <td colspan=60 style="max-width:500px;height:600px;">
+          <div id="chart" style='height:600px;'></div>
         </td>
       </tr>
       <tr>
@@ -46,7 +46,7 @@
         <td colspan=60></td>
       </tr>
       <tr>
-        <td colspan=100><input type='submit' value='test'  onclick='get_currency_rates()'></td>
+        <td colspan=100><input type='submit' value='test'  onclick="COT('005930')"></td>
       </tr>
       <tr>
         <td colspan=100 id='log' style='height:200px;text-align:left'>
@@ -56,5 +56,203 @@
   </tbody>
   </table>
 </div>
+<script>
+// 1. 메인 차트 (id=chart)
+// create the chart
+var chart = Highcharts.stockChart('chart', {
+  credits: {
+    enabled: false
+  },
+  yAxis: [{
+      labels: {
+          align: 'left'
+      },
+      height: '70%',
+      resize: {
+          enabled: true
+      }
+  }, {
+      labels: {
+          align: 'left'
+      },
+      top: '70%',
+      height: '15%',
+      offset: 0
+  },{
+    top: '85%',
+    height: '15%',
+    offset: 0,
+  } ],
+  rangeSelector: {
+      selected: 1
+  },
+  tooltip: {
+    enabled: true,
+  },
+  legend: {
+    enabled: true
+  },
+  plotOptions: {
+    series: {
+      states: {
+        inactive: {
+        	opacity: 1
+        },
+        hover: {
+            enabled: false
+        }
+      },
+      dataGrouping: {
+        enabled: false,
+        units: [
+            [
+                'week', // unit name
+                [1] // allowed multiples
+            ]
+        ]
+      }
+    },
+    candlestick: {
+        color: 'blue',
+        lineColor: 'blue',
+        upColor: 'red',
+        upLineColor: 'red',
+    },
+    line:{
+      lineWidth: 2
+    }
+  },
+  navigator: { enabled: false },
+  series: [{
+              type: 'candlestick',
+              showInLegend: false, 
+            },{
+                type: 'column',
+                yAxis: 1,
+                color: 'grey',
+                showInLegend: false, 
+                
+            },{
+                name: '개인',
+                type: 'line',
+                yAxis: 2,
+                enableMouseTracking: false,
+                states: {inactive: { opacity: 0.1 } }
+            },{
+                name: '기관',
+                type: 'line',
+                yAxis: 2,
+                enableMouseTracking: false,
+                states: {inactive: { opacity: 0.1 } }
+            },{
+                name: '외인',
+                type: 'line',
+                yAxis: 2,
+                enableMouseTracking: false,
+                states: {inactive: { opacity: 0.1 } }
+            },{
+                name: '프로그램',
+                type: 'line',
+                yAxis: 2,
+                enableMouseTracking: false,
+                states: {inactive: { opacity: 0.1 } }
+            },{
+                name: '공매도',
+                type: 'line',
+                yAxis: 2,
+                enableMouseTracking: false,
+                states: {inactive: { opacity: 0.1 } }
+            }]
+});
 
+// 2. 투자자별 매매동향 차트 (안씀)
+var cot_chart = Highcharts.chart('cDot', {
+  credits: {
+    enabled: false,
+    
+  },
+  chart: {
+    height: 200,
+  },
+  title: {
+      text: '',
+  },
+  xAxis: {
+    type: 'datetime'
+  },
+  yAxis:{
+    title:'',
+    opposite:true,
+  },
+  plotOptions: {
+    series: {
+        lineWidth: 2,
+        states: {
+                hover: {
+                    enabled: false
+                }
+        }
+    }
+  },
+  legend: {
+    verticalAlign: 'top',
+  },
+  series: [{
+        name: '개인',
+    }, {
+        name: '기관',
+    }, {
+        name: '외인',
+    }, {
+        name: '프로그램',
+    }, {
+        name: '공매도',
+    }]
+});
+
+// 3. 환율차트 
+var currency_chart = Highcharts.chart('currencyrate', {
+  credits: {
+    enabled: false
+  },
+  title: {
+      text: '',
+  },
+  xAxis: {
+    type: 'datetime'
+  },
+  yAxis:{
+    title:''
+  },
+  tooltip: {
+    enabled: false
+  },
+  plotOptions: {
+    series: {
+        marker: {
+            enabled: false,
+            states: {
+                hover: {
+                    enabled: false
+                }
+            }
+        }
+    }
+  },
+  legend: {
+    verticalAlign: 'top',
+  },
+  series: [{
+        name: 'USD',
+    }, {
+        name: 'EUR',
+    }, {
+        name: 'JPY',
+    }, {
+        name: 'CNY',
+  }]
+});
+
+
+</script> 
 {% endblock content1 %}

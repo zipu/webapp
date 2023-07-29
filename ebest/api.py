@@ -105,3 +105,25 @@ class stockapi:
          with open(filename, 'r') as f:
             currencyrates[currency]=list(csv.reader(f))[-24*60:] #최근 3개월 정도만.
       return JsonResponse(currencyrates, safe=False)
+   
+
+   def COT(self, shcode):
+      # 기관/외국인 매매 동향
+      res = self.ebest.COT(shcode)
+      if res.ok:
+         data = []
+         for day in reversed(res.json()['t1716OutBlock']):
+            data.append([day['date'], day['krx_0008'], day['krx_0018'], day['krx_0009'],\
+            day['fsc_0009'], day['pgmvol'], day['gm_volume']])
+         
+         response = {
+             'success': True,
+             'data': data,
+             'msg': res.json()['rsp_msg']
+         }
+      else: 
+         response = {
+             'success': False,
+             'msg': res.json()['rsp_msg']
+         }
+      return JsonResponse(response, safe=False)
