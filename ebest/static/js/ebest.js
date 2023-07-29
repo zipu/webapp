@@ -240,7 +240,6 @@ const stockchart = function(shcode, period){
       chart.series[0].update({data: quotes, name:name});
       chart.series[1].update({data: volume, name:'거래량'});
       //$('#chart-title').text(name);
-      console.log(volume);
       if (period=='2'){
           COT(shcode); //투자자별 매매 동향
       } else {
