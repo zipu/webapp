@@ -10,6 +10,16 @@ BASEDIR = settings.BASE_DIR
 class stockapi:
    def __init__(self):
       self.ebest = Stock()
+
+   def get_access_token(self):
+      result, data = self.ebest.get_access_token()
+      response = {
+            'success': result,
+            'data': data,
+            'etflist': self.ebest.get_secret("stock")["ETF"]
+         }
+
+      return JsonResponse(response, safe=False)
    
    def etf(self):
       res = self.ebest.etf()

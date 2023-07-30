@@ -4,34 +4,34 @@ import json, time
 from datetime import datetime, timedelta
 
 BASEDIR = os.path.dirname(__file__)
-def get_secret(setting):
-    """Get secret setting or fail with ImproperlyConfigured"""
-    
-    with open(os.path.join(BASEDIR, 'secrets.json')) as secrets_file:
-        secrets = json.load(secrets_file)
-    return secrets[setting]
-
-def set_secret(setting):
-    with open(os.path.join(BASEDIR, 'secrets.json')) as secrets_file:
-        secrets = json.load(secrets_file)
-    
-    for key, value in setting.items():
-        secrets["stock"][key] = value
-    
-    with open(os.path.join(BASEDIR, 'secrets.json'), 'w+') as secrets_file:
-        json.dump(secrets, secrets_file)
-
 
 
 class Stock:
 
     def __init__(self):
-        self.secret = get_secret("stock")
+        self.secret = self.get_secret("stock")
         self.baseurl = self.secret["BASEURL"]
         self.appkey = self.secret["APPKEY"]
         self.appsecretkey = self.secret['APPSECRETKEY']
         self.access_token = self.secret['access_token']
         self.token_issued_date = self.secret['token_issued_date']
+    
+    def get_secret(self, setting):
+        """Get secret setting or fail with ImproperlyConfigured"""
+        
+        with open(os.path.join(BASEDIR, 'secrets.json')) as secrets_file:
+            secrets = json.load(secrets_file)
+        return secrets[setting]
+    
+    def set_secret(self, setting):
+        with open(os.path.join(BASEDIR, 'secrets.json')) as secrets_file:
+            secrets = json.load(secrets_file)
+        
+        for key, value in setting.items():
+            secrets["stock"][key] = value
+        
+        with open(os.path.join(BASEDIR, 'secrets.json'), 'w+') as secrets_file:
+            json.dump(secrets, secrets_file)
 
 
     def get_access_token(self):
@@ -60,12 +60,11 @@ class Stock:
 
                 #print("*연결계좌: 국내주식")
                 #print(f"*접속주소: {self.baseurl}")
-                return True
             else: 
                 print(res.text)
-                return False
-        
-        return True
+                return False, res.json()
+
+        return True, self.access_token
     
     def chart(self, shcode, period):
         """ 주식차트(일주월년)

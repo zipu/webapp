@@ -39,3 +39,4 @@ class LoginRequiredMiddleware:
             return HttpResponseRedirect(settings.LOGIN_URL) 
         else:
             return self.get_response(request)
+        

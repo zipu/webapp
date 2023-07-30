@@ -95,8 +95,8 @@ if DEBUG == False:
 
 CSRF_TRUSTED_ORIGINS = [
         'http://*.koreacentral.cloudapp.azure.com',
+        'https://openapi.ebestsec.co.kr',
     ]
-
 ALLOWED_HOSTS = ['*']
 
 
@@ -110,7 +110,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -128,6 +127,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+   
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -137,6 +137,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'webapp.middleware.LoginRequiredMiddleware', #custom login middleware
+    
 ]
 
 ROOT_URLCONF = 'webapp.urls'

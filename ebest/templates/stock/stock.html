@@ -13,44 +13,47 @@
         <td colspan=40>
           <ul class="nav nav-tabs" id="tabs">
             <li class="nav-item">
-              <a class="nav-link" id="entries-tab" onclick="itemScreen('entries-tab');" style="cursor:pointer">보유</a>
+              <a class="nav-link" id="entries-tab" onclick="entries();" style="cursor:pointer">보유</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" id="favorites-tab" onclick="itemScreen('favorites-tab');" style="cursor:pointer">관심</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="etf-tab" onclick="itemScreen('etf-tab');"  style="cursor:pointer">ETF</a>
+              <a class="nav-link" id="etf-tab" onclick="etf();"  style="cursor:pointer">ETF</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="sectors-tab" onclick="itemScreen('sectors-tab');"  style="cursor:pointer">업종</a>
+              <a class="nav-link" id="sectors-tab" onclick="sectors();"  style="cursor:pointer">업종</a>
             </li>
           </ul>
         </td>
         <td colspan=60>
+          <div style='position:absolute;z-index:10;display:initial;font-weight:bold;' id='chart-title'></div>
+          
           <div style="float:right;">
-            <button id='chart-period-day'>일</button>
-            <button id='chart-period-week'>주</button>
-            <button id='chart-period-month'>월</button>
-            <button>1분</button>
-            <button>5분</button>
-            <button>1시</button>
+            <button type="button" id='chart-period-day' style='border-width:1px;'>일</button>
+            <button id='chart-period-week' style='border-width:1px;'>주</button>
+            <button id='chart-period-month' style='border-width:1px;'>월</button>
+            <button style='border-width:1px;'>1분</button>
+            <button style='border-width:1px;'>5분</button>
+            <button style='border-width:1px;'>1시</button>
           </div>
         </td>
       </tr>
       <tr>
         <td colspan=40 style='padding:0;vertical-align:baseline;'>
           <table  class="table table-sm table-striped" id='item-screen'
-                  style="width:100%;margin: 0;border:1px solid black;display:block;height:400px;overflow:auto;">
+                  style="width:100%;margin: 0;border:1px solid black;display:block;height:450px;overflow:auto;">
             <thead style='display:table;width:100%;'></thead>
             <tbody style="display:table; width:100%;"></tbody>
           </table>
+          <div id='currencyrate' style="width: 100%; height: 150px;"></div>
         </td>
         <td colspan=60 style="max-width:500px;height:600px;">
           <div id="chart" style='height:600px;'></div>
         </td>
       </tr>
       <tr>
-        <td colspan=40 > <div id='currencyrate' style="width: 100%; height: 300px;"></div></td>
+        <td colspan=40 ></td>
         <td colspan=60></td>
       </tr>
       <tr>
@@ -64,6 +67,32 @@
   </tbody>
   </table>
 </div>
+
+<!-- modal 화면 -->
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Launch demo modal
+</button>
+
+<!-- Modal -->
+<div class="modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // 1. 메인 차트 (id=chart)
 // create the chart
@@ -179,7 +208,13 @@ var currency_chart = Highcharts.chart('currencyrate', {
     enabled: false
   },
   title: {
-      text: '',
+      text: '환율',
+      floating:true,
+      x: -150,
+      y:239,
+      style:{
+        fontSize: '0.9em',
+      }
   },
   xAxis: {
     type: 'datetime'
@@ -202,8 +237,9 @@ var currency_chart = Highcharts.chart('currencyrate', {
         }
     }
   },
-  legend: {
-    verticalAlign: 'top',
+  legend:{
+    y: 24,
+    floating:true
   },
   series: [{
         name: 'USD',
