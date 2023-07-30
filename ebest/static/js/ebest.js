@@ -347,7 +347,7 @@ const stockchart = function(shcode, period){
     let volume = []
     for (quote of data){
       date = new Date(quote.date.slice(0,4)+'/'+quote.date.slice(4,6)+'/'+quote.date.slice(6));
-      timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+      timestamp = date.getTime()//+date.getTimezoneOffset()*60*1000;
       quotes.push([timestamp, quote.open, quote.high, quote.low, quote.close]);
       volume.push([timestamp, quote.value])
     };
@@ -414,7 +414,7 @@ const COT = function(shcode){
     for (item of data){
       let datestring = item.date;
       let date = new Date(datestring.slice(0,4)+'/'+datestring.slice(4,6)+'/'+datestring.slice(6));
-      let timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+      let timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
       
       indivisuals.push([timestamp, item['krx_0008']-initials['krx_0008']]);
       institutions.push([timestamp, item['krx_0018']-initials['krx_0018']]);
@@ -478,7 +478,7 @@ const sector_chart = function(shcode, period){
     let volume = []
     for (quote of data){
       date = new Date(quote.date.slice(0,4)+'/'+quote.date.slice(4,6)+'/'+quote.date.slice(6));
-      timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+      timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
       quotes.push([timestamp, parseFloat(quote.open), parseFloat(quote.high), parseFloat(quote.low), parseFloat(quote.close)]);
       volume.push([timestamp, parseInt(quote.value)])
     };
@@ -544,7 +544,7 @@ const sector_COT = function(shcode){
     for (item of data){
       let datestring = item.date;
       let date = new Date(datestring.slice(0,4)+'/'+datestring.slice(4,6)+'/'+datestring.slice(6));
-      let timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+      let timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
       
       indivisuals.push([timestamp, item['sv_08']-initials['sv_08']]);
       institutions.push([timestamp, item['sv_18']-initials['sv_18']]);
@@ -568,7 +568,7 @@ const get_currency_rates = function(){
       initial  = parseFloat(data[name][0][2])//초기값
       data[name].forEach(rate => {
         date = new Date(rate[0]+'T'+rate[1]);
-        timestamp = date.getTime()+date.getTimezoneOffset()*60*1000;
+        timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
         rates.push([timestamp, parseFloat(rate[2])/initial]);
       });
       currency_chart.series[i].update({data: rates, name:name});

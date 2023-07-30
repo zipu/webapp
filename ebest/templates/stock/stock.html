@@ -96,6 +96,12 @@
 <script>
 // 1. 메인 차트 (id=chart)
 // create the chart
+Highcharts.setOptions({
+  time: {
+      useUTC: false
+  }
+});
+
 var chart = Highcharts.stockChart('chart', {
   credits: {
     enabled: false
