@@ -53,7 +53,7 @@ class Stock:
                 self.token_issued_date = datetime.today().strftime("%Y%m%d")
                 self.secret['access_token'] = self.access_token
                 self.secret['token_issued_date'] = self.token_issued_date
-                set_secret({
+                self.set_secret({
                     'access_token': self.access_token,
                     'token_issued_date': self.token_issued_date
                 })
