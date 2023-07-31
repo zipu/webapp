@@ -21,7 +21,7 @@
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 </head>
-<body class="container">
+<body class="container-fluid">
   <nav class="navbar fixed-top bg-dark" style="width:100%">
     <div>
     <ul class="nav" style="display:inline-flex">
@@ -41,6 +41,7 @@
   </nav>
   
   <main role="main" class="container-fluid" style="margin-top:60px;">
+    
     {% block content1 %}{% endblock content1 %}
     {% block content2 %}{% endblock content2 %}
 
@@ -49,6 +50,7 @@
 
 </body>
 <!-- css and js-->
+<script type='text/javascript' src="{% static 'js/charts.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/ebest.js' %}"></script>
 {% block script %}{% endblock script%}
 

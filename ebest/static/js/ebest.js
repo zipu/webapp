@@ -1,10 +1,12 @@
 const url = "https://openapi.ebestsec.co.kr:8080"; //$(location).attr('href');
 
 var logs = [];
-var realtime;
+var screentimer; //스크린 화면 갱신용
+var candletimer; //캔들 차트 갱신용
 var access_token;
 var etftlist; //etf 목록
 
+var test;
 /* 인터페이스 관련 */
 // 종목 tab 활성화
 const activateTab = function(id){
@@ -14,6 +16,43 @@ const activateTab = function(id){
   })
 };
 
+/* 날짜 형식 
+  이베스트 api 에서 들어오는 날짜형식이 YYYYmmdd 와 HHMMSS 
+  이기 때문에 일관성을 위해 다른 모든 곳에서도 이 형식으로 다룬다. 
+*/
+const datetime = {
+  'pastday': function(daysbefore){
+    let s = new Date();
+    let date = new Date(s.getTime() - s.getTimezoneOffset()*60*1000 - daysbefore*24*60*60*1000) ;
+    return this.toString(date);
+  },
+  'toString': function(dateobj){ 
+    let arr = dateobj.toISOString().slice(0,19)
+                                .replaceAll('-','')
+                                .replaceAll(':','')
+                                .split('T');
+    return { 'date':arr[0], 'time': arr[1] }
+  },
+  'today': function(){
+    let s = new Date();
+    let date = new Date(s.getTime() - s.getTimezoneOffset()*60*1000);
+    return this.toString(date);
+  },
+  'timestamp': function(date, time){
+    let year = date.slice(0,4);
+    let month = parseInt(date.slice(4,6))-1;
+    let day = date.slice(6,8);
+    if (time == null) {
+      return Date.UTC(year, month, day);
+    } else {
+      let hour = time.slice(0,2);
+      let minute = time.slice(2,4);
+      let second = time.slice(4,6);
+      return Date.UTC(year, month, day, hour, minute, second);
+    }
+  },
+  
+}
 
 //시계
 const gettime = function(){
@@ -52,7 +91,7 @@ $.get( $(location).attr('href')+"?action=get_access_token")
 const entries = function(){
   activateTab('entries-tab');
   // 1. 화면 정리
-  clearInterval(realtime);
+  clearInterval(screentimer);
   $('#item-screen > thead').html('');
   $('#item-screen > tbody').html('');
   $('#item-screen > tbody').attr('id','entries-tbody')
@@ -118,7 +157,7 @@ const entries = function(){
     };
    })
   .done(function(){
-    realtime = setInterval(() => {
+    screentimer = setInterval(() => {
       $.ajax({
         url: path,
         type: 'post',
@@ -148,7 +187,7 @@ const entries = function(){
 const etf = function(){
   activateTab('etf-tab');
   // 1. 화면 정리
-  clearInterval(realtime);
+  clearInterval(screentimer);
   $('#item-screen > thead').html('');
   $('#item-screen > tbody').html('');
   $('#item-screen > tbody').attr('id','etf-tbody')
@@ -206,7 +245,7 @@ const etf = function(){
     };
    })
   .done(function(){ //1초마다 반복 조회 
-    realtime = setInterval(() => {
+    screentimer = setInterval(() => {
       $.ajax({
         url: url+path,
         type: 'post',
@@ -240,7 +279,7 @@ const etf = function(){
 const sectors = function(){
   activateTab('sectors-tab');
   // 1. 화면 정리
-  clearInterval(realtime);
+  clearInterval(screentimer);
   $('#item-screen > thead').html('');
   $('#item-screen > tbody').html('');
   $('#item-screen > tbody').attr('id','sectors-tbody')
@@ -305,13 +344,15 @@ const create_chart = function(shcode){
   $('#chart-period-day').attr('onclick', `stockchart('${shcode}','2')`);
   $('#chart-period-week').attr('onclick', `stockchart('${shcode}','3')`);
   $('#chart-period-month').attr('onclick', `stockchart('${shcode}','4')`);
+  
   stockchart(shcode, '2');
 };
 
 
 const stockchart = function(shcode, period){
+  clearInterval(candletimer);
   let path = "/stock/chart"
-  let name = $(`#${shcode} td:nth-child(1)`).text();
+  let name = $(`#${shcode} td:nth-child(2)`).text();
   
   let headers = {
     "content-type":"application/json; charset=utf-8", 
@@ -320,40 +361,40 @@ const stockchart = function(shcode, period){
     "tr_cont":"N",
     "tr_cont_key":"",
   };
-  let data = JSON.stringify({
+  let data = {
     "t8410InBlock" : {
         "shcode" : shcode,
         "gubun" : period,
         "qrycnt" : 500,
         "sdate" : "",
-        "edate" : gettime().toJSON().slice(0,10).replaceAll('-',''),
+        "edate" : datetime.today().date,
         "cts_date" : "",
         "comp_yn" : "N",
         "sujung" : "Y"
     }
-  });
+  };
 
   $.ajax({
     url: url+path,
     type: 'post',
     headers: headers,
-    data: data
+    data: JSON.stringify(data)
   })
   .done(function(res){
     log("차트데이터 불러오기 성공");
-    data = res['t8410OutBlock1'];  
+    let ohlc = res['t8410OutBlock1'];  
     
     let quotes = []
     let volume = []
-    for (quote of data){
-      date = new Date(quote.date.slice(0,4)+'/'+quote.date.slice(4,6)+'/'+quote.date.slice(6));
-      timestamp = date.getTime()//+date.getTimezoneOffset()*60*1000;
-      quotes.push([timestamp, quote.open, quote.high, quote.low, quote.close]);
-      volume.push([timestamp, quote.value])
+    let date;
+    for (let quote of ohlc){
+      date = datetime.timestamp(quote.date);
+      quotes.push([date, quote.open, quote.high, quote.low, quote.close]);
+      volume.push([date, quote.value])
     };
     chart.series[0].update({data: quotes, name:name});
     chart.series[1].update({data: volume, name:'거래량'});
-    $('#chart-title').text(name);
+    chart.setTitle({'text': name});
     if (period=='2'){
         COT(shcode); //투자자별 매매 동향
     } else {
@@ -361,6 +402,26 @@ const stockchart = function(shcode, period){
         series.update({data: '', name:''});
       });
     };
+  })
+  .done(function(){
+    data["t8410InBlock"]['qrycnt'] = 1;
+    candletimer = setInterval(()=>{
+      $.ajax({
+        url: url+path,
+        type: 'post',
+        headers: headers,
+        data: JSON.stringify(data)
+      }).done(function(res){
+        let length = chart.series[0].data.length;
+        let lastquote = chart.series[0].data[length-1];
+        let quote = res['t8410OutBlock1'][0];
+        let date = datetime.timestamp(quote.date);
+        if (lastquote.x == date){
+          chart.series[0].data[length-1].remove();
+        };
+        chart.series[0].addPoint([date, quote.open, quote.high, quote.low, quote.close]);
+      })
+    }, 1050);
   })
   .fail(function(res){
     log("차트데이터 불러오기 실패: "+res);
@@ -370,8 +431,6 @@ const stockchart = function(shcode, period){
 // 투자자별 매매 동향
 const COT = function(shcode){
   let path = "/stock/frgr-itt"
-  let today = gettime();
-  let start = new Date(gettime()-500*24*60*60*1000);
 
   let headers = {
     "content-type":"application/json; charset=utf-8", 
@@ -384,8 +443,8 @@ const COT = function(shcode){
       "t1716InBlock" : {
           "shcode" : shcode,
           "gubun" : "1",
-          "fromdt" : start.toJSON().slice(0,10).replaceAll('-',''),
-          "todt" : today.toJSON().slice(0,10).replaceAll('-',''),
+          "fromdt" : datetime.pastday(500).date,
+          "todt" : datetime.today().date,
           "prapp" : 0,
           "prgubun" : "0",
           "orggubun" : "0",
@@ -408,19 +467,17 @@ const COT = function(shcode){
 
     //50 거래일 전날에 모든 값을 0으로 세팅
     let data = res['t1716OutBlock'].reverse();
+    let date;
     let idx = data.length - 50;
     let initials;
     idx > 0? initials = data[idx] : initials = data[0]; 
     for (item of data){
-      let datestring = item.date;
-      let date = new Date(datestring.slice(0,4)+'/'+datestring.slice(4,6)+'/'+datestring.slice(6));
-      let timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
-      
-      indivisuals.push([timestamp, item['krx_0008']-initials['krx_0008']]);
-      institutions.push([timestamp, item['krx_0018']-initials['krx_0018']]);
-      foreigners.push([timestamp, item['fsc_0009']-initials['fsc_0009']]);
-      short_sellers.push([timestamp, item['gm_volume']-initials['gm_volume']]);
-      programs.push([timestamp, item['pgmvol']-initials['pgmvol']]);
+      date = datetime.timestamp(item.date);
+      indivisuals.push([date, item['krx_0008']-initials['krx_0008']]);
+      institutions.push([date, item['krx_0018']-initials['krx_0018']]);
+      foreigners.push([date, item['fsc_0009']-initials['fsc_0009']]);
+      short_sellers.push([date, item['gm_volume']-initials['gm_volume']]);
+      programs.push([date, item['pgmvol']-initials['pgmvol']]);
     };
     chart.series[2].update({data: indivisuals, name:'개인'});
     chart.series[3].update({data: institutions, name:'기관'});
@@ -442,10 +499,10 @@ const create_sector_chart = function(shcode){
 };
 
 const sector_chart = function(shcode, period){
-
+  clearInterval(candletimer);
   //업종 차트
   let path = "/indtp/chart";
-  let name = $(`#${shcode} td:nth-child(1)`).text();
+  let name = $(`#${shcode}`).text();
   
   let headers = {
     "content-type":"application/json; charset=utf-8", 
@@ -476,15 +533,15 @@ const sector_chart = function(shcode, period){
     data = res['t8419OutBlock1'];  
     let quotes = []
     let volume = []
-    for (quote of data){
-      date = new Date(quote.date.slice(0,4)+'/'+quote.date.slice(4,6)+'/'+quote.date.slice(6));
-      timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
-      quotes.push([timestamp, parseFloat(quote.open), parseFloat(quote.high), parseFloat(quote.low), parseFloat(quote.close)]);
-      volume.push([timestamp, parseInt(quote.value)])
+    let date;
+    for (let quote of data){
+      date = datetime.timestamp(quote.date);
+      quotes.push([date, parseFloat(quote.open), parseFloat(quote.high), parseFloat(quote.low), parseFloat(quote.close)]);
+      volume.push([date, parseInt(quote.value)])
     };
     chart.series[0].update({data: quotes, name:name});
     chart.series[1].update({data: volume, name:'거래량'});
-    //$('#chart-title').text(name);
+    chart.setTitle({'text': name});
     if (period=='2'){
         sector_COT(shcode); //투자자별 매매 동향
     } else {
@@ -492,6 +549,9 @@ const sector_chart = function(shcode, period){
         series.update({data: '', name:''});
       });
     };
+  })
+  .done(function(){
+    
   })
   .fail(function(res){
     log("차트데이터 불러오기 실패: "+res.rsp_msg);
@@ -503,8 +563,6 @@ const sector_chart = function(shcode, period){
 //업종 cot
 const sector_COT = function(shcode){
   let path = "/stock/chart"
-  let today = gettime();
-  let start = new Date(gettime()-500*24*60*60*1000);
 
   let headers = {
     "content-type":"application/json; charset=utf-8", 
@@ -519,8 +577,8 @@ const sector_COT = function(shcode){
           "upcode": shcode,
           "gubun2": "2",
           "gubun3": "1", 
-          "from_date" : start.toJSON().slice(0,10).replaceAll('-',''),
-          "to_date" : today.toJSON().slice(0,10).replaceAll('-',''),
+          "from_date" : datetime.pastday(500).date,
+          "to_date" : datetime.today().date
       }
   });
   $.ajax({
@@ -538,18 +596,16 @@ const sector_COT = function(shcode){
 
     //50 거래일 전날에 모든 값을 0으로 세팅
     let data = res['t1665OutBlock1'].reverse();
+    let date;
     let idx = data.length - 50;
     let initials;
     idx > 0? initials = data[idx] : initials = data[0]; 
-    for (item of data){
-      let datestring = item.date;
-      let date = new Date(datestring.slice(0,4)+'/'+datestring.slice(4,6)+'/'+datestring.slice(6));
-      let timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
-      
-      indivisuals.push([timestamp, item['sv_08']-initials['sv_08']]);
-      institutions.push([timestamp, item['sv_18']-initials['sv_18']]);
-      foreigners.push([timestamp, item['sv_17']-initials['sv_17']]);
-      countries.push([timestamp, item['sv_11']-initials['sv_11']]);
+    for (let item of data){
+      date = datetime.timestamp(item.date);
+      indivisuals.push([date, item['sv_08']-initials['sv_08']]);
+      institutions.push([date, item['sv_18']-initials['sv_18']]);
+      foreigners.push([date, item['sv_17']-initials['sv_17']]);
+      countries.push([date, item['sv_11']-initials['sv_11']]);
     };
     chart.series[2].update({data: indivisuals, name:'개인'});
     chart.series[3].update({data: institutions, name:'기관'});
@@ -564,12 +620,12 @@ const sector_COT = function(shcode){
 const get_currency_rates = function(){
   $.get( $(location).attr('href')+'?action=get_currency_rate', function( data ) {
     ['USD','EUR','JPY','CNY'].forEach( (name, i) => {
-      rates = []
-      initial  = parseFloat(data[name][0][2])//초기값
+      let rates = []
+      let date;
+      let initial  = parseFloat(data[name][0][2])//초기값
       data[name].forEach(rate => {
-        date = new Date(rate[0]+'T'+rate[1]);
-        timestamp = date.getTime();//+date.getTimezoneOffset()*60*1000;
-        rates.push([timestamp, parseFloat(rate[2])/initial]);
+        date = datetime.timestamp(rate[0], rate[1]);
+        rates.push([date, parseFloat(rate[2])/initial]);
       });
       currency_chart.series[i].update({data: rates, name:name});
     })
@@ -579,6 +635,46 @@ const get_currency_rates = function(){
 get_currency_rates();
 setInterval(get_currency_rates, 60*60*1000); //한시간마다 갱신
 
-const test = function(){
-  //
+//웹소켓 테스트
+var test = '247540';
+function realtime_price(shcode) {
+  var ws = new WebSocket('wss://openapi.ebestsec.co.kr:9443/websocket');
+  let today = datetime.today().date;
+
+  ws.onopen = function() {
+    // subscribe to some channels
+    ws.send(JSON.stringify({
+      "header":{      
+        "token": access_token,
+        "tr_type":"3"
+    },
+    "body":{
+        "tr_cd": "K3_",
+        "tr_key":shcode
+    }
+    }));
+  };
+
+  ws.onmessage = function(e) {
+    data = JSON.parse(e.data);
+    let price = parseInt(data.body.price);
+    if (price != null) {
+      timestamp = datetime.timestamp(today, data.body.chetime);
+      real_chart.series[0].addPoint([timestamp, price]);
+    };
+  };
+
+  ws.onclose = function(e) {
+    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+  };
+
+  return ws;
 }

@@ -9,8 +9,8 @@ if response.ok:
     basedir = os.path.join(os.path.dirname(__file__), 'currencyrates')
     for currency in response.json():
         symbol = currency['currencyCode']
-        date = currency['date']
-        time = currency['time']
+        date = currency['date'].replace('-','')
+        time = currency['time'].replace(':','')
         rate = currency['basePrice']
         filename = f"{symbol}.csv"
         filepath = os.path.join(basedir,filename)

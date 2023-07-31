@@ -9,3 +9,12 @@
 #item-screen > tbody > tr {
     cursor: default;
 }
+
+div {
+    border: 0.5px dotted black;
+    border-collapse: collapse;
+}
+
+#chart {
+    padding: 0;
+}
