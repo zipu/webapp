@@ -633,15 +633,15 @@ const getTransactions = function(){
       let date = item['OrdDt'].slice(0,4)+'-'+item['OrdDt'].slice(4,6)+'-'+item['OrdDt'].slice(6)
       let time = item['ExecTrxTime'].slice(0,2)+':'+item['ExecTrxTime'].slice(2,4)+':'+item['ExecTrxTime'].slice(4,6)
       let row = `<tr>
-        <td style="width:15%">${date} ${time}</td>
-        <td style="width:20%">${item['IsuNm']}</td>
-        <td style="width:5%">${item['BnsTpNm']}</td>
-        <td style="width:10%">${parseInt(item['OrdPrc']).toLocaleString('en-US')}</td>
-        <td style="width:5%">${item['OrdQty']}</td>
-        <td style="width:10%">${parseInt(item['ExecPrc']).toLocaleString('en-US')}</td>
-        <td style="width:5%">${item['ExecQty']}</td>
-        <td style="width:15%">${item['OrdPtnNm']}</td>
-        <td style="width:15%">${item['CommdaNm']}</td>
+        <td style="padding:0;width:22%">${date} ${time}</td>
+        <td style="padding:0;width:18%">${item['IsuNm']}</td>
+        <td style="padding:0;width:5%">${item['BnsTpNm']}</td>
+        <td style="padding:0;width:8%">${parseInt(item['OrdPrc']).toLocaleString('en-US')}</td>
+        <td style="padding:0;width:5%">${item['OrdQty']}</td>
+        <td style="padding:0;width:8%">${parseInt(item['ExecPrc']).toLocaleString('en-US')}</td>
+        <td style="padding:0;width:5%">${item['ExecQty']}</td>
+        <td style="padding:0;width:14%">${item['OrdPtnNm']}</td>
+        <td style="padding:0;width:15%">${item['CommdaNm']}</td>
       </tr>`
       $('#transactions').append(row);
     };
