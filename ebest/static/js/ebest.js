@@ -581,12 +581,18 @@ const sector_COT = function(shcode){
 const get_currency_rates = function(){
   $.get( $(location).attr('href')+'?action=get_currency_rate', function( data ) {
     ['USD','EUR','JPY','CNY'].forEach( (name, i) => {
-      let rates = []
+      let arr = [];
+      data[name].forEach(i=>{
+        arr.push(parseFloat(i[2]));
+      });
+      const stat = norm(arr);
       let date;
-      let initial  = parseFloat(data[name][0][2])//초기값
+      let rates = [];
+      //let initial  = parseFloat(data[name][0][2])//초기값
+       
       data[name].forEach(rate => {
         date = datetime.timestamp(rate[0], rate[1]);
-        rates.push([date, parseFloat(rate[2])/initial]);
+        rates.push([date, parseFloat((rate[2])-stat.mean)/stat.std]);
       });
       currency_chart.series[i].update({data: rates, name:name});
     })

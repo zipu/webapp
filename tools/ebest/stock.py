@@ -275,3 +275,109 @@ class Stock:
 
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
+    
+    def get_item_list(self):
+        self.get_access_token()
+        data = {}
+
+        path = "stock/etc"
+        url = f"{self.baseurl}/{path}"
+        headers = {
+            "content-type":"application/json; charset=UTF-8",
+            "authorization": f"Bearer {self.access_token}",
+            "tr_cd":"t8436", 
+            "tr_cont":"N",
+            "tr_cont_key":"",
+        }
+        body = {
+            "t8436InBlock" : {
+                "gubun" : "0"
+            }
+        }
+        
+        res = requests.post(url, headers=headers, data=json.dumps(body))
+        return res
+    
+    def download_market_data(self):
+        #종목 정보 전체를 다운 받는 함수
+        self.get_access_token()
+        data = {}
+        print("전체 종목 정보 다운로드")
+        chk = [] #우선 기업 필터
+        for item in self.get_item_list().json()['t8436OutBlock']:
+                if item['etfgubun'] != "0":
+                    continue
+                if item['spac_gubun'] == 'Y':
+                    continue
+                if not chk:
+                    chk.append(item['hname'])
+                else:
+                    if chk[0] in item['hname']:
+                        continue
+                    else:
+                        chk = [item['hname']]
+                
+                data[item['shcode']] = {
+                    'shcode': item['shcode'],
+                    'expcode': item['expcode'],
+                    'name': item['hname'],
+                }
+                        
+
+        #fng 요약
+        for shcode in data.keys():
+            #fng 요약
+            fng = self.FNG_summary(shcode).json()
+            print(f"기업정보 다운로드: {data[shcode]['name']}")
+            print(fng)
+            outblock = fng['t3320OutBlock']
+            outblock2 = fng['t3320OutBlock1']
+            data[shcode]['upgubunnm'] = outblock['upgubunnm']
+            data[shcode]['market_cd'] = outblock['sijangcd']
+            data[shcode]['market'] = outblock['marketnm']
+            data[shcode]['foreignratio'] = outblock['foreignratio']
+            data[shcode]['capital'] = outblock['capital']
+            data[shcode]['sigavalue'] = outblock['sigavalue']
+            data[shcode]['cashsis'] = outblock['cashsis']
+            data[shcode]['cashrate'] = outblock['cashrate']
+            data[shcode]['price'] = outblock['price']
+            data[shcode]['is_danger'] = outblock['notice2']
+            data[shcode]['is_clearing'] = outblock['notice1']
+            data[shcode]['is_hot'] = outblock['notice3']
+            data[shcode]['per'] = outblock2['per']
+            data[shcode]['eps'] = outblock2['eps']
+            data[shcode]['pbr'] = outblock2['pbr']
+            data[shcode]['roa'] = outblock2['roa']
+            data[shcode]['ebitda'] = outblock2['ebitda']
+            data[shcode]['evebitda'] = outblock2['evebitda']
+            data[shcode]['sps'] = outblock2['sps']
+            data[shcode]['cps'] = outblock2['cps']
+            data[shcode]['bps'] = outblock2['bps']
+            data[shcode]['t_per'] = outblock2['t_per']
+            data[shcode]['t_eps'] = outblock2['t_eps']
+            data[shcode]['peg'] = outblock2['peg']
+            data[shcode]['t_peg'] = outblock2['t_peg']
+            time.sleep(1.2)
+        
+        return data
+    
+    def FNG_summary(self, shcode):
+        # FNG 요약
+        self.get_access_token()
+
+        path = "stock/investinfo"
+        url = f"{self.baseurl}/{path}"
+        headers = {
+            "content-type":"application/json; charset=UTF-8",
+            "authorization": f"Bearer {self.access_token}",
+            "tr_cd":"t3320", 
+            "tr_cont":"N",
+            "tr_cont_key":"",
+        }
+        body = {
+            "t3320InBlock": {
+                "gicode": shcode
+            }
+        }
+        res = requests.post(url, headers=headers, data=json.dumps(body))
+        return res

@@ -91,7 +91,6 @@ var chart = Highcharts.stockChart('chart', {
             y: this.chart.plotTop
         };
       },
-      xDateFormat: '%Y년 %월 %d일 (%A)',
     },
     legend: {
       enabled: true
