@@ -1,8 +1,9 @@
 // 차트 세팅
 Highcharts.setOptions({
     lang:{
-      Months : ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-      shortMonths:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']
+      months : ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+      shortMonths:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+      weekdays: ['일','월','화','수','목','금','토']
     }
 });
 
@@ -50,14 +51,47 @@ var chart = Highcharts.stockChart('chart', {
       offset: 0,
     } ],
     rangeSelector: {
-        selected: 1,
+        selected: 2,
         inputEnabled:false,
         buttonPosition: {
           align: 'center'
         },
+        buttons: [
+          {
+            type: 'day',
+            count: 1,
+            text: '1일',
+        },{
+            type: 'week',
+            count: 1,
+            text: '1주',
+        }, {
+            type: 'month',
+            count: 3,
+            text: '3개월',
+        }, {
+            type: 'year',
+            count: 1,
+            text: '1년',
+            title: 'View 1 year'
+        }, {
+            type: 'all',
+            text: 'All',
+            title: 'View all'
+        }]
     },
     tooltip: {
       enabled: true,
+      shadow: false,
+      borderWidth: 0,
+      
+      positioner: function() {
+        return {
+            x: this.chart.plotLeft,
+            y: this.chart.plotTop
+        };
+      },
+      xDateFormat: '%Y년 %월 %d일 (%A)',
     },
     legend: {
       enabled: true

@@ -7,9 +7,7 @@
       <button type="button" id='chart-period-day' style='border-width:1px;'>일</button>
       <button id='chart-period-week' style='border-width:1px;'>주</button>
       <button id='chart-period-month' style='border-width:1px;'>월</button>
-      <button style='border-width:1px;'>1분</button>
-      <button style='border-width:1px;'>5분</button>
-      <button style='border-width:1px;'>1시</button>
+      <input id='minutes' type='number' value='60' style="width:50px;"><button id='chart-period-min'>분</button></input>
     </div>
     <div id="chart" style='height:600px;'></div>
   </div>
@@ -44,7 +42,29 @@
     </div>
   </div>
 </div>
-
+<div class="row">
+  <div class="col-8" style="padding:0">
+    <table  class="table table-sm table-striped" 
+                  style="text-align:center; width:100%;margin: 0;border:1px solid black;display:block;height:450px;overflow:auto;">
+            <thead style='display:table;width:100%;'>
+              <th style='width:15%'>체결시간</th>
+              <th style='width:20%'>종목명</th>
+              <th style='width:5%'>구분</th>
+              <th style='width:10%'>주문가</th>
+              <th style='width:5%'>주문수</th>
+              <th style='width:10%'>체결가</th>
+              <th style='width:5%'>체결수</th>
+              <th style='width:15%'>주문유형</th>
+              <th style='width:15%'>통신매체</th>
+            </thead>
+            <tbody style="display:table; width:100%;" id="transactions"></tbody>
+    </table>
+  </div>
+  <div class="col-4">b</div>
+</div>
+<div class="row" style='height:150px'>
+  <div class="col-12" id='log'></div>
+</div>
 <!-- modal 화면 -->
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
