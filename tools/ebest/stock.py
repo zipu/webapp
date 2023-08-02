@@ -3,6 +3,8 @@ import requests
 import json, time
 from datetime import datetime, timedelta
 
+from pytrends.request import TrendReq
+
 BASEDIR = os.path.dirname(__file__)
 
 
@@ -301,8 +303,9 @@ class Stock:
     def download_market_data(self):
         #종목 정보 전체를 다운 받는 함수
         self.get_access_token()
-        data = {}
+        
         print("전체 종목 정보 다운로드")
+        data = {}
         chk = [] #우선 기업 필터
         for item in self.get_item_list().json()['t8436OutBlock']:
                 if item['etfgubun'] != "0":
@@ -325,11 +328,10 @@ class Stock:
                         
 
         #fng 요약
-        for shcode in data.keys():
+        for shcode in list(data.keys())[:20]:
             #fng 요약
             fng = self.FNG_summary(shcode).json()
             print(f"기업정보 다운로드: {data[shcode]['name']}")
-            print(fng)
             outblock = fng['t3320OutBlock']
             outblock2 = fng['t3320OutBlock1']
             data[shcode]['upgubunnm'] = outblock['upgubunnm']
@@ -381,3 +383,17 @@ class Stock:
         }
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
+    
+
+    def google_trend(self, name):
+        
+        # 구글 트랜드 
+        trends = TrendReq(hl='ko-KR', tz=540)
+        keywords = [name]
+        trends.build_payload(keywords, timeframe='today 12-m', geo='KR')
+        df = trends.interest_over_time()
+        df['date'] = df.index.values.astype('M8[ms]').astype('int64')
+        return df[['date',name]].values.tolist()
+
+
+

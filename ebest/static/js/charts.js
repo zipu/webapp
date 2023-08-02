@@ -265,4 +265,65 @@ var chart = Highcharts.stockChart('chart', {
     }]
   });
   
-  
+  // 4. 구글 트랜드 차트
+  var google_trend_chart = Highcharts.chart('google-trend-chart', {
+    credits: {
+      enabled: false
+    },
+    title: {
+        text: '구글 트랜드',
+        floating:true,
+        x: -150,
+        y:239,
+        style:{
+          fontSize: '0.9em',
+        }
+    },
+    xAxis: {
+      type: 'datetime',
+      dateTimeLabelFormats: {
+        millisecond: '%H:%M:%S.%L',
+        second: '%H:%M:%S',
+        minute: '%H:%M',
+        hour: '%H:%M',
+        day: '%b%e일',
+        week: '%b%e일',
+        month: '%y\`%b',
+        year: '%Y'
+      }
+    },
+    yAxis:{
+      title:''
+    },
+    tooltip: {
+      enabled: true,
+      shadow: false,
+      borderWidth: 0,
+      pointFormat: '검색어:<b>{point.series.name}, {point.y}</b>',
+      positioner: function() {
+        return {
+            x: 30,
+            y: 0
+        };
+      },
+    },
+    plotOptions: {
+      series: {
+          marker: {
+              enabled: false,
+              states: {
+                  hover: {
+                      enabled: false
+                  }
+              }
+          }
+      }
+    },
+    legend:{
+      enabled: false
+    },
+    series: [{
+        lineWidth: 2,
+        color: 'purple'
+    }]
+  });

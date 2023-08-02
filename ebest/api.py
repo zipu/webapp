@@ -161,3 +161,8 @@ class stockapi:
              'msg': res.json()['rsp_msg']
          }
       return JsonResponse(response, safe=False)
+   
+   def google_trends(self, name):
+      # 구글 트랜드를 그래프로 보여줌
+      data = self.ebest.google_trend(name)
+      return JsonResponse(data, safe=False)

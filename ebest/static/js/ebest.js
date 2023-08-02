@@ -70,7 +70,7 @@ const entries = function(){
       let color;
       profit > 0 ? color = 'red' : color = 'blue';
 
-      let tr = `<tr id=${item.expcode} onclick="chartScreen.setButtons('${item.expcode}');">
+      let tr = `<tr id=${item.expcode} onclick="chartScreen.init('${item.expcode}');">
                     <td style='width:5%;cursor:pointer' onclick="test();">&#128203</td>
                     <td style='width:30%'>${item.hname}</td>
                     <td style='width:20%'>${entryprice.toLocaleString('en-US')}</td>
@@ -269,7 +269,7 @@ const sectors = function(){
 
 //차트화면
 const chartScreen={
-  "setButtons": function(shcode){
+  "init": function(shcode){
     realtime_price(selected, '4'); //실시간 해제
     selected = shcode;
     realtime_price(selected, '3'); //실시간 등록
@@ -280,6 +280,8 @@ const chartScreen={
     $('#chart-period-min').attr('onclick', `chartScreen.runCandleChart('${shcode}','5')`);
     
     this.runCandleChart(shcode, '2');
+    let name = $($(`#${shcode} > td`)[1]).text();
+    googleTrends(name); //구글 트랜드 
   },
   "runCandleChart": function(shcode, period){
     clearInterval(candletimer);
@@ -655,7 +657,16 @@ const getTransactions = function(){
   });
 }
 
-
+const googleTrends = function(name){
+  $.get( $(location).attr('href')+`?action=google_trends&params=${name}`, function( data ) {
+    google_trend_chart.series[0].update({
+      'data': data,
+      'name': name
+    })
+    log("구글 트랜드 불러오기 성공");
+  });
+  
+}
 
 
 
