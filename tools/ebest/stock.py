@@ -1,11 +1,12 @@
 import os
 import requests
-import json, time
+import json, time, math
 from datetime import datetime, timedelta
 
 from pytrends.request import TrendReq
 
 BASEDIR = os.path.dirname(__file__)
+DBDIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 
 
 class Stock:
@@ -17,6 +18,7 @@ class Stock:
         self.appsecretkey = self.secret['APPSECRETKEY']
         self.access_token = self.secret['access_token']
         self.token_issued_date = self.secret['token_issued_date']
+        self.dart_api_key = self.secret['dart_api_key']
     
     def get_secret(self, setting):
         """Get secret setting or fail with ImproperlyConfigured"""
@@ -300,25 +302,31 @@ class Stock:
         res = requests.post(url, headers=headers, data=json.dumps(body))
         return res
     
+    @property
+    def company_codes(self):
+        filename = os.path.join(DBDIR, 'companies.json')
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    
     def download_market_data(self):
         #종목 정보 전체를 다운 받는 함수
         self.get_access_token()
         
         print("전체 종목 정보 다운로드")
+
+        today = datetime.today().strftime('%Y%m%d')
         data = {}
-        chk = [] #우선 기업 필터
         for item in self.get_item_list().json()['t8436OutBlock']:
                 if item['etfgubun'] != "0":
                     continue
                 if item['spac_gubun'] == 'Y':
                     continue
-                if not chk:
-                    chk.append(item['hname'])
-                else:
-                    if chk[0] in item['hname']:
+
+                if len(item['hname'])>2:
+                    if item['hname'][-2:] == '우B' or item['hname'][-1] == '우'or item['hname'][-2:] == '우C'\
+                        or '(전환)' in item['hname']:
                         continue
-                    else:
-                        chk = [item['hname']]
                 
                 data[item['shcode']] = {
                     'shcode': item['shcode'],
@@ -328,12 +336,18 @@ class Stock:
                         
 
         #fng 요약
-        for shcode in list(data.keys())[:20]:
+        length = len(list(data.keys()))
+        for i, shcode in enumerate(data.keys()):
             #fng 요약
             fng = self.FNG_summary(shcode).json()
-            print(f"기업정보 다운로드: {data[shcode]['name']}")
-            outblock = fng['t3320OutBlock']
-            outblock2 = fng['t3320OutBlock1']
+            
+            outblock = fng.get('t3320OutBlock')
+            if not outblock: 
+                continue
+            outblock2 = fng.get('t3320OutBlock1')
+            if not outblock2:
+                continue
+
             data[shcode]['upgubunnm'] = outblock['upgubunnm']
             data[shcode]['market_cd'] = outblock['sijangcd']
             data[shcode]['market'] = outblock['marketnm']
@@ -359,8 +373,15 @@ class Stock:
             data[shcode]['t_eps'] = outblock2['t_eps']
             data[shcode]['peg'] = outblock2['peg']
             data[shcode]['t_peg'] = outblock2['t_peg']
-            time.sleep(1.2)
+            data[shcode]['date'] = today
+            with open(f'companies/{shcode}.json', 'w', encoding='utf-8') as f:
+                json.dump(data[shcode], f, ensure_ascii=False)
+            print(f"기업정보 다운로드: {data[shcode]['name']} ({i}/{length})")
+            time.sleep(1.05)
         
+        with open('companies/companies.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+
         return data
     
     def FNG_summary(self, shcode):
@@ -396,4 +417,138 @@ class Stock:
         return df[['date',name]].values.tolist()
 
 
+    def get_dart_company_code_list(self):
+        """ 
+        dart api 로 회사 번호 내려 받기
+        return : [dict, dict, ...]
+            dict: {'corp_code': '00434003',
+                    'corp_name': '다코',
+                    'stock_code': None,
+                    'modify_date': '20170630'
+                    }
+        """
 
+
+        import io
+        import zipfile
+        import xmltodict
+
+        url = "https://opendart.fss.or.kr/api/corpCode.xml"
+        params = {
+            "crtfc_key": self.dart_api_key
+        }
+        resp = requests.get(url, params=params)
+        f = io.BytesIO(resp.content)
+        zfile = zipfile.ZipFile(f)
+        xml = zfile.read("CORPCODE.xml").decode("utf-8")
+        return xmltodict.parse(xml)['result']['list']
+    
+    def update_company_codes(self):
+        itemlist = self.get_item_list().json()['t8436OutBlock']
+        dart_codes = self.get_dart_company_code_list()
+        today = datetime.today().strftime('%Y%m%d')
+        data = {}
+        for item in itemlist:
+                if item['etfgubun'] != "0":
+                    continue
+                if item['spac_gubun'] == 'Y':
+                    continue
+
+                if len(item['hname'])>2:
+                    if item['hname'][-2:] == '우B' or item['hname'][-1] == '우'or item['hname'][-2:] == '우C'\
+                        or '(전환)' in item['hname']:
+                        continue
+                
+                data[item['shcode']] = {
+                    'shcode': item['shcode'],
+                    'expcode': item['expcode'],
+                    'name': item['hname'],
+                    'gubun': item['gubun']
+                }
+        for item in data.values():
+            for dart in dart_codes:
+                 if item['shcode'] ==  dart['stock_code']:
+                    item.update({'dart_code': dart['corp_code']})
+        filename = os.path.join(DBDIR, 'companies.json')
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+        
+    
+
+    def update_cfs(self, year, quarter):
+        shcodes = {}
+        dart_codes = []
+        for item in self.company_codes.values():
+            shcodes[item['shcode']] = []
+            dart_codes.append(item['dart_code'])
+
+
+        #filename = os.path.join(DBDIR, 'cfs', f"{shcode}.json")
+        #with open(filename, 'r', encoding='utf-8') as f:
+        #    file = json.load(f)
+
+
+        quarter_index =["","11013","11012","11014","11011"]
+        url = "https://opendart.fss.or.kr/api/fnlttMultiAcnt.json"
+        print("재무제표 다운로드..")
+        length = math.ceil(len(dart_codes)/100)
+        print(len(dart_codes),length)
+        for i in range(length):
+            print(i)
+            params = {
+                "crtfc_key": self.dart_api_key,
+                "corp_code": ','.join(dart_codes[i*100:i*100+100]),
+                "bsns_year": year,
+                "reprt_code": quarter_index[quarter],
+            }
+            resp = requests.get(url, params=params)
+            if not resp.json().get('list'):
+                continue
+            for item in resp.json().get('list'):
+                if item['fs_div'] == 'CFS':
+                    shcodes[item['stock_code']].append(item)
+            
+        
+        ords = {
+                '1': 'current_asset',
+                '3': 'non_current_asset',
+                '5': 'asset',
+                '7': 'current_liability',
+                '9': 'non_current_liability',
+                '11': 'liability',
+                '13': 'capital',
+                '17': 'retained_earnings',
+                '21': 'equity',
+                '23': 'revenue',
+                '25': 'operating_income',
+                '27': 'net_income_before_tax',
+                '29': 'net_income'
+        }
+        print("기록중..")
+        for shcode, jemu in shcodes.items():
+            if not jemu:
+                continue
+            flag = ['1','3','5','7','9','11','13','17','21','23','25','27','29']
+            filename = os.path.join(DBDIR, 'cfs', f"{shcode}.json")
+            with open(filename, 'r', encoding='utf-8') as f:
+                file = json.load(f)
+            
+            date = jemu[0]['thstrm_dt'][:10].replace('.','')
+            if date in file['cfs']['date']:
+                continue
+            else:
+                file['cfs']['date'].append(date)
+            
+            for item in jemu:
+                amount = item['thstrm_amount']
+                name = ords[item['ord']]
+                flag.remove(item['ord'])
+                file['cfs'][name].append(amount)
+            for empty in flag:
+                
+                name = ords[empty]
+                file['cfs'][name].append('')
+            
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(file, f, ensure_ascii=False)
+    

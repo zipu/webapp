@@ -12,6 +12,10 @@ var chart = Highcharts.stockChart('chart', {
     credits: {
       enabled: false
     },
+    chart: {
+      panning: true,
+      panKey: 'ctrl'
+    },
     title:{ 
       text: "",
       align: "left",
@@ -213,11 +217,12 @@ var chart = Highcharts.stockChart('chart', {
     title: {
         text: '환율',
         floating:true,
-        x: -150,
-        y:239,
+        //x: -150,
+        //y:239,
         style:{
           fontSize: '0.9em',
-        }
+        },
+        
     },
     xAxis: {
       type: 'datetime',
@@ -271,10 +276,10 @@ var chart = Highcharts.stockChart('chart', {
       enabled: false
     },
     title: {
-        text: '구글 트랜드',
+        text: '구글 트렌드',
         floating:true,
-        x: -150,
-        y:239,
+        //x: -150,
+        //y:239,
         style:{
           fontSize: '0.9em',
         }
@@ -293,7 +298,7 @@ var chart = Highcharts.stockChart('chart', {
       }
     },
     yAxis:{
-      title:''
+      title:{ text: '' }
     },
     tooltip: {
       enabled: true,

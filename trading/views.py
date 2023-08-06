@@ -417,7 +417,7 @@ class TransactionView(TemplateView):
         api = Futures()
         
         if api.get_access_token():
-            start = Transaction.objects.order_by('-date').first().date.strftime('%Y%m%d')
+            start = (Transaction.objects.order_by('-date').first().date-timedelta(1)).strftime('%Y%m%d')
             new_transactions = api.transactions(start=start)
         else:
             new_transactions = []

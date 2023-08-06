@@ -19,7 +19,7 @@ $.get( $(location).attr('href')+"?action=get_access_token")
     
         //웹소켓 연결
         connect_websocket();
-        entries(); //보유종목 화면 시작
+        itemScreen.entries(); //보유종목 화면 시작
   } else {
         log("접근 토큰 발행 실패 :");
         log(res.data);

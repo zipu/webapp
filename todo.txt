@@ -2,3 +2,32 @@
 2. highchart 날짜 tool? Hichchart.time 뭐시기 확인
 3. 캔들차트 실시간으로 할지 말지 결정
 4. 분봉 만들기
+
+
+재무제표
+
+for key,item in data.items():
+    file = {}
+    file['info'] = item
+    file['cfs'] = {
+            'date':[],
+            'asset':[],
+            'current_asset':[],
+            'non_current_aaset':[],
+            'capital':[],
+            'revenue':[],
+            'liability':[],
+            'current_liability':[],
+            'non_current_liability':[],
+            
+    }
+    file['income'] = {
+            'date':[],
+            'revenue':[],
+            'operating_income':[],
+            'income_before_tax':[],
+            'net_income':[],
+    }
+    
+    with open(f'companies/{key}.json', 'w', encoding='utf-8') as f:
+        json.dump(file, f, ensure_ascii=False)
