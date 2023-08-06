@@ -304,40 +304,32 @@ class Stock:
     
     @property
     def company_codes(self):
-        filename = os.path.join(DBDIR, 'companies.json')
+        filename = os.path.join(DBDIR, 'codes.json')
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    
+    def get_companies_summary(self):
+        filename = os.path.join(DBDIR, "summary.json")
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+        
+    def get_company_info(self, shcode):
+        filename = os.path.join(DBDIR, 'cfs', f"{shcode}.json")
         with open(filename, 'r', encoding='utf-8') as f:
             return json.load(f)
 
     
-    def download_market_data(self):
+    def update_company_summary(self):
         #종목 정보 전체를 다운 받는 함수
         self.get_access_token()
         
-        print("전체 종목 정보 다운로드")
-
-        today = datetime.today().strftime('%Y%m%d')
-        data = {}
-        for item in self.get_item_list().json()['t8436OutBlock']:
-                if item['etfgubun'] != "0":
-                    continue
-                if item['spac_gubun'] == 'Y':
-                    continue
-
-                if len(item['hname'])>2:
-                    if item['hname'][-2:] == '우B' or item['hname'][-1] == '우'or item['hname'][-2:] == '우C'\
-                        or '(전환)' in item['hname']:
-                        continue
-                
-                data[item['shcode']] = {
-                    'shcode': item['shcode'],
-                    'expcode': item['expcode'],
-                    'name': item['hname'],
-                }
-                        
-
+        codes = self.company_codes
+        
         #fng 요약
-        length = len(list(data.keys()))
-        for i, shcode in enumerate(data.keys()):
+        today = datetime.today().strftime('%Y%m%d')
+        length = len(list(codes.keys()))
+        data = {}
+        for i, shcode in enumerate(codes.keys()):
             #fng 요약
             fng = self.FNG_summary(shcode).json()
             
@@ -347,7 +339,7 @@ class Stock:
             outblock2 = fng.get('t3320OutBlock1')
             if not outblock2:
                 continue
-
+            data[shcode]=codes[shcode].copy()
             data[shcode]['upgubunnm'] = outblock['upgubunnm']
             data[shcode]['market_cd'] = outblock['sijangcd']
             data[shcode]['market'] = outblock['marketnm']
@@ -374,15 +366,72 @@ class Stock:
             data[shcode]['peg'] = outblock2['peg']
             data[shcode]['t_peg'] = outblock2['t_peg']
             data[shcode]['date'] = today
-            with open(f'companies/{shcode}.json', 'w', encoding='utf-8') as f:
-                json.dump(data[shcode], f, ensure_ascii=False)
             print(f"기업정보 다운로드: {data[shcode]['name']} ({i}/{length})")
             time.sleep(1.05)
         
-        with open('companies/companies.json', 'w', encoding='utf-8') as f:
+        filename = os.path.join(DBDIR, 'summary.json')
+        with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
 
         return data
+    
+    def update_company_metrics(self):
+        filename = os.path.join(DBDIR, 'summary.json')
+        with open(filename, 'r', encoding='utf-8') as f:
+            summary = json.load(f)
+        for shcode, item in summary.items():
+            filename = os.path.join(DBDIR,'cfs',f'{shcode}.json')
+            if os.path.exists(filename):
+                with open(filename, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = {"cfs": {"date": [], "asset": [], "current_asset": [], "non_current_asset": [], "capital": [], "equity": [], "liability": [], "current_liability": [], "non_current_liability": [], "revenue": [], "operating_income": [], "retained_earnings": [], "net_income_before_tax": [], "net_income": []}}
+            data['info'] = item
+            if not data.get('metrics'):
+                data['metrics'] ={
+                    'date':[],
+                    'foreignratio':[],
+                    'capital':[],
+                    'sigavalue':[],
+                    'cashsis':[],
+                    'cashrate':[],
+                    'per':[],
+                    'eps':[],
+                    'pbr':[],
+                    'roa':[],
+                    'ebitda':[],
+                    'sps':[],
+                    'cps':[],
+                    'bps':[],
+                    't_per':[],
+                    't_eps':[],
+                    'peg':[],
+                    't_peg':[],
+                }
+            if data['metrics'].get('date') and item['date'] in data['metrics']['date']:
+                continue
+            data['metrics']['date'].append(item['date'])
+            data['metrics']['foreignratio'].append(item['foreignratio'])
+            data['metrics']['capital'].append(item['capital'])
+            data['metrics']['sigavalue'].append(item['sigavalue'])
+            data['metrics']['cashsis'].append(item['cashsis'])
+            data['metrics']['cashrate'].append(item['cashrate'])
+            data['metrics']['per'].append(item['per'])
+            data['metrics']['eps'].append(item['eps'])
+            data['metrics']['pbr'].append(item['pbr'])
+            data['metrics']['roa'].append(item['roa'])
+            data['metrics']['ebitda'].append(item['ebitda'])
+            data['metrics']['sps'].append(item['sps'])
+            data['metrics']['cps'].append(item['cps'])
+            data['metrics']['bps'].append(item['bps'])
+            data['metrics']['t_per'].append(item['t_per'])
+            data['metrics']['t_eps'].append(item['t_eps'])
+            data['metrics']['peg'].append(item['peg'])
+            data['metrics']['t_peg'].append(item['t_peg'])
+            
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+
     
     def FNG_summary(self, shcode):
         # FNG 요약
@@ -469,7 +518,7 @@ class Stock:
             for dart in dart_codes:
                  if item['shcode'] ==  dart['stock_code']:
                     item.update({'dart_code': dart['corp_code']})
-        filename = os.path.join(DBDIR, 'companies.json')
+        filename = os.path.join(DBDIR, 'codes.json')
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
         
@@ -492,9 +541,8 @@ class Stock:
         url = "https://opendart.fss.or.kr/api/fnlttMultiAcnt.json"
         print("재무제표 다운로드..")
         length = math.ceil(len(dart_codes)/100)
-        print(len(dart_codes),length)
+        print(year, quarter)
         for i in range(length):
-            print(i)
             params = {
                 "crtfc_key": self.dart_api_key,
                 "corp_code": ','.join(dart_codes[i*100:i*100+100]),

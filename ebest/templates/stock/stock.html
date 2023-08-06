@@ -31,6 +31,12 @@
             <a class="nav-link" id="favorites-tab" onclick="itemScreen('favorites-tab');" style="cursor:pointer">관심</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" id="kospi-tab" onclick="itemScreen.kospi();"  style="cursor:pointer">코스피</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="kosdaq-tab" onclick="itemScreen.etf();"  style="cursor:pointer">코스닥</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" id="etf-tab" onclick="itemScreen.etf();"  style="cursor:pointer">ETF</a>
           </li>
           <li class="nav-item">
@@ -41,7 +47,7 @@
     <div class="row" style='margin: 0;'>
       <table  class="table table-sm table-striped" id='item-screen'
                   style="display: block; width:100%;margin: 0;border:1px solid black;height:550px;overflow:auto;">
-            <thead style='display:table;width:100%;'></thead>
+            <thead style='display:table;width:100%;position:sticky;background-color:white;top:0'></thead>
             <tbody style="display:table; width:100%;"></tbody>
       </table>
     </div>
@@ -65,7 +71,8 @@
             <tbody style="display:table; width:100%;" id="transactions"></tbody>
     </table>
   </div>
-  <div class="col-6">b</div>
+  <div class="col-6">
+  </div>
 </div>
 <div class="row" style='height:150px'>
   <div class="col-12" id='log'></div>

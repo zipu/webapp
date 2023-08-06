@@ -110,6 +110,39 @@ const itemScreen = {
       }, 1000);
     });
   },
+  "kospi": function(){
+    itemScreen.activateTab('kospi-tab');
+    
+    // 1. 화면정리
+    clearInterval(screentimer);
+    $('#item-screen > thead').html('');
+    $('#item-screen > tbody').html('');
+    $('#item-screen > tbody').attr('id','kospi-tbody')
+    $('#item-screen > thead').append(`
+      <tr style='font-size:0.8em'>
+        <th> 종목 </th>
+        <th> 코드 </th>
+      </tr>
+    `);
+
+    // 2. 코스피종목 불러오기
+    $.get( $(location).attr('href')+`?action=company_list&params=1`, function( data ) {
+      for (let item of data){
+        let tr = `<tr id=${item[0]} onclick="chartScreen.setButtons('${item[0]}');">
+                          <td>${item[1]}</td>
+                          <td>${item[0]}</td>
+                      </tr>`
+        if ($('#item-screen > tbody').attr('id')=='kospi-tbody') {
+            $('#item-screen > tbody').append(tr);
+        };
+      };
+    }).
+    done(function(res){
+      new DataTable("#item-screen");
+    });
+    
+    
+  },
 
   "etf": function(){
     itemScreen.activateTab('etf-tab');

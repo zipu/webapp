@@ -6,6 +6,12 @@ setInterval(() => {
 //환율
 get_currency_rates();
 setInterval(get_currency_rates, 60*60*1000); //한시간마다 갱신
+
+//데이터테이블
+$(document).ready( function () {
+  new DataTable('#example');
+} );
+
     
 //엑세스 토큰 가져오기
 var access_token;
