@@ -76,15 +76,23 @@ class stockapi:
           }
       return JsonResponse(data, safe=False)
    
-   def company_list(self, market):
-      # 종목 정보 불러오기, market = kospi: '1' or kosdaq: '2'
-      codes = self.ebest.company_codes
+   def company_list(self):
+      # 종목 정보 불러오기, market = kospi: '1' or kosdaq: '2' or all:'0'
+      companies = self.ebest.get_companies_summary()
       data = []
-      
-      for key, item in codes.items():
-         if item['gubun'] == market:
-            data.append([key, item['name']])
+      for key, item in companies.items():
+            if item['market_cd'] == '1':
+               market = '코스피'
+            elif item['market_cd'] == '2':
+               market = '코스닥'
 
+            data.append([key, item['name'], market, item['sigavalue'], item['cashrate']])
+
+      return JsonResponse(data, safe=False)
+   
+   def company_info(self, shcode):
+      # 회사 정보 불러오기
+      data = self.ebest.get_company_info(shcode)
       return JsonResponse(data, safe=False)
 
    def sector_list(self):

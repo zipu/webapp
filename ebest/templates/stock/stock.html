@@ -10,6 +10,9 @@
       <button id='chart-period-month' style='border-width:1px;'>월</button>
       <input id='minutes' type='number' value='60' style="width:50px;"><button id='chart-period-min'>분</button></input>
     </div>
+    <div style='z-index: 100;position: absolute;top:50px;left:320px;'>
+      <p id='cur-price' style='height:10px;font-weight:bold'></p>
+    </div>
     <div id="chart" style='height:600px;'></div>
   </div>
   <!-- 메인 차트 화면 끝 -->
@@ -31,10 +34,7 @@
             <a class="nav-link" id="favorites-tab" onclick="itemScreen('favorites-tab');" style="cursor:pointer">관심</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" id="kospi-tab" onclick="itemScreen.kospi();"  style="cursor:pointer">코스피</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" id="kosdaq-tab" onclick="itemScreen.etf();"  style="cursor:pointer">코스닥</a>
+            <a class="nav-link" id="companies-tab" onclick="itemScreen.companies();"  style="cursor:pointer">종목전체</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" id="etf-tab" onclick="itemScreen.etf();"  style="cursor:pointer">ETF</a>
@@ -44,13 +44,7 @@
           </li>
         </ul>
     </div>
-    <div class="row" style='margin: 0;'>
-      <table  class="table table-sm table-striped" id='item-screen'
-                  style="display: block; width:100%;margin: 0;border:1px solid black;height:550px;overflow:auto;">
-            <thead style='display:table;width:100%;position:sticky;background-color:white;top:0'></thead>
-            <tbody style="display:table; width:100%;"></tbody>
-      </table>
-    </div>
+    <div class="row" style='margin: 0;' id='item-screen'></div>
   </div>
 </div>
 <div class="row">
@@ -77,26 +71,22 @@
 <div class="row" style='height:150px'>
   <div class="col-12" id='log'></div>
 </div>
-<!-- modal 화면 -->
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-  Launch demo modal
-</button>
 
 <!-- Modal -->
-<div class="modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal modal-lg" id="companyModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <h5 class="modal-title" id="modal-title"></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <div></div>
+        <div>자본금</div>
+        <div>자본금</div>
+        <div>자본금</div>
+
+
       </div>
     </div>
   </div>

@@ -21,19 +21,11 @@ const itemScreen = {
     itemScreen.activateTab('entries-tab');
     // 1. 화면 정리
     clearInterval(screentimer);
-    $('#item-screen > thead').html('');
-    $('#item-screen > tbody').html('');
-    $('#item-screen > tbody').attr('id','entries-tbody')
-    $('#item-screen > thead').append(`
-      <tr style='font-size:0.8em'>
-        <th style='width:5%'> </th>  
-        <th style='width:30%'> 종목 </th>
-        <th style='width:20%'> 매입가 </th>
-        <th style='width:10%'> 수량 </th>
-        <th style='width:20%'> 현재가 </th>
-        <th style='width:15%'> 평가손익 </th>
-      </tr>
-      `);
+    //$('#item-screen').html('');
+    $('#companies-table_wrapper').hide();
+    itemScreenTables.entriesTable.find('tbody').html('');
+    $('#item-screen').append(itemScreenTables.entriesTable);
+
     // 2. 보유종목 불러오기
     let path = url+"/stock/accno";
     let headers = {
@@ -71,8 +63,8 @@ const itemScreen = {
         let color;
         profit > 0 ? color = 'red' : color = 'blue';
   
-        let tr = `<tr id=${item.expcode} onclick="chartScreen.init('${item.expcode}');">
-                      <td style='width:5%;cursor:pointer' onclick="test();">&#128203</td>
+        let tr = `<tr id=${item.expcode} onclick="chartScreen.init('${item.expcode}');" style="cursor:default">
+                      <td style='width:5%;cursor:pointer' onclick="companyDetail('${item.expcode}')" data-bs-toggle="modal" data-bs-target="#companyModal">&#128203</td>
                       <td style='width:30%'>${item.hname}</td>
                       <td style='width:20%'>${entryprice.toLocaleString('en-US')}</td>
                       <td style='width:10%'>${parseInt(item.janqty).toLocaleString('en-US')}</td>
@@ -80,8 +72,8 @@ const itemScreen = {
                       <td style='width:15%; color:${color}'>${profit.toLocaleString('en-Us')}</td>
                   </tr>`
         
-        if ($('#item-screen > tbody').attr('id')=='entries-tbody') {
-          $('#item-screen > tbody').append(tr);
+        if ($('#item-screen > table').attr('id')=='entries-table') {
+          $('#entries-table > tbody').append(tr);
         };
       };
      })
@@ -96,52 +88,26 @@ const itemScreen = {
         .done(function(res){
           let data = res['t0424OutBlock1'];
           for (let item of data){
-            if ($('#item-screen > tbody').attr('id')=='entries-tbody') {
+            if ($('#entries-table > table').attr('id')=='entries-table') {
               let price = parseInt(item.price);
               let profit = parseInt(item.dtsunik);
               let color;
               profit > 0 ? color = 'red' : color = 'blue';
-              $(`#${item.shcode} td:nth-child(4)`).text(price.toLocaleString('en-US'));
-              $(`#${item.shcode} td:nth-child(5)`).text(profit);
-              $(`#${item.shcode} td:nth-child(5)`).css('color', color);
+              $(`#${item.shcode} td:nth-child(5)`).text(price.toLocaleString('en-US'));
+              $(`#${item.shcode} td:nth-child(6)`).text(profit);
+              $(`#${item.shcode} td:nth-child(6)`).css('color', color);
             };
           };
         })
       }, 1000);
     });
   },
-  "kospi": function(){
-    itemScreen.activateTab('kospi-tab');
-    
+  "companies": function(){
+    itemScreen.activateTab('companies-tab');
     // 1. 화면정리
     clearInterval(screentimer);
-    $('#item-screen > thead').html('');
-    $('#item-screen > tbody').html('');
-    $('#item-screen > tbody').attr('id','kospi-tbody')
-    $('#item-screen > thead').append(`
-      <tr style='font-size:0.8em'>
-        <th> 종목 </th>
-        <th> 코드 </th>
-      </tr>
-    `);
-
-    // 2. 코스피종목 불러오기
-    $.get( $(location).attr('href')+`?action=company_list&params=1`, function( data ) {
-      for (let item of data){
-        let tr = `<tr id=${item[0]} onclick="chartScreen.setButtons('${item[0]}');">
-                          <td>${item[1]}</td>
-                          <td>${item[0]}</td>
-                      </tr>`
-        if ($('#item-screen > tbody').attr('id')=='kospi-tbody') {
-            $('#item-screen > tbody').append(tr);
-        };
-      };
-    }).
-    done(function(res){
-      new DataTable("#item-screen");
-    });
-    
-    
+    $('#entries-table').remove();
+    $('#companies-table_wrapper').show();
   },
 
   "etf": function(){
@@ -411,7 +377,11 @@ const chartScreen={
         quotes.push([date, quote.open, quote.high, quote.low, quote.close]);
         volume.push([date, quote.jdiff_vol]);
       };
-      test = quotes;
+      let last = quotes.length-1;
+      let strdate = ohlc[last].date;
+      let strtime = ohlc[last].time
+
+      $('#cur-price').text(`현재가: ${quotes[last][4].toLocaleString('en-US')}`)
       chart.series[0].update({data: quotes, name:name}, false);
       chart.series[1].update({data: volume, name:'거래량'}, false);
       chart.setTitle({'text': name});
@@ -714,5 +684,14 @@ const googleTrends = function(name){
   
 }
 
+//modal 화면
+var company_info;
+const companyDetail = function(shcode){
+  $.get( $(location).attr('href')+`?action=company_info&params=${shcode}`, function( data ) {
+    log("회사 정보 불러오기 성공: " + shcode);
+    company_info = data;
+    $('#modal-title').text(data.info.name);
 
+  });
 
+};
