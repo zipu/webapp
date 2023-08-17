@@ -1,5 +1,6 @@
 {% extends "base.html"%}
 {% load humanize %}
+{% load static %}
 {% block content1 %}
 <div class="row">
   <!-- 메인 차트 화면-->
@@ -91,5 +92,10 @@
     </div>
   </div>
 </div>
- 
+ <!-- css and js-->
+<script type='text/javascript' src="{% static 'js/tools.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/charts.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/real.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/ebest.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/init.js' %}"></script>
 {% endblock content1 %}

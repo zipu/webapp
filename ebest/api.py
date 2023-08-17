@@ -1,11 +1,15 @@
 import os
-import json, csv
+import json, csv, requests, zipfile, io
+from datetime import datetime
 from itertools import zip_longest
 from django.http import JsonResponse
+from django.conf import settings
+import pandas as pd
+
+
 from tools.ebest.stock import Stock
 
-from django.conf import settings
-BASEDIR = settings.BASE_DIR
+BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..')
 
 class stockapi:
    def __init__(self):
@@ -184,3 +188,178 @@ class stockapi:
       # 구글 트랜드를 그래프로 보여줌
       data = self.ebest.google_trend(name)
       return JsonResponse(data, safe=False)
+
+class cftc:
+   def __init__(self):
+      self.dir = os.path.join(BASEDIR, 'tools','data','futures','cftc')
+
+
+   def get_itemlist(self):
+      filename = os.path.join(self.dir, 'categories.json')
+      with open(filename) as f:
+         return json.load(f)
+   
+   
+   def update_data(self):
+      year = datetime.today().year
+      url_dir_file = [
+         (f"https://www.cftc.gov/files/dea/history/dea_fut_xls_{year}.zip", "legacy", "annual.xls"),
+         (f"https://www.cftc.gov/files/dea/history/dea_com_xls_{year}.zip", "legacy_option_combined", "annualof.xls"),
+         #(f"https://www.cftc.gov/files/dea/history/dea_cit_xls_{year}.zip", "index_trader_supplement", "deacit.xls"),
+         (f"https://www.cftc.gov/files/dea/history/fut_disagg_xls_{year}.zip", "disaggregated", "f_year.xls"),
+         (f"https://www.cftc.gov/files/dea/history/com_disagg_xls_{year}.zip", "disaggregated_option_combined", "c_year.xls"),
+         (f"https://www.cftc.gov/files/dea/history/fut_fin_xls_{year}.zip","financial_futures", "FinFutYY.xls"),
+         (f"https://www.cftc.gov/files/dea/history/com_fin_xls_{year}.zip", "financial_futures_option_combined", 'FinComYY.xls')
+      ]
+
+      for url, dirname, file in url_dir_file:
+         print(f"Update CFTC data: {dirname}")
+         r = requests.get(url)
+         z = zipfile.ZipFile(io.BytesIO(r.content))
+         df = pd.read_excel(z.read(file))
+         df['Report_Date_as_MM_DD_YYYY'] = df['Report_Date_as_MM_DD_YYYY'].dt.strftime('%Y-%m-%d')
+         for name, group in df.groupby('Market_and_Exchange_Names'):
+            name = name.replace('/','-').replace('<','-')
+            filename = os.path.join(self.dir, dirname,f"{name}.csv")
+            group.sort_values(by='As_of_Date_In_Form_YYMMDD', inplace=True)
+            if not os.path.exists(filename):
+                  group.to_csv(filename, mode='w', index=False)
+            else:
+                  old = pd.read_csv(filename)
+                  #old = old.drop('Report_Date_as_MM_DD_YYYY', axis=1)
+                  #old = old.rename(columns = {'Report_Date_as_MM_DD_YYYY.1':'Report_Date_as_MM_DD_YYYY'})
+                  df = pd.concat([old, group])
+                  df.drop_duplicates('As_of_Date_In_Form_YYMMDD', inplace=True)
+                  df.to_csv(filename, mode='w', index=False)
+      return JsonResponse({'success': True}, safe=False)
+            
+            
+   def financials(self, sector, name):
+      categories = self.get_itemlist()
+      # Futures only
+      filename = categories[sector][name]+'.csv'
+      filepath = os.path.join(self.dir,'financial_futures', filename)
+      df = pd.read_csv(filepath)
+      df.index = pd.to_datetime(df['As_of_Date_In_Form_YYMMDD'], format='%y%m%d')
+      df.fillna(0, inplace=True)
+      df.insert(0,'date' , pd.to_datetime(df.index).values.astype('M8[ms]').astype('int64'))
+      df.drop_duplicates('date', inplace=True)
+      df['dealers'] = df['Dealer_Positions_Long_All'] - df['Dealer_Positions_Short_All']
+      df['institutions'] = df['Asset_Mgr_Positions_Long_All'] - df['Asset_Mgr_Positions_Short_All']
+      df['funds'] = df['Lev_Money_Positions_Long_All'] - df['Lev_Money_Positions_Short_All']
+      df['others'] = df['Other_Rept_Positions_Long_All'] - df['Other_Rept_Positions_Short_All']
+      df['traders'] = df['Traders_Tot_All'] - df['Traders_Dealer_Spread_All'] - df['Traders_Lev_Money_Spread_All'] - df['Traders_Other_Rept_Spread_All']
+
+      futuresdata = df[['date','dealers','institutions','funds','others','traders']]
+
+      #option
+      # option combined 
+      filepath = os.path.join(self.dir,'financial_futures_option_combined', filename)
+      df2 = pd.read_csv(filepath)
+      df2.index = pd.to_datetime(df['As_of_Date_In_Form_YYMMDD'], format='%y%m%d')
+      df2.fillna(0, inplace=True)
+      df2.insert(0,'date' , pd.to_datetime(df.index).values.astype('M8[ms]').astype('int64'))
+      df2.drop_duplicates('date')
+      df2['dealers'] = df2['Dealer_Positions_Long_All'] - df2['Dealer_Positions_Short_All'] - df['dealers']
+      df2['institutions'] = df2['Asset_Mgr_Positions_Long_All'] - df2['Asset_Mgr_Positions_Short_All'] - df['institutions']
+      df2['funds'] = df2['Lev_Money_Positions_Long_All'] - df2['Lev_Money_Positions_Short_All'] - df['funds']
+      df2['others'] = df2['Other_Rept_Positions_Long_All'] - df2['Other_Rept_Positions_Short_All'] - df['others']
+      df2['traders'] = df2['Traders_Tot_All'] - df2['Traders_Dealer_Spread_All'] - df2['Traders_Lev_Money_Spread_All'] - df2['Traders_Other_Rept_Spread_All'] - df['traders']
+      optiondata = df2[['date','dealers','institutions','funds','others','traders']]
+
+      #spread
+      spread = df2[['date','Dealer_Positions_Spread_All','Asset_Mgr_Positions_Spread_All','Lev_Money_Positions_Spread_All',\
+                    'Other_Rept_Positions_Spread_All','Traders_Dealer_Spread_All','Traders_Asset_Mgr_Spread_All',\
+                     'Traders_Lev_Money_Spread_All', 'Traders_Other_Rept_Spread_All']]
+      
+      response = {
+         'futures': futuresdata.values.tolist(),
+         'option': optiondata.values.tolist(),
+         'spread': spread.values.tolist(),
+      }
+      
+      return JsonResponse(response, safe=False)
+
+      
+   def disaggregated(self, sector, name):
+      categories = self.get_itemlist()
+      # Futures only
+      filename = categories[sector][name]+'.csv'
+      filepath = os.path.join(self.dir,'disaggregated', filename)
+      df = pd.read_csv(filepath)
+      df.index = pd.to_datetime(df['As_of_Date_In_Form_YYMMDD'], format='%y%m%d')
+      df.fillna(0, inplace=True)
+      df.insert(0,'date' , pd.to_datetime(df.index).values.astype('M8[ms]').astype('int64'))
+      df['producer'] = df['Prod_Merc_Positions_Long_ALL'] - df['Prod_Merc_Positions_Short_ALL']
+      df['swap'] = df['Swap_Positions_Long_All'] - df['Swap__Positions_Short_All']
+      df['funds'] = df['M_Money_Positions_Long_ALL'] - df['M_Money_Positions_Short_ALL']
+      df['others'] = df['Other_Rept_Positions_Long_ALL'] - df['Other_Rept_Positions_Short_ALL']
+      df['traders'] = df['Traders_Tot_All'] - df['Traders_Swap_Spread_All'] - df['Traders_M_Money_Spread_All'] - df['Traders_Other_Rept_Spread_All']
+
+      futuresdata = df[['date','producer','swap','funds','others','Traders_Tot_All']].drop_duplicates('date')
+      
+      # option combined 
+      filepath = os.path.join(self.dir,'disaggregated_option_combined', filename)
+      df2 = pd.read_csv(filepath)
+      df2.index = pd.to_datetime(df['As_of_Date_In_Form_YYMMDD'], format='%y%m%d')
+      df2.fillna(0, inplace=True)
+      df2.insert(0,'date' , pd.to_datetime(df.index).values.astype('M8[ms]').astype('int64'))
+      df2['producer'] = df2['Prod_Merc_Positions_Long_ALL'] - df2['Prod_Merc_Positions_Short_ALL'] - df['producer']
+      df2['swap'] = df2['Swap_Positions_Long_All'] - df2['Swap__Positions_Short_All'] - df['swap']
+      df2['funds'] = df2['M_Money_Positions_Long_ALL'] - df2['M_Money_Positions_Short_ALL'] - df['funds']
+      df2['others'] = df2['Other_Rept_Positions_Long_ALL'] - df2['Other_Rept_Positions_Short_ALL'] - df['others']
+      df2['traders'] = df2['Traders_Tot_All'] - df2['Traders_Swap_Spread_All'] - df2['Traders_M_Money_Spread_All'] - df2['Traders_Other_Rept_Spread_All'] - df['traders']
+      optiondata = df2[['date','producer','swap','funds','others','traders']].drop_duplicates('date')
+
+      spread = df2[['date','Swap__Positions_Spread_All','M_Money_Positions_Spread_ALL','Other_Rept_Positions_Spread_ALL','Traders_Swap_Spread_All','Traders_M_Money_Spread_All','Traders_Other_Rept_Spread_All']].drop_duplicates('date')
+      
+      response = {
+         'futures': futuresdata.values.tolist(),
+         'option': optiondata.values.tolist(),
+         'spread': spread.values.tolist(),
+      }
+      
+      return JsonResponse(response, safe=False)
+   
+   def legacy(self,sector, name):
+      #filename = os.path.join(self.dir,'legacy', f"{name}.csv")
+      categories = self.get_itemlist()
+      
+      # Futures only
+      filename = categories[sector][name]+'.csv'
+      filepath = os.path.join(self.dir,'legacy', filename)
+      df = pd.read_csv(filepath)
+      df.index = pd.to_datetime(df['As_of_Date_In_Form_YYMMDD'], format='%y%m%d')
+      df.fillna(0, inplace=True)
+      df.insert(0,'date' , pd.to_datetime(df.index).values.astype('M8[ms]').astype('int64'))
+      df['noncomm'] = df['NonComm_Positions_Long_All'] - df['NonComm_Positions_Short_All']
+      df['comm'] = df['Comm_Positions_Long_All'] - df['Comm_Positions_Short_All']
+      df['unknown'] = df['NonRept_Positions_Long_All'] - df['NonRept_Positions_Short_All']
+      df['traders'] = df['Traders_Tot_All'] - df['Traders_NonComm_Spread_All']
+      futuresdata = df[['date','noncomm','comm','unknown','traders']].drop_duplicates('date')
+      
+      # option combined 
+      filepath = os.path.join(self.dir,'legacy_option_combined', filename)
+      df2 = pd.read_csv(filepath)
+      df2.index = pd.to_datetime(df['As_of_Date_In_Form_YYMMDD'], format='%y%m%d')
+      df2.fillna(0, inplace=True)
+      df2.insert(0,'date' , pd.to_datetime(df.index).values.astype('M8[ms]').astype('int64'))
+      df2['noncomm'] = df2['NonComm_Positions_Long_All'] - df2['NonComm_Positions_Short_All'] - df['noncomm']
+      df2['comm'] = df2['Comm_Positions_Long_All'] - df2['Comm_Positions_Short_All'] - df['comm']
+      df2['unknown'] = df2['NonRept_Positions_Long_All'] - df2['NonRept_Positions_Short_All'] - df['unknown']
+      df2['traders'] = df2['Traders_Tot_All'] - df2['Traders_NonComm_Spread_All'] - df['traders']
+      optiondata = df2[['date','noncomm','comm','unknown','traders']].drop_duplicates('date')
+
+      response = {
+         'futures': futuresdata.values.tolist(),
+         'option': optiondata.values.tolist(),
+         'spread_position': df2[['date','NonComm_Postions_Spread_All']].drop_duplicates('date').values.tolist(),
+         'spread_traders': df2[['date','Traders_NonComm_Spread_All']].drop_duplicates('date').values.tolist()
+      }
+
+      return JsonResponse(response, safe=False)
+
+class futuresapi:
+   def __init__(self):
+      self.dir = os.path.join(BASEDIR, 'tools','data','futures')
+      self.cftc = cftc()
