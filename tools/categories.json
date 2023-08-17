@@ -1,0 +1,67 @@
+{
+    "grains": {
+        "WHEAT-SRW": "WHEAT-SRW - CHICAGO BOARD OF TRADE",
+        "WHEAT-HRW": "WHEAT-HRW - CHICAGO BOARD OF TRADE",
+        "WHEAT-HRS": "WHEAT-HRSpring - MINNEAPOLIS GRAIN EXCHANGE",
+        "CORN": "CORN - CHICAGO BOARD OF TRADE",
+        "SOYBEAN MEAL": "SOYBEAN MEAL - CHICAGO BOARD OF TRADE",
+        "SOYBEAN OIL": "SOYBEAN OIL - CHICAGO BOARD OF TRADE",
+        "SOYBEANS": "SOYBEANS - CHICAGO BOARD OF TRADE",
+        "ROUGH RICE": "ROUGH RICE - CHICAGO BOARD OF TRADE",
+        "CANOLA": "CANOLA - ICE FUTURES U.S."
+    },
+    "energies":{
+        "WTI Crude Oil":"WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
+        "Brent Oil": "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+        "ULSD NY Harbor":"NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
+        "Gasoline RBOB": "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",
+        "Natural Gas": "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
+        "Ethanol": "ETHANOL - NEW YORK MERCANTILE EXCHANGE"
+    },
+    "metals":{
+        "Gold": "GOLD - COMMODITY EXCHANGE INC.",
+        "Silver":"SILVER - COMMODITY EXCHANGE INC.",
+        "Copper": "COPPER- #1 - COMMODITY EXCHANGE INC.",
+        "Platinium": "PLATINUM - NEW YORK MERCANTILE EXCHANGE",
+        "Palladium": "PALLADIUM - NEW YORK MERCANTILE EXCHANGE"
+    },
+    "livestocks":{
+        "Live Cattle": "LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE",
+        "Feeder Cattle": "FEEDER CATTLE - CHICAGO MERCANTILE EXCHANGE",
+        "Lean Hogs": "LEAN HOGS - CHICAGO MERCANTILE EXCHANGE"
+    },
+    "softs":{
+        "Cotton": "COTTON NO. 2 - ICE FUTURES U.S.",
+        "Orange Juice": "FRZN CONCENTRATED ORANGE JUICE - ICE FUTURES U.S.",
+        "Coffee": "COFFEE C - ICE FUTURES U.S.",
+        "Cocoa": "COCOA - ICE FUTURES U.S.",
+        "Sugar": "SUGAR NO. 11 - ICE FUTURES U.S.",
+        "Lumber": "RANDOM LENGTH LUMBER - CHICAGO MERCANTILE EXCHANGE"
+    },
+    "currencies":{
+        "Dollar Index": "U.S. DOLLAR INDEX - ICE FUTURES U.S.",
+        "Euro": "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "British Pound": "BRITISH POUND - CHICAGO MERCANTILE EXCHANGE",
+        "Australian Dollar": "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+        "Japanese Yen": "JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE",
+        "Canadian Dollar": "CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+        "Swiss Franc": "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE",
+        "New Zealand Dollar": "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+        "Mexican Peso": "MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE",
+        "Bitcoin": "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+    },
+    "indices":{
+        "SnP 500 E-mini": "E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE",
+        "Nasdaq 100 E-Mini": "NASDAQ MINI - CHICAGO MERCANTILE EXCHANGE",
+        "Russell 2000 E-Mini": "RUSSELL E-MINI - CHICAGO MERCANTILE EXCHANGE",
+        "VIX": "VIX FUTURES - CBOE FUTURES EXCHANGE"
+    },
+    "rates":{
+        "2-Year T-Note": "UST 2Y NOTE - CHICAGO BOARD OF TRADE",
+        "5-Year T-Note": "UST 5Y NOTE - CHICAGO BOARD OF TRADE",
+        "10-Year T-Note": "UST 10Y NOTE - CHICAGO BOARD OF TRADE",
+        "30-Year T-Bond": "UST BOND - CHICAGO BOARD OF TRADE",
+        "3-Month SOFR": "SOFR-3M - CHICAGO MERCANTILE EXCHANGE",
+        "30-Day Fed Funds": "FED FUNDS - CHICAGO BOARD OF TRADE"
+    }
+}
