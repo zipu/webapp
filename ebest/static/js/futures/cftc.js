@@ -56,7 +56,7 @@ var legacy_option_chart = Highcharts.chart('legacy-option-chart', {
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: 'true',
   },
   title: {
@@ -109,7 +109,7 @@ var legacy_spread_chart = Highcharts.chart('legacy-spread-chart', {
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
@@ -160,7 +160,7 @@ var disaggregated_futures_chart = Highcharts.chart('disaggregated-futures-chart'
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
@@ -214,7 +214,7 @@ var disaggregated_option_chart = Highcharts.chart('disaggregated-option-chart', 
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
@@ -269,7 +269,7 @@ var disaggregated_spread_chart = Highcharts.chart('disaggregated-spread-chart', 
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
@@ -326,7 +326,7 @@ var financials_futures_chart = Highcharts.chart('financials-futures-chart', {
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
@@ -380,7 +380,7 @@ var financials_option_chart = Highcharts.chart('financials-option-chart', {
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
@@ -435,7 +435,7 @@ var financials_spread_chart = Highcharts.chart('financials-spread-chart', {
   credits: {
     enabled: false
   },
-  charts:{
+  chart:{
     panning: true
   },
   title: {
