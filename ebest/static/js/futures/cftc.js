@@ -15,7 +15,7 @@ var legacy_futures_chart = Highcharts.chart('legacy-futures-chart', {
     },
     yAxis:[{
       title:'Long-Short',
-      height: '80%'
+      height: '80%',
     },{
       title:'Traders',
       top:'80%',
@@ -45,9 +45,9 @@ var legacy_futures_chart = Highcharts.chart('legacy-futures-chart', {
       },
     },
     series: [
-      {name: 'Commercial', color:'black' },
+      {name: 'Commercial', color:'grey' },
       {name: 'Non-commercial', color: 'red'},
-      {name: 'Non-reportables', color: 'blue'},
+      {name: 'Non-reportables', color: 'orange'},
       {name: 'Traders', yAxis:1},
     ]
 });
@@ -98,9 +98,9 @@ var legacy_option_chart = Highcharts.chart('legacy-option-chart', {
     },
   },
   series: [
-    {name: 'Commercial', color:'black' },
+    {name: 'Commercial', color:'grey' },
     {name: 'Non-commercial', color: 'red'},
-    {name: 'Non-reportables', color: 'blue'},
+    {name: 'Non-reportables', color: 'orange'},
     {name: 'Traders', yAxis:1},
   ]
 });
@@ -203,8 +203,8 @@ var disaggregated_futures_chart = Highcharts.chart('disaggregated-futures-chart'
   },
   series: [
     {name: 'Commercials: producer/merchant/processor', color:'black' },
-    {name: 'Commercials: swap dealers', color: 'red'},
-    {name: 'Non-commercial: managed money', color: 'blue'},
+    {name: 'Commercials: swap dealers', color: 'grey'},
+    {name: 'Non-commercial: managed money', color: 'red'},
     {name: 'Non-commercial: others', color: 'orange'},
     {name: 'Traders',  yAxis:1},
   ]
@@ -257,8 +257,8 @@ var disaggregated_option_chart = Highcharts.chart('disaggregated-option-chart', 
   },
   series: [
     {name: 'Commercials: producer/merchant/processor', color:'black' },
-    {name: 'Commercials: swap dealers', color: 'red'},
-    {name: 'Non-commercial: managed money', color: 'blue'},
+    {name: 'Commercials: swap dealers', color: 'grey'},
+    {name: 'Non-commercial: managed money', color: 'red'},
     {name: 'Non-commercial: others', color: 'orange'},
     {name: 'Traders',  yAxis:1},
   ]
@@ -311,8 +311,8 @@ var disaggregated_spread_chart = Highcharts.chart('disaggregated-spread-chart', 
     },
   },
   series: [
-    {name: 'Commercials: swap dealers', color: 'red'},
-    {name: 'Non-commercial: managed money', color: 'blue'},
+    {name: 'Commercials: swap dealers', color: 'grey'},
+    {name: 'Non-commercial: managed money', color: 'red'},
     {name: 'Non-commercial: others', color: 'orange'},
     {name: 'traders: swap dealers',  yAxis:1},
     {name: 'traders: managed money',  yAxis:1},
@@ -368,9 +368,9 @@ var financials_futures_chart = Highcharts.chart('financials-futures-chart', {
     },
   },
   series: [
-    {name: 'Dealer/Intermediary', color:'black' },
-    {name: 'Asset Manager/Institutional', color: 'red'},
-    {name: 'Leveraged Funds', color: 'blue'},
+    {name: 'Dealer/Intermediary', color:'grey' },
+    {name: 'Asset Manager/Institutional', color: 'blue'},
+    {name: 'Leveraged Funds', color: 'red'},
     {name: 'Other Reportables', color: 'orange'},
     {name: 'Traders',  yAxis:1},
   ]
@@ -422,9 +422,9 @@ var financials_option_chart = Highcharts.chart('financials-option-chart', {
     },
   },
   series: [
-    {name: 'Dealer/Intermediary', color:'black' },
-    {name: 'Asset Manager/Institutional', color: 'red'},
-    {name: 'Leveraged Funds', color: 'blue'},
+    {name: 'Dealer/Intermediary', color:'grey' },
+    {name: 'Asset Manager/Institutional', color: 'blue'},
+    {name: 'Leveraged Funds', color: 'red'},
     {name: 'Other Reportables', color: 'orange'},
     {name: 'Traders',  yAxis:1},
   ]
@@ -477,9 +477,9 @@ var financials_spread_chart = Highcharts.chart('financials-spread-chart', {
     },
   },
   series: [
-    {name: 'Dealer/Intermediary', color:'black' },
-    {name: 'Asset Manager/Institutional', color: 'red'},
-    {name: 'Leveraged Funds', color: 'blue'},
+    {name: 'Dealer/Intermediary', color:'grey' },
+    {name: 'Asset Manager/Institutional', color: 'orange'},
+    {name: 'Leveraged Funds', color: 'red'},
     {name: 'Other Reportables', color: 'orange'},
     {name: 'Traders-dealer',  yAxis:1},
     {name: 'Traders-institutional',  yAxis:1},

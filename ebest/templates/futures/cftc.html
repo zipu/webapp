@@ -2,6 +2,7 @@
 {% load static %}
 {% load humanize %}
 {% block content1 %}
+<div class="row" style='width:90%;margin:0 auto;'>
 <div class="row">
   <div class='col-10'>
     <ul class="nav nav-tabs">
@@ -125,6 +126,6 @@
   <div class='col-4' id='financials-option-chart' style='height:500px;'></div>
   <div class='col-4' id='financials-spread-chart' style='height:500px;'></div>
 </div>
-
+</div>
 <script type='text/javascript' src="{% static 'js/futures/cftc.js' %}"></script>
 {% endblock %}
