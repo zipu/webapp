@@ -779,13 +779,3 @@ var load_data = function(sector, name) {
   };
 
 };
-
-
-var update_data = function(){
-  $.get( $(location).attr('href')+`?action=update_data`, function( res ) {
-      if (res.success == true){
-        alert('update completed')
-      }
-  });
-
-};

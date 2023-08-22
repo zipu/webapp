@@ -1,7 +1,7 @@
 {% extends "trading/futures/base.html"%}
 {% load humanize %}
 {% block content2 %}
-
+<div class='row' style="width:60%; margin: 0 auto;">
   {% if is_paginated %}
     <nav aria-label="Page navigator">
       <ul class="pagination pagination-sm justify-content-center">
@@ -116,4 +116,5 @@
        </tr>
 </table>
   <br>
+</div>
 {% endblock content2 %}
