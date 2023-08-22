@@ -2,9 +2,9 @@
 {% load humanize %}
 {% block content2 %}
 
-<div class="row" id="system">
-  <div style="width:100%">
-    <div id="profit-chart"></div>
+<div class="row" id="system" style="width:60%; margin: 0 auto;">
+  <div >
+    <div id="profit-chart" style="text-align: -webkit-center;"></div>
   </div>
   <div id="summary" style="width:100%; margin-top: 40px">
     <div>
@@ -166,7 +166,7 @@ Highcharts.setOptions({
 		lang: { thousandsSep: ',' }
 });
 var chart = Highcharts.chart('profit-chart', {
-            chart: { height: '600', width:'850' },// 16:9 ratio}
+            chart: { height: '600', width:'1000' },// 16:9 ratio}
             legend: { enabled: false},
             title: { text: "Profit Curve" },
             xAxis: { 

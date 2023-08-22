@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from pytrends.request import TrendReq
 
 BASEDIR = os.path.dirname(__file__)
-DBDIR = os.path.join(os.path.dirname(__file__), '..', 'data')
+DBDIR = os.path.join(os.path.dirname(__file__), '..', 'data','cfs')
 
 
 class Stock:

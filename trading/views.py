@@ -18,88 +18,13 @@ import requests
 from bs4 import BeautifulSoup as bs
 import statistics 
 
+from .api import stockapi, futuresapi, cftc
 from tools.ebest.futures import Futures
 
 
-class UpdateView(TemplateView):
-    """
-    보유중인 상품의 매매가격을 업데이트하는 뷰
-    """
-    def get(self, request, *args, **kwargs):
-        newdata = {
-            'stock': [],
-            'futures': []
-        }
-
-        #1. 환율 업데이트 
-        newdata['currencyrates'] = CurrencyRates.update()
-                
-        #2. 가격 업데이트
-        
-        #서버에 저장된 주식/선물 가격
-        stock_codes = list(StockTradeUnit.objects.filter(is_open=True).values_list('code', flat=True))
-        futures_codes = list(FuturesEntry.objects.filter(is_open=True).values_list('code', 'instrument__number_system'))
-        olddata={
-            'stock': stock_codes,
-            'futures': list(set(futures_codes)),
-        }
-        
-        #LOGIN_URL = "http://cyosep.appspot.com/login/"
-        #UPDATE_URL="http://cyosep.appspot.com/trading/update/"
-        STOCK_PRICE_URL = "https://finance.naver.com/item/sise.nhn?code="
-        FUTURES_PRICE_URL = "https://quotes.esignal.com/esignalprod/quote.action?symbol="
-
-        #네이버 증권에서 주식시세 불러오기
-        for code in olddata['stock']:
-            response = requests.get(STOCK_PRICE_URL+code)
-            if response.ok:
-                value = int(bs(response.text, "html.parser").find(id="_nowVal")\
-                     .text.replace(',',''))
-                newdata['stock'].append([code,value])
-                print(f"주식시세 업데이트: 종목코드({code}), 가격({value})")
-            else:
-                raise ValueError("주식시세 업데이트에 실패했습니다")
-
-
-        #해외선물 시세 업데이트
-        for code, number_system in olddata['futures']:
-            response = requests.get(FUTURES_PRICE_URL+code)
-            if response.ok:
-                try:
-                    value = bs(response.text, "html.parser").find("span", {"class": "majors"}).find('strong').text
-                    value = float(value.replace(',',''))
-                except ValueError:
-                    #데이터 값이 숫자가 아니면 넘어감
-                    break
-                
-                #엔화 소숫점 보정
-                if code[:3] == 'QJY':
-                    value = value * 10**6
-                
-                if number_system != 10:
-                    a,b = [float(i) for i in value.split("'")]
-                    value = a+b/number_system
-
-                newdata['futures'].append([code, value])
-                print(f"해외선물 시세 업데이트: 종목코드({code}), 가격({value})")
-            else:
-                raise ValueError(f"해외선물 시세 업데이트에 실패했습니다")
-
-        #3. 서버에 저장
-        for code, price in newdata['stock']:
-            trades = StockTradeUnit.objects.filter(is_open=True, code=code).all()
-            for trade in trades:
-                trade.cur_stock_price = price
-                trade.save()
-        
-        for code, price in newdata['futures']:
-            trades = FuturesEntry.objects.filter(is_open=True, code=code).all()
-            for trade in trades:
-                trade.current_price = D(str(price))
-                trade.save()
-        
-        create_record('all')
-        return JsonResponse(newdata, safe=False)
+def is_ajax(request):
+  """ 들어온 request 가 ajax인지 아닌지 확인"""
+  return request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
 class FuturesView(TemplateView):
     template_name = "trading/futures/futures.html"
@@ -474,6 +399,27 @@ class TransactionView(TemplateView):
         #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
 
+class CFTCView(TemplateView):
+    template_name = "trading/futures/cftc.html"
+    
+    def get(self, request, *args, **kwargs):
+      CFTC = cftc()
+      context = self.get_context_data()
+      context['activate'] = 'cftc'
+      context['itemlist'] = CFTC.get_itemlist()
+      
+      if is_ajax(request):
+           # ajax call 인경우 별도로 처리
+           action = request.GET.get('action')
+           params = request.GET.get('params')
+           if params:
+            args = params.split(',')
+            print(params)
+            return getattr(CFTC, action)(*args)
+           else:
+            return getattr(CFTC, action)()
+        
+      return render(request, CFTCView.template_name, context=context)
 
 class CalculatorView(TemplateView):
     template_name = "trading/futures/calculator.html"
