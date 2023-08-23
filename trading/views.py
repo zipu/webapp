@@ -420,6 +420,16 @@ class CFTCView(TemplateView):
             return getattr(CFTC, action)()
         
       return render(request, CFTCView.template_name, context=context)
+    
+class OptionStrategyView(TemplateView):
+    template_name = "trading/futures/optionstrategy.html"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        context['active'] = 'opstrat'
+        context['instruments'] = serialize("json", FuturesInstrument.objects.filter(is_micro=False))
+        return render(request, OptionStrategyView.template_name, context=context)
+
 
 class CalculatorView(TemplateView):
     template_name = "trading/futures/calculator.html"

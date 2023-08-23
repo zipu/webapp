@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.contrib import admin
 from django.views.generic import RedirectView
 from .views import FuturesView, TransactionView, FuturesTradeView, FuturesStatView,\
-      CalculatorView, CFTCView
+      CalculatorView, CFTCView, OptionStrategyView
 from .views import StockView, StockHistoryView
 from .views import NoteView
 
@@ -14,6 +14,7 @@ urlpatterns = [
     path('futures/trade/<int:page>', FuturesTradeView.as_view(), name='futurestrade'),
     path('futures/calculator', CalculatorView.as_view(), name='calculator'),
     path('futures/cftc', CFTCView.as_view(), name='cftc'),
+    path('futures/opstrat', OptionStrategyView.as_view(), name='opstrat'),
     path('note/<int:page>', NoteView.as_view(), name='note'),
     path('stock/', StockView.as_view(), name='stock'),
     path('stock/history/', StockHistoryView.as_view(), name='stockhistory'),
