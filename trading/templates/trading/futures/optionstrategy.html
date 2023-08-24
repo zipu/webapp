@@ -72,9 +72,11 @@
       </tr>
     </tbody>
   </table>
-
   <div>
-    <div id='optionstrategychart' style='height:450px;'>asdf</div>
+    <button style="float:right;" onclick="calculate();">계산</button>
+  </div>
+  <div>
+    <div id='optionstrategychart' style='height:450px;'></div>
   </div>
 
 </div>
@@ -92,8 +94,7 @@ var select = function(el){
   selected = instruments[el.selectedIndex-1].fields;
 }
 
-var test;
-$(document).on("change", ".item", function(){
+var calculate = function(){
     let port = {'futures':[], 'option':[] };
     $('.futuresrow').each(function(i,v){
       let position = Number($(v).find('.position').val());
@@ -117,21 +118,30 @@ $(document).on("change", ".item", function(){
       };
     });
     
-    if (selected != undefined & port.option.length > 0) {
+    if (selected != undefined & ( port.option.length > 0 | port.futures.length > 0 )  ) {
       createProfitCurve(port);
     }
-    
-});
+};
 
 var createProfitCurve = function(port){
   let tickunit = Number(selected.tickunit);
   let tickprice = Number(selected.tickprice);
+  let dp = selected.decimal_places;
   let x = [];
-  let min = port.option.reduce((prev, curr) => prev[2] < curr[2] ? prev : curr)[2];
-  let max = port.option.reduce((prev, curr) => prev[2] > curr[2] ? prev : curr)[2];
-  console.log(min, max)
-  for (let i=min-tickunit*1000; i<max+tickunit*1000 ; i+=tickunit) {
-          x.push(i);
+  let min;
+  let max;
+  if (port.option.length > 0 ){
+    min = port.option.reduce((prev, curr) => prev[2] < curr[2] ? prev : curr)[2];
+    max = port.option.reduce((prev, curr) => prev[2] > curr[2] ? prev : curr)[2];
+  } else {
+    min = port.futures.reduce((prev, curr) => prev[1] < curr[1] ? prev : curr)[1];
+    max = port.futures.reduce((prev, curr) => prev[1] > curr[1] ? prev : curr)[1];
+  };
+
+
+  
+  for (let i=min-tickunit*2000; i<max+tickunit*2000 ; i+=tickunit) {
+          x.push(Math.round(i*Math.pow(10,dp))/Math.pow(10,dp));
   }
 
   let data = [];
@@ -141,22 +151,42 @@ var createProfitCurve = function(port){
       profit += futuresProfit(item, lastprice);
     };
     for (item of port.option){
-      
+      profit += optionProfit(item, lastprice);
     }
     
     data.push([lastprice,profit]);
   });
 
-  console.log(data)
   optionstrategychart.series[0].update({
     'data':data
   })
 
 }
- 
+
+var optionProfit = function(item, lastprice){
+  let type = item[0];
+  let position = item[1];
+  let strike = item[2];
+  let price = item[3]
+  let lots = item[4];
+  if (type == 'call'){
+    if (lastprice <= strike){
+      return -price*selected.tickprice/selected.tickunit*lots*position;
+    } else {
+      return  ((lastprice - strike) - price) * selected.tickprice/selected.tickunit*lots*position; 
+    };
+  } else if (type == 'put'){
+    if (lastprice >= strike){
+      return -price*selected.tickprice/selected.tickunit*lots*position;
+    } else {
+      return  ((strike-lastprice) - price) * selected.tickprice/selected.tickunit*lots*position; 
+    };
+  };
+
+}
 
 var futuresProfit = function(item, lastprice){
-      return item[0]*(lastprice - item[1])*item[2];
+      return item[0]*(lastprice - item[1])*item[2]*(selected.tickprice/selected.tickunit);
 };
 
 
@@ -182,8 +212,8 @@ var optionRow = function(type){
   if (type=='add'){
     let row = ` <tr class='optionrow item'>
       <td> <select class='type'>
-          <option value="long">Call</option>
-          <option value="short">Put</option>
+          <option value="call">Call</option>
+          <option value="put">Put</option>
           </select>
       </td>
       <td><select class='position'>
@@ -208,8 +238,21 @@ var optionstrategychart = Highcharts.chart('optionstrategychart', {
   title: {
       text: 'Profit Curve',
   },
+  yAxis:{
+    plotLines: [{
+      color: 'black',
+      width: 2,
+      value: 0
+    }]
+  },
+  xAxis:{
+    crosshair: true
+  },
+  tooltip: {
+    valueDecimals: 0,
+  },
   series: [
-    {name: 'profit', color:'blue' },
+    {name: 'profit', color:'blue', lineWidth:2 },
   ]
 });
 
