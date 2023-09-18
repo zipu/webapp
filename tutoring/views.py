@@ -203,10 +203,16 @@ class StatementView(TemplateView):
         else:
             course = None
 
+        if course:
+            count = len(course.time.split(';'))*4
+        else:
+            count = 0
+        
         tuition = {
             'last_payment_date': Tuition.objects.filter(student=student).order_by('-date').first().date, #최근 납입일
             'lesson_start_date': attendences[-1].lesson.date + timedelta(1) if attendences else None, #수업료 적용 날짜
-            'amount': course.tuition * 4 if course else None, #총납부액
+            'amount': course.tuition * count if course else None, #총납부액
+            'count': count, #월 수업 횟수
             'fee': course.tuition if course else None, #회당수업료
         }
         

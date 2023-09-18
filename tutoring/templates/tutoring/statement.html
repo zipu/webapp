@@ -82,7 +82,7 @@
         <th style="width:30%;padding-left:5%;"> 수업시간 </th><td> <b>{{course.duration |floatformat}} 분/회</b></td>
       </tr>
       <tr>
-        <th style="width:30%;padding-left:5%;"> 횟수 </th><td> <b>4회</b></td>
+        <th style="width:30%;padding-left:5%;"> 횟수 </th><td> <b>{{ tuition.count }}회</b></td>
       </tr>
       <tr>
         <th style="width:30%;padding-left:5%;border:none;background-color:rgb(242,242,242);"> 합계 </th><td style="border:none;background-color:rgb(242,242,242);"> <b>{{tuition.amount |floatformat}} RMB</b></td>
