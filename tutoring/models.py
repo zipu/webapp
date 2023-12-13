@@ -43,7 +43,7 @@ class Student(models.Model):
         #    ['lesson__tuition__sum']
         #attendences = Attendence.objects.filter(student=self)
         #usage = sum([l.lesson.tuition for l in attendences] )
-        balance = total - usage
+        balance = total - usage if usage else total
         return balance
     
     def total_deposit(self):
