@@ -89,7 +89,7 @@ class IndexView(TemplateView):
         context['lessons'] = l
 
         students_all = Student.objects.filter(status=True)
-        students = [s for s in students_all if s.balance() < 500]
+        students = sorted([(s,s.balance()) for s in students_all if s.balance() < 500], key=lambda x: x[1])
         context['students'] = students
 
         return render(request, "tutoring/index.html", context)

@@ -47,12 +47,12 @@
                   <table>
                     <tbody>
                       <tr><th>이름</th><th>잔액</th><th>최종 납부일</th></tr>
-                      {% for s in students %}
+                      {% for s,balance in students %}
                       <tr>
                         <td>
                             <a href="{% url 'studentdetail' name=s.name%}">{{s.name}}</a></td>
                         <td>
-                            &yen;{{s.balance|floatformat:"0"}}</td>
+                            &yen;{{balance|floatformat:"0"}}</td>
                         <td>
                             {{s.tuition_set.last.date|date:"Y년 m월 d일"}}</td>
                       </tr>
