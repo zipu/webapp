@@ -88,6 +88,10 @@ class IndexView(TemplateView):
         context['weekday'] = weekdays_kor[today.weekday()]
         context['lessons'] = l
 
+        students_all = Student.objects.filter(status=True)
+        students = [s for s in students_all if s.balance() < 500]
+        context['students'] = students
+
         return render(request, "tutoring/index.html", context)
 
 class CalendarView(TemplateView):

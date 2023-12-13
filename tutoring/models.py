@@ -51,7 +51,7 @@ class Student(models.Model):
                 .aggregate(Sum('deposit'))['deposit__sum'] or 0
 
     class Meta:
-        ordering = ('pk', )
+        ordering = ('-status','-date')
 
 class Curriculum(models.Model):
     """ 교육과정 """

@@ -2,7 +2,7 @@
 
 {% block content %}
           <div id="index">
-              <h3> 오늘의 수업 </h3>
+              <h3> &#9679; <u> 오늘의 수업</u> </h3>
               <p> * <b>{{ today|date:"Y-m-d"}} ({{weekday}}) </b></p>
                 {% for course in lessons%}
                  
@@ -42,6 +42,22 @@
                   </table>
                   <br>
                 {% endfor %}
+
+                <h3> &#9679; <u> 수업료 납부 요망</u> </h3>
+                  <table>
+                    <tbody>
+                      <tr><th>이름</th><th>잔액</th><th>최종 납부일</th></tr>
+                      {% for s in students %}
+                      <tr>
+                        <td>
+                            <a href="{% url 'studentdetail' name=s.name%}">{{s.name}}</a></td>
+                        <td>
+                            &yen;{{s.balance|floatformat:"0"}}</td>
+                        <td>
+                            {{s.tuition_set.last.date|date:"Y년 m월 d일"}}</td>
+                      </tr>
+                      {% endfor %}
+                  </table>
          
           </div>
           
