@@ -7,7 +7,8 @@ from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum
 
-from .models import Course, Lesson, Student, Tuition, Attendence
+from .models import Course, Lesson, Student, Tuition, Attendence\
+                    ,FinancialItem
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
@@ -331,3 +332,35 @@ class PostLessonView(TemplateView):
             lesson.delete()
 
         return HttpResponse('<script>window.close();window.opener.location.reload();</script>')
+    
+
+class FinancialView(TemplateView):
+    #template_name = "tutoring/coursedetail.html"
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('date'):
+            year, month  = kwargs['date'].split('-')
+        else:
+            today = datetime.now()
+            year = today.year
+            month = today.month 
+
+        tuition = Tuition.objects.filter(date__month=month, date__year=year)
+        expenditure = FinancialItem.objects.filter(date__year=year, date__month=month, category__level=2)
+        income = FinancialItem.objects.filter(date__year=year, date__month=month, category__level=1)
+
+        context={}
+        context['date'] = f"{year}년 {month}월"
+        context["summary"]= {
+            'tuition': tuition.aggregate(Sum('deposit'))['deposit__sum'],
+            'income': income.values('category__name').annotate(amount=Sum('amount')),
+            'expenditure': expenditure.values('category__name').annotate(amount=Sum('amount'))
+        }
+        context["tuition"]=tuition
+        context["income"]=income
+        context["expenditure"]=expenditure
+        context["total_income"]=context['summary']['tuition']+income.aggregate(Sum('amount'))['amount__sum'] if income else context['summary']['tuition'] 
+        context["total_expenditure"]= expenditure.aggregate(Sum('amount'))['amount__sum']
+
+
+        
+        return render(request, "tutoring/financial.html", context)

@@ -160,7 +160,25 @@ class Tuition(models.Model):
         return f"[{self.date}]({self.student.name}) {self.deposit} "
 
 
+class FinancialCategory(models.Model):
+    """ 수입/지출 항목 종류 """
+    LEVEL = [(2,"지출"), (1,"수입")]
+    
+    level = models.PositiveSmallIntegerField(choices=LEVEL) #수입/지출 선택
+    name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return f"[{self.level}]{self.name}"
+    
+class FinancialItem(models.Model):
+    """ 수입/지출 항목 """
+    date = models.DateField()
+    category = models.ForeignKey("FinancialCategory", on_delete=models.PROTECT) #항목
+    amount = models.DecimalField(max_digits=8, decimal_places=2) #금액
+    note = models.CharField(max_length=100, blank=True, null=True) #비고
+
+    def __str__(self):
+        return f"[{self.category}]{self.amount}"
 
 
 

@@ -1,0 +1,95 @@
+{% extends "tutoring/base.html"%}
+{% load humanize %}
+
+{% block content %}
+         <div style="float:right;">
+          <input id='date' type="month" min="2021-12" />
+          <button onclick="window.location.href = '/tutoring/financial/'+document.getElementById('date').value">보기</button>
+         </div>
+        <div>
+          <h3> &#9679; 종합 ({{date}})</h3>
+            <table  class='financial-statement' style="border:1px solid black; width:100%">
+              <tbody>
+                <tr><th colspan=2>수입</th><th colspan=2>지출</th></tr>
+                <tr>
+                  <td colspan=2 style="width:50%;vertical-align:top;">
+                    <table id="income" style="border: 1px solid black; width:100%;">
+                      <tbody>
+                        <tr>
+                          <th style='width:50%'>항목</th>
+                          <th style='width:50%'>금액</th>
+                        </tr>
+                        <tr style='text-align:center;'><td>수업료</td><td>{{summary.tuition|intcomma}}</td></tr>
+                        {% for item in summary.income %}
+                        <tr style='text-align:center;'><td>{{item.category__name}}</td><td>{{item.amount|intcomma}}</td></tr>
+                        {% endfor %}
+
+                      </tbody>
+                    </table>
+                  </td>
+                  <td colspan=2 style="width:50%;vertical-align:top;">
+                    <table id="expenditure" style="border: 1px solid black; width:100%;">
+                      <tbody>
+                        <tr>
+                          <th style='width:50%'>항목</th>
+                          <th style='width:50%'>금액</th>
+                        </tr>
+                        {% for item in summary.expenditure %}
+                        <tr style='text-align:center;'><td>{{item.category__name}}</td><td>{{item.amount|intcomma}}</td></tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              <tr><th style='width:25%'>합계</th>
+                  <td style='width:25%;text-align:center;'>{{ total_income|intcomma}}</td>
+                  <th style='width:25%'>합계</th>
+                  <td style='width:25%;text-align:center;'>{{ total_expenditure|intcomma}}</td></tr>
+              </tbody>
+          </table>
+         </div>
+         <div> 
+         <h3> &#9679; 세부내역 </h3>
+         <table  class='financial-statement' style="border:1px solid black; width:100%">
+            <tbody>
+              <tr><th colspan=2>수입</th><th colspan=2>지출</th></tr>
+              <tr>
+                <td colspan=2 style="width:50%;vertical-align:top;">
+                  <table id="income" style="border: 1px solid black; width:100%;">
+                    <tbody>
+                      <tr>
+                        <th style='width:20%'>날짜</th>
+                        <th style='width:25%'>항목</th>
+                        <th style='width:20%'>금액</th>
+                        <th style='width:35%'>비고</th>
+                      </tr>
+                      {% for t in tuition %}
+                      <tr style='text-align:center;'><td>{{ t.date|date:'m월 d일' }}</td><td>수업료</td><td>{{t.deposit|floatformat:0|intcomma}}</td><td>{{t.student.name}}</td></tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </td>
+                <td colspan=2 style="width:50%;vertical-align:top;">
+                  <table id="expenditure" style="border: 1px solid black; width:100%;">
+                    <tbody>
+                      <tr>
+                        <th style='width:20%'>날짜</th>
+                        <th style='width:25%'>항목</th>
+                        <th style='width:20%'>금액</th>
+                        <th style='width:35%'>비고</th>
+                      </tr>
+                      {% for e in expenditure %}
+                      <tr style='text-align:center;'><td>{{ e.date|date:'m월 d일' }}</td><td>{{e.category.name}}</td><td>{{e.amount|intcomma}}</td><td>{{e.note}}</td></tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            <tr><th style='width:25%'>합계</th>
+                <td style='width:25%;text-align:center;'>{{ total_income|intcomma}}</td>
+                <th style='width:25%'>합계</th>
+                <td style='width:25%;text-align:center;'>{{ total_expenditure|intcomma}}</td></tr>
+            </tbody>
+          </table>
+        </div>
+{% endblock %}
