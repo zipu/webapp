@@ -2,12 +2,33 @@
 {% load humanize %}
 
 {% block content %}
-         <div style="float:right;">
-          <input id='date' type="month" min="2021-12" />
-          <button onclick="window.location.href = '/tutoring/financial/'+document.getElementById('date').value">보기</button>
-         </div>
         <div>
-          <h3> &#9679; 종합 ({{date}})</h3>
+          <div style="margin-bottom:10px;">
+            <h3 style="display:inline;"> &#9679; {{year}}년 종합 </h3>
+            <div style="float:right">
+              <input id='year' type="number" min="2019" value={{year}} style='width:55px;'/>년
+              <button onclick="window.location.href = '/tilde/financial/'+document.getElementById('year').value">보기</button>
+            </div>
+          </div>
+          <table  class='financial-statement' style="border:1px solid black; width:100%">
+          <tbody>
+            <tr><th style="width:10%">월</th><th style="width:30%">수입</th><th style="width:30%">지출</th><th style="width:30%">합계</th></tr>
+            {% for month in monthly_total %}
+            <tr style="height:35px;text-align:center"><td>{{month.0}}월</td><td>{{month.1|intcomma}}</td><td>{{month.2|intcomma}}</td><td>{{month.3|intcomma}}</td></tr>
+            {% endfor %}
+            <tr><th>합계</th><th>{{yearly_total.0|intcomma}}</th><th>-{{yearly_total.1|intcomma}}</th><th>{{yearly_total.2|intcomma}}</th></tr>
+          </tbody>
+          </table>
+        </div>
+        <br/><br/>
+        <div>
+          <div style="margin-bottom:10px;">
+            <h3 style="display:inline;"> &#9679; {{month.year}}년 {{month.month}}월</h3>
+            <div style="float:right;">
+              <input id='date' type="month" min="2021-12" />
+              <button onclick="window.location.href = '/tilde/financial/'+document.getElementById('date').value">보기</button>
+             </div>
+          </div>
             <table  class='financial-statement' style="border:1px solid black; width:100%">
               <tbody>
                 <tr><th colspan=2>수입</th><th colspan=2>지출</th></tr>
@@ -48,9 +69,12 @@
               </tbody>
           </table>
          </div>
+         <br/><br/>
          <div> 
-         <h3> &#9679; 세부내역 </h3>
-         <table  class='financial-statement' style="border:1px solid black; width:100%">
+          <div style='margin-bottom:10px;'>
+            <h3 style='display:inline;'> &#9679; 세부내역 ({{month.year}}년 {{month.month}}월)</h3>
+          </div>
+          <table  class='financial-statement' style="border:1px solid black; width:100%">
             <tbody>
               <tr><th colspan=2>수입</th><th colspan=2>지출</th></tr>
               <tr>
@@ -79,7 +103,7 @@
                         <th style='width:35%'>비고</th>
                       </tr>
                       {% for e in expenditure %}
-                      <tr style='text-align:center;'><td>{{ e.date|date:'m월 d일' }}</td><td>{{e.category.name}}</td><td>{{e.amount|intcomma}}</td><td>{{e.note}}</td></tr>
+                      <tr style='text-align:center;'><td>{{ e.date|date:'m월 d일' }}</td><td>{{e.category.name}}</td><td>{{e.amount|intcomma}}</td><td>{{e.note|default_if_none:""}}</td></tr>
                       {% endfor %}
                     </tbody>
                   </table>

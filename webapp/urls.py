@@ -29,7 +29,7 @@ urlpatterns = [
     #path('asset/', include('asset.urls')),
     path('trading/', include('trading.urls')),
     path('aops/', include('aops.urls')),
-    path('tutoring/', include('tutoring.urls')),
+    path('tilde/', include('tutoring.urls')),
     path('ebest/', include('ebest.urls'))
 ]
 

@@ -337,19 +337,26 @@ class PostLessonView(TemplateView):
 class FinancialView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
+        today = datetime.now()
         if kwargs.get('date'):
-            year, month  = kwargs['date'].split('-')
+            date  = kwargs['date'].split('-')
+            if len(date) == 1:
+                year = date[0]
+                month = {'year':today.year, 'month':today.month}
+            elif len(date) == 2:
+                year = date[0]
+                month = {'year':date[0], 'month':date[1]}
         else:
-            today = datetime.now()
             year = today.year
-            month = today.month 
+            month = {'year':today.year, 'month':today.month} 
 
-        tuition = Tuition.objects.filter(date__month=month, date__year=year)
-        expenditure = FinancialItem.objects.filter(date__year=year, date__month=month, category__level=2)
-        income = FinancialItem.objects.filter(date__year=year, date__month=month, category__level=1)
+        tuition = Tuition.objects.filter(date__month=month['month'], date__year=month['year'])
+        expenditure = FinancialItem.objects.filter(date__year=month['year'], date__month=month['month'], category__level=2)
+        income = FinancialItem.objects.filter(date__year=month['year'], date__month=month['month'], category__level=1)
 
         context={}
-        context['date'] = f"{year}년 {month}월"
+        context['year'] = year
+        context['month'] = month
         context["summary"]= {
             'tuition': tuition.aggregate(Sum('deposit'))['deposit__sum'],
             'income': income.values('category__name').annotate(amount=Sum('amount')),
@@ -361,6 +368,36 @@ class FinancialView(TemplateView):
         context["total_income"]=context['summary']['tuition']+income.aggregate(Sum('amount'))['amount__sum'] if income else context['summary']['tuition'] 
         context["total_expenditure"]= expenditure.aggregate(Sum('amount'))['amount__sum']
 
+        # 해당 년도의 월별 종합
+        tuition_by_month = Tuition.objects.filter(date__year=year).values('date__month').annotate(deposit=Sum('deposit'))
+        income_by_month = FinancialItem.objects.filter(date__year=year, category__level=1)\
+                                        .values('date__month').annotate(amount=Sum('amount'))
+        expenditure_by_month = FinancialItem.objects.filter(date__year=year, category__level=2)\
+                                        .values('date__month').annotate(amount=Sum('amount'))
+        
+        lastmonth = int(today.month)+1 if year == today.year else 13
+        monthly_total = []
+        yearly_total = [0,0,0]
+        for i in range(1,lastmonth):
+            if tuition_by_month.filter(date__month=i):
+                tuition = tuition_by_month.get(date__month=i)['deposit']
+            else:
+                tuition = 0
 
+            if income_by_month.filter(date__month=i):
+                income = income_by_month.get(date__month=i)['amount']
+            else:
+                income = 0
+
+            if expenditure_by_month.filter(date__month=i):
+                expenditure = expenditure_by_month.get(date__month=i)['amount']
+            else:
+                expenditure = 0
+            monthly_total.append([i,tuition+income,expenditure,tuition+income-expenditure])
+            yearly_total[0] = yearly_total[0] + tuition + income
+            yearly_total[1] = yearly_total[1] + expenditure
+            yearly_total[2] = yearly_total[2] + tuition+income-expenditure
+        context['monthly_total'] = list(reversed(monthly_total))
+        context['yearly_total'] = yearly_total
         
         return render(request, "tutoring/financial.html", context)
