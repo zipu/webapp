@@ -18,7 +18,7 @@
                       <tr>
                         <th>학생</th>
                         <td>
-                            <a href="{% url 'studentdetail' name=s.name%}">{{s.name}}</a></td>
+                            <a href="{% url 'studentdetail' pk=s.pk%}">{{s.name}}</a></td>
                         <th>잔액</th>
                         <td>
                             &yen;{{s.balance|floatformat:"0"}} (남은횟수: {% widthratio s.balance course.0.tuition 1 %})</td>
@@ -50,7 +50,7 @@
                       {% for s,balance in students %}
                       <tr>
                         <td>
-                            <a href="{% url 'studentdetail' name=s.name%}">{{s.name}}</a></td>
+                            <a href="{% url 'studentdetail' pk=s.pk%}">{{s.name}}</a></td>
                         <td>
                             &yen;{{balance|floatformat:"0"}}</td>
                         <td>

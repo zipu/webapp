@@ -4,7 +4,7 @@ from django.views.generic import RedirectView
 
 from .views import IndexView, CalendarView, CourseView, CourseDetailView, StudentView, StudentDetailView\
                     ,FinancialView
-from .views import StatementView, PostLessonView
+from .views import StatementView, PostLessonView, ConsultView
 
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
@@ -13,7 +13,8 @@ urlpatterns = [
     path('course/', CourseView.as_view(), name='course'),
     path('course/<int:pk>/', CourseDetailView.as_view(), name='coursedetail'),
     path('student/', StudentView.as_view(), name='student'),
-    path('student/<str:name>/', StudentDetailView.as_view(), name='studentdetail'),
+    path('student/<int:pk>/', StudentDetailView.as_view(), name='studentdetail'),
+    path('student/<int:pk>/consult', ConsultView.as_view(), name='consult'),
     path('statement/', StatementView.as_view(), name='statement'),
     path('postlesson/', PostLessonView.as_view(), name='post-lesson'),
     path('postlesson/<int:lesson>/', PostLessonView.as_view(), name='popup-lesson'),

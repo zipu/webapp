@@ -2,10 +2,10 @@ from django.contrib import admin
 
 # Register your models here.
 from tutoring.models import Student, Curriculum, Course, Lesson, Tuition, Attendence\
-                            ,FinancialItem, FinancialCategory
+                            ,FinancialItem, FinancialCategory, Consult
 
 admin.site.register(
- [Student, Curriculum, Tuition, Attendence, Lesson, FinancialItem, FinancialCategory]
+ [Student, Curriculum, Tuition, Attendence, Lesson, FinancialItem, FinancialCategory, Consult]
 )
 
 @admin.register(Course)

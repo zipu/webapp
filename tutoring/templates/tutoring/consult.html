@@ -1,0 +1,32 @@
+{% load static %}
+<head>
+  <title> 상담내역</title>
+  <style>
+    table {
+      border:1px solid black;
+      width:100%;
+      border-collapse: collapse;
+    }
+    td, th {
+      border: 1px solid black;
+      padding-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin: 0 auto;text-align:center;margin-top:10px;">
+    <h3> 상담내역 </h3>
+    {% for consult in consult_history %}
+    <table>
+      <tbody>
+        <tr><th style="width:20%;background-color:beige;">날짜</th><td>{{consult.date |date:'Y년 m월 d일'}}</td></tr>
+        <tr><th style="width:20%;background-color:beige;">태그</th><td>{{consult.tag}}</td></tr>
+        <tr><th style="width:20%;background-color:beige;">내용</th><td>{{consult.note |linebreaks}}</td></tr>
+      </tbody>
+    </table>
+    <br/>
+    {% endfor %}
+    
+  </div>
+
+</body>

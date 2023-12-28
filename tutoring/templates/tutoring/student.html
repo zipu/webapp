@@ -18,7 +18,7 @@
               {%for student in students %}
                   <td>{{student.pk}}</td>
                   <td>{{student.date|date:"Y-m-d"}}</td>
-                  <td><a href="{% url 'studentdetail' name=student.name %}">{{student.name}}</a></td>
+                  <td><a href="{% url 'studentdetail' pk=student.pk %}">{{student.name}}</a></td>
                   <td>{{student.school}}</td>
                   <td>{{student.year}}</td>
                   <td>{% if student.status %} 등록 {% else %} 미등록 {% endif %}</td>

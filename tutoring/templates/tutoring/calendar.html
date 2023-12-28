@@ -43,7 +43,7 @@
                               {{lesson.3}}<br>
                               <a href="{% url 'popup-lesson' course=lesson.0.pk date=v.date%}" target="수업입력" onclick="window.open('about:blank','수업입력', 'width=800,height=800');">{{lesson.0.name}}</a><br>
                               {% for student in lesson.0.student.all %}
-                                <a href="{% url 'studentdetail' name=student.name %}" target='_blank'>{{ student.name }}</a>
+                                <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank'>{{ student.name }}</a>
                               {% endfor %} <br>
                           </div>
                           {% endif %}
@@ -59,9 +59,9 @@
                                onclick="window.open('about:blank','수업입력', 'width=800,height=800');"> {{lesson.0.course.name}}</a><br>
                             {% for student in lesson.0.course.student.all %}
                               {% if student.name in lesson.4 %}
-                                <a href="{% url 'studentdetail' name=student.name %}" target='_blank'>{{ student.name }}</a>
+                                <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank'>{{ student.name }}</a>
                               {% else %}
-                                <a href="{% url 'studentdetail' name=student.name %}" target='_blank' style="text-decoration:line-through;">{{ student.name }}</a>
+                                <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank' style="text-decoration:line-through;">{{ student.name }}</a>
                               {% endif %}
                             {% endfor %}
 

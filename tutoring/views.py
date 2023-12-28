@@ -8,7 +8,7 @@ from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
-                    ,FinancialItem
+                    ,FinancialItem, Consult
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
@@ -175,10 +175,11 @@ class StudentView(TemplateView):
 class StudentDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
-        student = Student.objects.get(name=kwargs['name'])
+        student = Student.objects.get(pk=kwargs['pk'])
         courses = Course.objects.filter(student=student)
         attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')[:20] #최근 20회 수업내역
         tuition = Tuition.objects.filter(student=student).order_by('-date')[:10] #최근 10회 납입내역 
+        consult = Consult.objects.filter(student__pk=student.pk) #최근 상담내역
         #deposit = tuition.aggregate(Sum('deposit'))['deposit__sum']
         #usage = sum([l.lesson.course.tuition for l in attendences])
         context={}
@@ -190,6 +191,7 @@ class StudentDetailView(TemplateView):
             'deposit': student.total_deposit(),
             'usage': student.balance()
         }
+        context['consult'] = consult
         return render(request, "tutoring/student_detail.html", context)
 
 class StatementView(TemplateView):
@@ -334,6 +336,13 @@ class PostLessonView(TemplateView):
 
         return HttpResponse('<script>window.close();window.opener.location.reload();</script>')
     
+class ConsultView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        print(kwargs)
+        context={}
+        context['student'] = Student.objects.get(pk=kwargs['pk'])
+        context['consult_history'] = Consult.objects.filter(student__pk=kwargs['pk'])
+        return render(request, "tutoring/consult.html", context)
 
 class FinancialView(TemplateView):
     #template_name = "tutoring/coursedetail.html"

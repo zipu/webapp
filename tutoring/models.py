@@ -182,3 +182,12 @@ class FinancialItem(models.Model):
 
 
 
+class Consult(models.Model):
+    """ 상담 내역 기록 """
+    student = models.ForeignKey("Student", on_delete=models.PROTECT) #항목
+    date = models.DateField()
+    tag = models.CharField(max_length=100, blank=True, null=True)
+    note = models.TextField()
+
+    def __str__(self):
+        return f"[{self.student.name}]{self.date}"

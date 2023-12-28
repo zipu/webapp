@@ -33,6 +33,17 @@
                   <th>비고</th>
                   <td></td>
                 </tr>
+                <tr>
+                  <th>최근 상담내역 
+                    <br><a href="{% url 'consult' pk=student.pk %}"
+                    target="상담내역"
+                    onclick="window.open('about:blank','상담내역', 'width=600,height=800');"> (전체보기)</a><br>
+                  </th>
+                  <td colspan=3 style='text-align:left;padding-top:10px;padding-left:10px;'>
+                    <b>{{consult.last.date |date:'Y년 m월 d일'}} #{{consult.last.tag}}</b>
+                    {{consult.last.note |linebreaks}}
+                  </td>
+                </tr>
               </tbody>
             </table>
             <br>
