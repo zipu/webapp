@@ -1,0 +1,14 @@
+{% load static %}
+<head>
+  <title>오늘의 메모</title>
+</head>
+<body>
+<div id='dailymemo'>
+  <h3>{{ date }}</h3>
+  <form method="post" action="{% url 'dailymemo' date=date %}">
+    {% csrf_token %}
+    <textarea name="memo" cols="30" rows="10" style="display:block;width:100%"></textarea>
+    <button name="submit" type="submit" style="margin: 0 auto; margin-top:10px;display:block;">입력</button>
+  </form>
+</div>   
+</body>

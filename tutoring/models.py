@@ -191,3 +191,11 @@ class Consult(models.Model):
 
     def __str__(self):
         return f"[{self.student.name}]{self.date}"
+
+class DailyMemo(models.Model):
+    """ 일별 메모사항 """
+    date = models.DateField()
+    memo = models.TextField()
+
+    def __str__(self):
+        return f"[{self.pk}]{self.date}"

@@ -29,6 +29,25 @@
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td>메모</td>
+                {% for v in dayworks.values %}
+                  <td style='font-size:13px;text-align:left;margin:0px;padding:1px;'>
+                    {% for memo in v.memo %}
+                       <p style='margin:0px;;padding:0px;cursor:default;' id='{{memo.pk}}'> 
+                          &#128900; {{memo.memo}} 
+                          <a href="{% url 'calendar' %}?week={{weekidx}}&deletememo={{memo.pk}}"
+                             style="color:black;">&#8999;</a>
+                       </p>
+                    {% endfor %}
+                    <a href="{% url 'dailymemo' date=v.date %}"
+                      target="일일메모"
+                      onclick="window.open('about:blank','일일메모', 'left=550,top=100,width=400,height=400');"
+                      style="display:block;margin:0 auto;text-align:center">&#x1F4DD;
+                    </a>
+                  </td>
+                {% endfor %}
+              </tr>
               {% for i in '0123456789abcd' %}
               <tr>
                 <td style="border-top:1px solid black;" > {{forloop.counter|add:9}}:00  </td>
@@ -77,4 +96,6 @@
               {% endfor %}
             </tbody>
           </table>
+
 {% endblock %}
+

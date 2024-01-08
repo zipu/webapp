@@ -8,7 +8,7 @@ from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
-                    ,FinancialItem, Consult
+                    ,FinancialItem, Consult, DailyMemo
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
@@ -99,10 +99,20 @@ class CalendarView(TemplateView):
     #template_name = "tutoring/calendar.html"
 
     def get(self, request, *args, **kwargs):
+        if request.GET.get('deletememo'):
+            DailyMemo.objects.get(pk=request.GET['deletememo']).delete()
+            weekidx = request.GET.get('week')
+            response = redirect('calendar')
+            response['Location'] += f'?week={weekidx}'
+            print(response)
+            return response
+
         c = Calendar(request.GET.get('week'))
         today = datetime.today().date()
         courses = Course.objects.filter(status=True)
         lessons = Lesson.objects.all()
+        # 오늘의 메모
+        memos = DailyMemo.objects.all()
         dayworks = OrderedDict(MON={},TUE={},WED={},THU={},FRI={},SAT={},SUN={})
 
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
@@ -111,6 +121,8 @@ class CalendarView(TemplateView):
             dayworks[day]['done'] = []
             dayworks[day]['todo'] = []
             dayworks[day]['date'] = date
+            dayworks[day]['memo'] = memos.filter(date=date)
+            
 
             # 완료된 수업
             lesson = lessons.filter(date=date)
@@ -126,6 +138,9 @@ class CalendarView(TemplateView):
             
             course = courses.filter(time__contains=day)
             for item in course:
+                # 첫 수업 시작일이 오늘보다 이후면 표시하지 않음
+                if item.startdate > date:
+                    continue
                 strtime = [t for t in item.time.split(';') if day in t][0] #WED16001730
                 #한시간 셀의 높이 = 48px
                 #top position = ((시간-10)*60 + 분)*(4/5)
@@ -136,6 +151,8 @@ class CalendarView(TemplateView):
                 #hour = strtime[3:5] + ':' + strtime[5:7] + '~' + strtime[7:9] + ':' + strtime[9:]  
                 dayworks[day]['todo'].append((item, top, height, duration))
 
+        
+
         context = {}
         context["dayworks"] = dayworks
         context["thisweek"] = c.thisweek
@@ -145,6 +162,24 @@ class CalendarView(TemplateView):
         
         return render(request, "tutoring/calendar.html", context)
 
+class DailyMemoView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        print(kwargs)
+        context={}
+        context['date'] = kwargs['date']
+        return render(request, "tutoring/dailymemo.html", context)
+    
+    def post(self, request, *args, **kwargs):
+        params = dict(request.POST)
+
+        print(params)
+        print(kwargs)
+        memo = DailyMemo.objects.create(
+                date=kwargs['date'],
+                memo=params['memo'][0],
+        )
+        return HttpResponse('<script>window.close();window.opener.location.reload();</script>')
+
 class CourseView(TemplateView):
     #template_name = "tutoring/course.html"
     def get(self, request, *args, **kwargs):
@@ -152,7 +187,7 @@ class CourseView(TemplateView):
         context={}
         context["courses"] = courses
         
-        return render(request, "tutoring/course.html", context)
+        return render(request, "tutoring/dailymemo.html", context)
 
 class CourseDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
@@ -338,7 +373,6 @@ class PostLessonView(TemplateView):
     
 class ConsultView(TemplateView):
     def get(self, request, *args, **kwargs):
-        print(kwargs)
         context={}
         context['student'] = Student.objects.get(pk=kwargs['pk'])
         context['consult_history'] = Consult.objects.filter(student__pk=kwargs['pk'])
