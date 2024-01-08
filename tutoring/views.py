@@ -164,7 +164,6 @@ class CalendarView(TemplateView):
 
 class DailyMemoView(TemplateView):
     def get(self, request, *args, **kwargs):
-        print(kwargs)
         context={}
         context['date'] = kwargs['date']
         return render(request, "tutoring/dailymemo.html", context)
@@ -172,9 +171,7 @@ class DailyMemoView(TemplateView):
     def post(self, request, *args, **kwargs):
         params = dict(request.POST)
 
-        print(params)
-        print(kwargs)
-        memo = DailyMemo.objects.create(
+        DailyMemo.objects.create(
                 date=kwargs['date'],
                 memo=params['memo'][0],
         )
