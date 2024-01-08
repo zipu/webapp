@@ -48,12 +48,12 @@
                   </td>
                 {% endfor %}
               </tr>
-              {% for i in '0123456789abcd' %}
+              {% for i in '0123456789abcdef' %}
               <tr>
-                <td style="border-top:1px solid black;" > {{forloop.counter|add:9}}:00  </td>
+                <td style="border-top:1px solid black;" > {{forloop.counter|add:7}}:00  </td>
                 {% if i == '0' %}
                   {% for v in dayworks.values %}
-                  <td style="padding:0px;" rowspan=14>
+                  <td style="padding:0px;" rowspan=16>
                     <div style="height:100%;width:100%;position:relative;">
                       {% if v.todo %}
                         {% for lesson in v.todo %}

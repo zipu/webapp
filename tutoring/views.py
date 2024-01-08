@@ -24,9 +24,9 @@ class Calendar:
     
     # 현재 사용 안함
     def time_sequences(self):
-        """ 매 5분단위 시간을 9시~밤12시까지 tuple 형태로 표현된 리스트 반환
+        """ 매 5분단위 시간을 8시~밤12시까지 tuple 형태로 표현된 리스트 반환
             ex) 9시 15분 = (9,15)"""
-        start = 10 * 60 
+        start = 8 * 60 
         end = 24 * 60
         times = []
         for i in range(start, end, 5):
@@ -37,7 +37,7 @@ class Calendar:
 
     def div_property(self, start, end):
         """ html 상에서 수업시간 div의 top과 height property return"""
-        top = ((start.hour - 10)*60 + start.minute)*0.8
+        top = ((start.hour - 8)*60 + start.minute)*0.8
         height = ((end.hour*60+end.minute) - (start.hour*60+start.minute))*0.8
         duration = start.strftime("%H:%M")+"~"+end.strftime("%H:%M")
         return top, height, duration
