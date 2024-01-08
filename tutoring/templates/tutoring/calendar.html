@@ -1,7 +1,7 @@
 {% extends "tutoring/base.html"%}
 
 {% block content %}
-          <table class="calander" style="border:none;">
+          <table class="calander" style="border:none;width:100%;">
             <tr>
               <td style="height:20px;border:none;padding-left:30px;padding-right:30px;">
                 <a href="{% url 'calendar' %}?week={{weekidx|add:-1}}" style='float:left;'> &lt;&lt; 지난주</a>
@@ -10,7 +10,7 @@
               </td>
             </tr>
           </table>
-          <table class="calander">
+          <table class="calander" style="width:100%;margin:0px;padding:0px;">
             <thead>
               <tr>
                 <td rowspan=2>시간</td>
@@ -34,7 +34,7 @@
                 {% for v in dayworks.values %}
                   <td style='font-size:13px;text-align:left;margin:0px;padding:1px;'>
                     {% for memo in v.memo %}
-                       <p style='margin:0px;;padding:0px;cursor:default;' id='{{memo.pk}}'> 
+                       <p style='margin:0px;;padding:0px;cursor:default;font-size:11px;' id='{{memo.pk}}'> 
                           &#128900; {{memo.memo}} 
                           <a href="{% url 'calendar' %}?week={{weekidx}}&deletememo={{memo.pk}}"
                              style="color:black;">&#8999;</a>
