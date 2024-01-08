@@ -184,7 +184,7 @@ class CourseView(TemplateView):
         context={}
         context["courses"] = courses
         
-        return render(request, "tutoring/dailymemo.html", context)
+        return render(request, "tutoring/course.html", context)
 
 class CourseDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
