@@ -35,9 +35,8 @@
                   <td style='font-size:13px;text-align:left;margin:0px;padding:1px;'>
                     {% for memo in v.memo %}
                        <p style='margin:0px;;padding:0px;cursor:default;font-size:11px;' id='{{memo.pk}}'> 
-                           &#128900; {% if memo.checked %} <del> {{memo.memo}}</del> {% else%} {{memo.memo}} {% endif %}
                           <a href="{% url 'calendar' %}?week={{weekidx}}&checkmemo={{memo.pk}}"
-                             style="color:black;">&#9745;</a>
+                             style="color:black;"> &#128900; {% if memo.checked %} <del> {{memo.memo}}</del> {% else%} {{memo.memo}} {% endif %} </a>
                           <a href="{% url 'calendar' %}?week={{weekidx}}&deletememo={{memo.pk}}"
                              style="color:black;">&#8999;</a>
                        </p>
