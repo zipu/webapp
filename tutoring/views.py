@@ -104,7 +104,16 @@ class CalendarView(TemplateView):
             weekidx = request.GET.get('week')
             response = redirect('calendar')
             response['Location'] += f'?week={weekidx}'
-            print(response)
+            return response
+        
+        if request.GET.get('checkmemo'):
+            memo = DailyMemo.objects.get(pk=request.GET['checkmemo'])
+            memo.checked = not memo.checked
+            memo.save()
+            
+            weekidx = request.GET.get('week')
+            response = redirect('calendar')
+            response['Location'] += f'?week={weekidx}'
             return response
 
         c = Calendar(request.GET.get('week'))

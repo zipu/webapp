@@ -196,6 +196,7 @@ class DailyMemo(models.Model):
     """ 일별 메모사항 """
     date = models.DateField()
     memo = models.TextField()
+    checked = models.BooleanField(default=False)
 
     def __str__(self):
         return f"[{self.pk}]{self.date}"
