@@ -23,50 +23,55 @@
     {% endif %}
     </div>
      <h4 style="margin-bottom:10px;">&#9679; &nbsp;지난수업내역 </h4>
+     {% for item in history %}
+     <div>
      <table id="statement-info">
       <tbody>
       <tr>
-        <th style="width:10%">과정</th><td style="width:30%;">{{course.curriculum.name}}</td>
-        <th style="width:10%">교재</th><td>{{course.textbook}}</td>
+        <th style="width:10%">과정</th><td style="width:30%;">{{item.course.curriculum.name}}</td>
+        <th style="width:10%">교재</th><td>{{item.course.textbook}}</td>
       </tr>
       </tbody>
     </table>
     <br>
     <div>
-    {% for at in attendences %}
-      <div id="statement-detail">
-      <p style="margin-bottom:8px; font-size:13px;"> &nbsp;<b>{{forloop.counter}}. {{at.lesson.date |date:"Y년 n월 j일"}} [{{at.lesson.start |date:"H:i"}} - {{at.lesson.end |date:"H:i"}}] </b></p>
-      <table class='lesson-table'>
-        <tbody>
-          <tr>
-            <th>단원</th>
-            <td colspan=3>{{at.lesson.topic|default_if_none:""}}</td>
-            <th>지난숙제</th>
-            <td colspan=1 style='font-size:15px;'>
-              {% if at.homework == "1" %} &#x25CB; 
-              {% elif at.homework == "2" %} &#9651;
-              {% elif at.homework == "3" %} &#10005;
-              {% elif at.homework == "4" %} 
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
-            <th>수업내용</th>
-            <td colspan=5>{{at.lesson.name}}</td>
-          </tr>
-          <tr {% if at.lesson.homework|default_if_none:"" == "" %}style="display:none"{% endif %}>
-            <th>부여숙제</th>
-            <td colspan=5>{{at.lesson.homework |default_if_none:""}}</td>
-          </tr>
-          <tr {% if at.note|default_if_none:"" == ""%}style="display:none"{% endif %}>
-            <th>특이사항</th>
-            <td colspan=5>{{at.note}}</td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-    {% endfor %}
+      {% for at in item.attendences %}
+        <div id="statement-detail">
+        <p style="margin-bottom:8px; font-size:13px;"> &nbsp;<b>{{forloop.counter}}. {{at.lesson.date |date:"Y년 n월 j일"}} [{{at.lesson.start |date:"H:i"}} - {{at.lesson.end |date:"H:i"}}] </b></p>
+        <table class='lesson-table'>
+          <tbody>
+            <tr>
+              <th>단원</th>
+              <td colspan=3>{{at.lesson.topic|default_if_none:""}}</td>
+              <th>지난숙제</th>
+              <td colspan=1 style='font-size:15px;'>
+                {% if at.homework == "1" %} &#x25CB; 
+                {% elif at.homework == "2" %} &#9651;
+                {% elif at.homework == "3" %} &#10005;
+                {% elif at.homework == "4" %} 
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>수업내용</th>
+              <td colspan=5>{{at.lesson.name}}</td>
+            </tr>
+            <tr {% if at.lesson.homework|default_if_none:"" == "" %}style="display:none"{% endif %}>
+              <th>부여숙제</th>
+              <td colspan=5>{{at.lesson.homework |default_if_none:""}}</td>
+            </tr>
+            <tr {% if at.note|default_if_none:"" == ""%}style="display:none"{% endif %}>
+              <th>특이사항</th>
+              <td colspan=5>{{at.note}}</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      {% endfor %}
     </div>
+  </div>
+  <br>
+  {% endfor %}
   </div>
   <!-- 여기까지 수업 내역 -->
   <!-- 수업료 안내 -->

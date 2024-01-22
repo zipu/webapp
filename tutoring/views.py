@@ -239,19 +239,32 @@ class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
         params = dict(request.GET)
-        #print(params)
-        student = Student.objects.get(pk=params.get('student')[0])
-        attendences = []
-        if params.get('attendences'):
-            for at in reversed(params['attendences']):
-                attendences.append(Attendence.objects.get(pk=at))
-        #course = attendences[-1].lesson.course if attendences else None
-        if params.get('course'):
-            course = Course.objects.get(pk=params['course'][0])
-        else:
-            course = None
-
+        print(params)
         
+        student = Student.objects.get(pk=params.get('student')[0])
+        
+        history = []
+        courses = Course.objects.filter(pk__in=params.get('course'))
+        attendences = Attendence.objects.filter(pk__in=params.get('attendences')).order_by('-lesson__date')
+
+        for course in courses:
+            history.append({
+                'course': course,
+                'attendences': attendences.filter(lesson__course=course)
+            })
+        
+        print(history)
+        #if params.get('attendences'):
+        #    for at in reversed(params['attendences']):
+        #        attendences.append(Attendence.objects.get(pk=at))
+        #course = attendences[-1].lesson.course if attendences else None
+        #if params.get('course'):
+        
+        #    courses = [Course.objects.get(pk=c) for c in params.get('course')]
+            #course = Course.objects.get(pk=params['course'][0])
+        #else:
+        #    courses = None
+
         #if course:
         #    count = len(course.time.split(';'))*4
         #else:
@@ -259,16 +272,17 @@ class StatementView(TemplateView):
 
         tuition = {
             'last_payment_date': Tuition.objects.filter(student=student).order_by('-date').first().date, #최근 납입일
-            'lesson_start_date': attendences[-1].lesson.date + timedelta(1) if attendences else None, #수업료 적용 날짜
-            'amount': course.tuition * int(params.get('num_lectures')[0]) if course else None, #총납부액
+            'lesson_start_date': attendences.latest('lesson__date').lesson.date + timedelta(1) if attendences else None, #수업료 적용 날짜
+            'amount': history[0]['course'].tuition * int(params.get('num_lectures')[0]) if history else None, #총납부액
             'count': int(params.get('num_lectures')[0]), #월 수업 횟수
-            'fee': course.tuition if course else None, #회당수업료
+            'fee': history[0]['course'].tuition if history else None, #회당수업료
         }
         
         context = {}
         context['student'] = student
-        context['attendences'] = attendences
-        context['course'] = course
+        
+        context['history'] = history #context['attendences'] = attendences
+        #context['courses'] = courses
         context['tuition'] = tuition
         context['nums'] = len(attendences)
         context['today'] = datetime.today().date()
