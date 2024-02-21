@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta, time
 from collections import OrderedDict
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum
@@ -239,8 +239,13 @@ class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
         params = dict(request.GET)
-        print(params)
+        #print(params)
+        if not params.get('tuition') or len(params.get('tuition')) != 1:
+            return HttpResponse("납부 수업료 내역은 한 개만 선택해야 합니다")
         
+        if not params.get('attendences'):
+            return HttpResponse("진행한 수업을 선택하세요")
+
         student = Student.objects.get(pk=params.get('student')[0])
         
         history = []
@@ -253,7 +258,7 @@ class StatementView(TemplateView):
                 'attendences': attendences.filter(lesson__course=course)
             })
         
-        print(history)
+        #print(history)
         #if params.get('attendences'):
         #    for at in reversed(params['attendences']):
         #        attendences.append(Attendence.objects.get(pk=at))
@@ -271,7 +276,7 @@ class StatementView(TemplateView):
         #    count = 0
 
         tuition = {
-            'last_payment_date': Tuition.objects.filter(student=student).order_by('-date').first().date, #최근 납입일
+            'last_payment_date': Tuition.objects.get(pk=params.get('tuition')[0]).date, #Tuition.objects.filter(student=student).order_by('-date').first().date, #최근 납입일
             'lesson_start_date': attendences.latest('lesson__date').lesson.date + timedelta(1) if attendences else None, #수업료 적용 날짜
             'amount': history[0]['course'].tuition * int(params.get('num_lectures')[0]) if history else None, #총납부액
             'count': int(params.get('num_lectures')[0]), #월 수업 횟수

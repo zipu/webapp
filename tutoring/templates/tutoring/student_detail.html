@@ -57,12 +57,17 @@
               </tbody>
             </table>
             <br>
+            <form method="get"
+                  target="수업내역서"
+                  action="{% url 'statement' %}"
+                  onsubmit="window.open('about:blank','수업내역서', 'width=800,height=800');">
             <table>
               <thead>
                 <tr>
                   <th style="width:30%;">날짜</th>
-                  <th style="width:50%;">금액</th>
+                  <th style="width:45%;">금액</th>
                   <th style="width:20%;">납부방식</th>
+                  <th style="width:5%;"></th>
                 </tr>
               </thead>
               <tbody>
@@ -71,15 +76,13 @@
                   <td>{{record.date |date:"Y-m-d"}}</td>
                   <td>&yen;{{record.deposit}}</a></td>
                   <td>{{record.payment}}</td>
+                  <td><input type="checkbox" name="tuition" value={{record.pk}} /> </td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
             <br>
-            <form method="get"
-                  target="수업내역서"
-                  action="{% url 'statement' %}"
-                  onsubmit="window.open('about:blank','수업내역서', 'width=800,height=800');">
+            
             <p><b>&#9632; 수업 리스트</b></p>
             <table id="course-list">
               <thead>
@@ -98,7 +101,7 @@
                   <td><a href="{% url "coursedetail" pk=course.pk %}">{{course.name}}</a></td>
                   <td>{{course.curriculum.name}}</td>
                   <td>{% if course.status %} 진행중 {% else %} 완료 {% endif %}</td>
-                  <td><input type="checkbox" name="course" value={{course.pk}} /> </td>
+                  <td><input class='courses' type="checkbox" name="course" value={{course.pk}} /> </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -123,7 +126,7 @@
                 </thead>
                 <tbody>
                   {% for at in attendences %}
-                  <tr>
+                  <tr style='display:none' name='{{at.lesson.course.pk}}'>
                     <td>{{at.lesson.date |date:"Y-m-d"}}</td>
                     <td>{{at.lesson.start |date:"H:i"}}~{{at.lesson.end |date:"H:i"}}</td>
                     <td>{{at.lesson.topic |default_if_none:""}}</a></td>
@@ -145,5 +148,23 @@
             </form>
             <br>
           </div>
-          
 {% endblock %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
+<script>
+  // 수업 체크박스 선택시 해당 레슨목록 등장
+  $('.courses').change(function() {
+    $('#student-lessons > tbody').children().each(function(){ $(this).css('display','none')});
+    $("input[name='attendences']").prop('checked',false)
+    console.log($('.courses:checked'))
+    var checked_courses = $(".courses:checked")
+              .map(function(){return $(this).val();}).get();
+    $('#student-lessons > tbody').children().each(function(){
+      if (checked_courses.includes($(this).attr('name'))){
+        $(this).css('display','table-row');
+      }
+    })
+  });
+</script>
+{% endblock%}
