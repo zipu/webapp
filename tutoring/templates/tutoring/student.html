@@ -1,8 +1,18 @@
 {% extends "tutoring/base.html"%}
 
 {% block content %}
-         
-          <table class="students">
+<div id="students">
+  <div id="student-list">
+    <div style="margin-bottom:5px;text-align:center;">
+      <select name="" id="enrollment" style="float:left;">
+        <option value="0">전체</option>
+        <option value="Enrolled">등록</option>
+        <option value="Unenrolled">미등록</option>
+      </select>
+      <span><b id='count'> {{students|length}} 명</b></span>
+    </div>
+          
+          <table class='students' id="students-list" style='width:100%;'>
             <thead>
               <tr>
                 <td style="width:5%;">#</td>
@@ -16,6 +26,7 @@
             </thead>
             <tbody>
               {%for student in students %}
+                <tr enrolled = '{{student.status}}'>
                   <td>{{student.pk}}</td>
                   <td>{{student.date|date:"Y-m-d"}}</td>
                   <td><a href="{% url 'studentdetail' pk=student.pk %}">{{student.name}}</a></td>
@@ -27,4 +38,32 @@
               {% endfor %}
             </tbody>
           </table>
+  </div>
+</div>
 {% endblock %}
+
+{% block script %}
+<script>
+  $('#enrollment').change(function() {
+    let flag = $("#enrollment option:selected").val();
+    let counter;
+    if (flag == '0'){
+      $('#students-list > tbody').children().css('display','table-row');
+      counter = $('#students-list > tbody').children().length;
+    } else if (flag == 'Enrolled'){
+      $('#students-list > tbody').children("[enrolled='True']").css('display','table-row');
+      $('#students-list > tbody').children("[enrolled='False']").css('display','none');
+      counter = $('#students-list > tbody').children("[enrolled='True']").length;
+    } else if (flag == 'Unenrolled'){
+      counter = $('#students-list > tbody').children("[enrolled='False']").length;
+      $('#students-list > tbody').children("[enrolled='False']").css('display','table-row');
+      $('#students-list > tbody').children("[enrolled='True']").css('display','none');
+    };
+
+    $('#count').text(counter+' 명');
+
+  });
+
+
+</script>
+{% endblock%}

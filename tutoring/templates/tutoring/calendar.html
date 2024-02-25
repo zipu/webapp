@@ -78,10 +78,12 @@
                                target="수업입력"
                                onclick="window.open('about:blank','수업입력', 'width=800,height=800');"> {{lesson.0.course.name}}</a><br>
                             {% for student in lesson.0.course.student.all %}
-                              {% if student.name in lesson.4 %}
-                                <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank'>{{ student.name }}</a>
-                              {% else %}
-                                <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank' style="text-decoration:line-through;">{{ student.name }}</a>
+                              {% if student.date <= lesson.0.date %}
+                                {% if student.name in lesson.4 %}
+                                  <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank'>{{ student.name }}</a>
+                                {% else %}
+                                  <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank' style="text-decoration:line-through;">{{ student.name }}</a>
+                                {% endif %}
                               {% endif %}
                             {% endfor %}
 
