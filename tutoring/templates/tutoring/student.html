@@ -2,17 +2,51 @@
 
 {% block content %}
 <div id="students">
+  <h4> &#9679; 통계 </h4>
+  <table id='student_stat' style="text-align: center; table-layout: fixed; border-collapse: collapse;">
+    <tbody>
+      <tr><th></th><th>G6/Y7</th><th>G7/Y8</th><th>G8/Y9</th><th>G9/Y10</th><th>G10/Y11</th><th>G11/Y12</th><th>G12/Y13</th><th>합계</th></tr>
+      {% for school in stat %}
+      <tr>
+        <th>{{school.0}}</th>
+        <td>{{ school.1.0 }}</td>
+        <td>{{ school.1.1 }}</td>
+        <td>{{ school.1.2 }}</td>
+        <td>{{ school.1.3 }}</td>
+        <td>{{ school.1.4 }}</td>
+        <td>{{ school.1.5 }}</td>
+        <td>{{ school.1.6 }}</td>
+        <th>{{ school.2 }}</th>
+      </tr>
+      {% endfor %}
+      <tr><th>합계</th>
+        <th>{{total.0}}</th>
+        <th>{{total.1}}</th>
+        <th>{{total.2}}</th>
+        <th>{{total.3}}</th>
+        <th>{{total.4}}</th>
+        <th>{{total.5}}</th>
+        <th>{{total.6}}</th>
+        <th>{{students_enrolled.count}}</th>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <h4> &#9679; 학생목록 </h4>
   <div id="student-list">
-    <div style="margin-bottom:5px;text-align:center;">
-      <select name="" id="enrollment" style="float:left;">
+    <div style="margin-bottom:5px;padding-left:5%;">
+      <span><b id='count'></b></span>
+      <select name="" id="enrollment">
+        <option value="1">등록</option>
         <option value="0">전체</option>
-        <option value="Enrolled">등록</option>
-        <option value="Unenrolled">미등록</option>
+        <option value="2">퇴원</option>
+        <option value="3">졸업</option>
+        <option value="4">미등록</option>
       </select>
-      <span><b id='count'> {{students|length}} 명</b></span>
+      
     </div>
           
-          <table class='students' id="students-list" style='width:100%;'>
+          <table class='students' id="students-list" >
             <thead>
               <tr>
                 <td style="width:5%;">#</td>
@@ -25,14 +59,14 @@
               </tr>
             </thead>
             <tbody>
-              {%for student in students %}
+              {%for student in students_all %}
                 <tr enrolled = '{{student.status}}'>
                   <td>{{student.pk}}</td>
                   <td>{{student.date|date:"Y-m-d"}}</td>
                   <td><a href="{% url 'studentdetail' pk=student.pk %}">{{student.name}}</a></td>
                   <td>{{student.school}}</td>
-                  <td>{{student.year}}</td>
-                  <td>{% if student.status %} 등록 {% else %} 미등록 {% endif %}</td>
+                  <td>{{student.year2}}</td>
+                  <td>{% if student.status == 1 %} 등록 {% elif student.status == 2 %} 퇴원 {% elif student.status == 3 %} 졸업 {% elif student.status == 4 %} 미등록 {% endif %}</td>
                   <td>{{student.note |default_if_none:""}}</td>
                 </tr>
               {% endfor %}
@@ -44,21 +78,23 @@
 
 {% block script %}
 <script>
+  // 첫화면 세팅
+  $('#students-list > tbody').children().css('display','none');
+  $('#students-list > tbody').children(`[enrolled=1]`).css('display','table-row');
+  counter = $('#students-list > tbody').children(`[enrolled=1]`).length;
+  $('#count').text(counter+' 명');
+
   $('#enrollment').change(function() {
     let flag = $("#enrollment option:selected").val();
     let counter;
     if (flag == '0'){
       $('#students-list > tbody').children().css('display','table-row');
       counter = $('#students-list > tbody').children().length;
-    } else if (flag == 'Enrolled'){
-      $('#students-list > tbody').children("[enrolled='True']").css('display','table-row');
-      $('#students-list > tbody').children("[enrolled='False']").css('display','none');
-      counter = $('#students-list > tbody').children("[enrolled='True']").length;
-    } else if (flag == 'Unenrolled'){
-      counter = $('#students-list > tbody').children("[enrolled='False']").length;
-      $('#students-list > tbody').children("[enrolled='False']").css('display','table-row');
-      $('#students-list > tbody').children("[enrolled='True']").css('display','none');
-    };
+    } else {
+      $('#students-list > tbody').children().css('display','none');
+      $('#students-list > tbody').children(`[enrolled=${flag}]`).css('display','table-row');
+      counter = $('#students-list > tbody').children(`[enrolled=${flag}]`).length;
+    } ;
 
     $('#count').text(counter+' 명');
 

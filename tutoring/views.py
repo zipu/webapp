@@ -5,10 +5,11 @@ from collections import OrderedDict
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, DetailView
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
                     ,FinancialItem, Consult, DailyMemo
+
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
 # Create your views here.
@@ -89,7 +90,7 @@ class IndexView(TemplateView):
         context['weekday'] = weekdays_kor[today.weekday()]
         context['lessons'] = l
 
-        students_all = Student.objects.filter(status=True)
+        students_all = Student.objects.filter(status=1)
         students = sorted([(s,s.balance()) for s in students_all if s.balance() < 500], key=lambda x: x[1])
         context['students'] = students
 
@@ -209,7 +210,29 @@ class StudentView(TemplateView):
     def get(self, request, *args, **kwargs):
         students = Student.objects.all()
         context={}
-        context["students"] = students
+        context["students_all"] = students
+        context["students_enrolled"] = students.filter(status=1)
+
+        # 통계
+        students = students.filter(status=1)
+        schools = list(set(students.values_list('school', flat=True)))
+        years = [('초6','G6','Y7'), ('중1','G7','Y8'),('중2','G8','Y9'),('중3','G9','Y10'),('고1','G10','Y11'),('고2','G11','Y12'),('고3','G12','Y13')]
+        stat = []
+        total = [0,0,0,0,0,0,0]
+        for school in schools:
+            counts = [0,0,0,0,0,0,0]
+            students_per_school = students.filter(school=school).values('year2').annotate(count=Count('year2'))
+            
+            for quanta in students_per_school:
+                idx = [ years.index(year) for year in years if quanta['year2'] in year][0]
+                counts[idx] = quanta['count']
+
+            stat.append([school,counts,sum(counts)])
+            total = [sum(i) for i in zip(total, counts)]
+        stat.sort(key=lambda x: x[2], reverse=True)
+        
+        context['stat'] = stat
+        context['total'] = total
         
         return render(request, "tutoring/student.html", context)
 

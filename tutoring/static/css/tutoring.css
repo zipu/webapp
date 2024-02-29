@@ -149,15 +149,18 @@ a {
   min-width: 800px;
 }
 
+#student_stat tr,
 #index tr {
   height: 25px;
 }
 
+#student_stat th,
 #index th {
   background-color: beige;
   ;
 }
 
+#student_stat th, #student_stat td,
 #index td,
 #index th {
   border: 1px solid grey;

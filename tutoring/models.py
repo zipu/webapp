@@ -13,25 +13,28 @@ SCHOOLS = [
     ('YCIS','YCIS'),
     ('SSIS','SSIS'),
     ('한국학교', '한국학교'),
+    ('페이스톤', '페이스톤')
 ]
-
 
 class Student(models.Model):
     """ This class represents the categories related with problems """
     # 개인정보
+    STATUS = [ (1, '등록'), (2, '퇴원'), (3, '졸업'), (4, '미등록')]
+
     name = models.CharField(max_length=64) #이름
     date = models.DateField(verbose_name="등록일")
     wechat_id = models.CharField(max_length=64) #부모님 위챗
     school = models.CharField(max_length=64, choices=SCHOOLS) #학교
     year = models.PositiveIntegerField() #학년
-    status = models.BooleanField() #수강상태
+    year2 = models.CharField(max_length=32, blank=True, null=True) #학년 GX, YX 형식
+    status = models.SmallIntegerField(choices=STATUS)  #models.BooleanField() #수강상태
     region = models.CharField(max_length=64) #거주지역
     address = models.CharField(max_length=250, blank=True, null=True)
     note = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}"
-
+    
     # 납입 잔액
     def balance(self):
         total = self.total_deposit()
@@ -51,7 +54,7 @@ class Student(models.Model):
                 .aggregate(Sum('deposit'))['deposit__sum'] or 0
 
     class Meta:
-        ordering = ('-status','-date')
+        ordering = ('status','-date')
 
 class Curriculum(models.Model):
     """ 교육과정 """
