@@ -154,15 +154,16 @@ a {
   height: 25px;
 }
 
-#student_stat th,
+#stats th,
 #index th {
   background-color: beige;
   ;
 }
 
-#student_stat th, #student_stat td,
+#stats th, td,
 #index td,
 #index th {
+
   border: 1px solid grey;
 }
 

@@ -5,7 +5,7 @@ from collections import OrderedDict
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, DetailView
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
                     ,FinancialItem, Consult, DailyMemo
@@ -190,7 +190,8 @@ class DailyMemoView(TemplateView):
 class CourseView(TemplateView):
     #template_name = "tutoring/course.html"
     def get(self, request, *args, **kwargs):
-        courses = Course.objects.all()
+        
+        courses = Course.objects.filter(status=True)
         context={}
         context["courses"] = courses
         
@@ -205,15 +206,57 @@ class CourseDetailView(TemplateView):
 
         return render(request, "tutoring/course_detail.html", context)
 
-class StudentView(TemplateView):
+class StatisticsView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
-        students = Student.objects.all()
+        today = datetime.now()
+        if kwargs.get('date'):
+            date  = kwargs['date'].split('-')
+            year = date[0]
+            month = int(date[1])
+        else:
+            year = today.year
+            month = today.month 
+
         context={}
+        students = Student.objects.all()
         context["students_all"] = students
         context["students_enrolled"] = students.filter(status=1)
+        context["lessons_stat"] = {}
+        context["year"] = year
+        context["month"] = month
+        
+        lessons = Lesson.objects.filter(date__month=month, date__year=year)
+        context['lessons_stat']['count'] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
+        context['lessons_stat']['tuition'] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
+        total_tuition = 0
+        # 중등:1, 고등:2, IB/AP:3, 경시:4
+        for subject in ['math','physics']:
+            lessons_by_subject = lessons.filter(course__curriculum__subject=subject)
+            context["lessons_stat"][subject] = {}
+            context["lessons_stat"][subject]["count"] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
+            context["lessons_stat"][subject]["tuition"] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
+            
+            for i in [1,2,3,4]:
+                lessons_by_level = lessons_by_subject.filter(course__curriculum__level=i)
+                count = lessons_by_level.values('attendence').count()
+                tuition = lessons_by_level.annotate(tuition_sum=F('tuition')*Count(F('attendence')))\
+                                        .aggregate(sum=Sum('tuition_sum'))['sum'] or 0
+                context["lessons_stat"][subject]['count'][i] = count
+                context["lessons_stat"][subject]["tuition"][i] = tuition
+                context['lessons_stat']['count'][i] += count
+                context['lessons_stat']['tuition'][i] += tuition
 
-        # 통계
+            context["lessons_stat"][subject]["count_sum"] = sum(context["lessons_stat"][subject]['count'])
+            context["lessons_stat"][subject]["tuition_sum"] = sum(context["lessons_stat"][subject]['tuition'])
+            total_tuition += context["lessons_stat"][subject]["tuition_sum"]
+        
+        context["lessons_stat"]["total_count"] = lessons.values('attendence').count()
+        context["lessons_stat"]["total_tuition"] = total_tuition
+        print(context["lessons_stat"])
+
+
+        # 학생통계
         students = students.filter(status=1)
         schools = list(set(students.values_list('school', flat=True)))
         years = [('초6','G6','Y7'), ('중1','G7','Y8'),('중2','G8','Y9'),('중3','G9','Y10'),('고1','G10','Y11'),('고2','G11','Y12'),('고3','G12','Y13')]
@@ -234,7 +277,7 @@ class StudentView(TemplateView):
         context['stat'] = stat
         context['total'] = total
         
-        return render(request, "tutoring/student.html", context)
+        return render(request, "tutoring/statistics.html", context)
 
 class StudentDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"

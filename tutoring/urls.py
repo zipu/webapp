@@ -2,7 +2,7 @@ from django.urls import path, include, re_path
 from django.contrib import admin
 from django.views.generic import RedirectView
 
-from .views import IndexView, CalendarView, CourseView, CourseDetailView, StudentView, StudentDetailView\
+from .views import IndexView, CalendarView, CourseView, CourseDetailView, StatisticsView, StudentDetailView\
                     ,FinancialView, DailyMemoView
 from .views import StatementView, PostLessonView, ConsultView
 
@@ -13,7 +13,8 @@ urlpatterns = [
     path('calendar/dailymemo/<str:date>', DailyMemoView.as_view(), name='dailymemo'),
     path('course/', CourseView.as_view(), name='course'),
     path('course/<int:pk>/', CourseDetailView.as_view(), name='coursedetail'),
-    path('student/', StudentView.as_view(), name='student'),
+    path('statistics/', StatisticsView.as_view(), name='statistics'),
+    path('statistics/<str:date>', StatisticsView.as_view(), name='statistics-month'),
     path('student/<int:pk>/', StudentDetailView.as_view(), name='studentdetail'),
     path('student/<int:pk>/consult', ConsultView.as_view(), name='consult'),
     path('statement/', StatementView.as_view(), name='statement'),

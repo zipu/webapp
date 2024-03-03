@@ -58,10 +58,17 @@ class Student(models.Model):
 
 class Curriculum(models.Model):
     """ 교육과정 """
+    LEVELS = [ (1, '중등'), (2, '고등'), (3, 'AP/IB'), (4, '경시')]
+    SUBJECTS = [('math', '수학'), ('physics', '물리')]
+
+
     name = models.CharField(max_length=64, unique=True)
     #tution_private = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="수업료(개인)")
     #tution_group = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="수업료(그룹)")
     topics = models.TextField(blank=True, null=True) #단원명 (세미콜론;으로 구분하여 입력하고 parsing하여 사용)
+    level = models.SmallIntegerField(choices=LEVELS, blank=True, null=True)
+    subject = models.CharField(max_length=100, choices=SUBJECTS)
+
     def __str__(self):
         return f"{self.name}"
 
