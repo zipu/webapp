@@ -75,7 +75,11 @@
               </thead>
               <tbody>
                 {% for record in tuition.records %}
+                {% if record.notice.count > 0 %}
+                <tr style='color:lightgrey'>
+                {% else%}
                 <tr>
+                {% endif %}
                   <td>{{record.date |date:"Y-m-d"}}</td>
                   <td>&yen;{{record.deposit}}</a></td>
                   <td>{{record.payment}}</td>

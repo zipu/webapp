@@ -324,7 +324,7 @@ class StatementView(TemplateView):
             })
         
         tuition = {
-            'last_payment_date': notice.last_payment_date, #최근 납입일
+            'last_payment_date': notice.tuition.date, #최근 납입일
             'lesson_start_date': notice.tuition_start_date,
             'amount': notice.total_tuition,
             'count': notice.num_lessons_for_tuition, #월 수업 횟수
@@ -353,13 +353,16 @@ class StatementView(TemplateView):
         if not params.get('attendences'):
             return HttpResponse("진행한 수업을 선택하세요")
         
+        if Tuition.objects.get(pk=params.get('tuition')[0]).notice.count() > 0:
+            return HttpResponse("선택한 납부내역은 이미 처리되었습니다")
+        
         for attendence in params.get('attendences'):
             if Attendence.objects.get(pk=attendence).notice.count() > 0:
                 return HttpResponse("선택된 수업은 이미 수업 안내되었습니다. 확인해보세요.")
 
         notice = TuitionNotice.objects.create(
             student = Student.objects.get(pk=params.get('student')[0]),
-            last_payment_date = Tuition.objects.get(pk=params.get('tuition')[0]).date,
+            tuition = Tuition.objects.get(pk=params.get('tuition')[0]),
             num_lessons_for_tuition = int(params.get('num_lectures')[0]),
             notice_last_tuition_date = True if params.get('last_tuition_date') else False,
             notice_next_tuition = True if params.get('guide_next_tuition') else False
@@ -380,7 +383,7 @@ class StatementView(TemplateView):
             })
         
         tuition = {
-            'last_payment_date': notice.last_payment_date, #최근 납입일
+            'last_payment_date': notice.tuition.date, #최근 납입일
             'lesson_start_date': notice.tuition_start_date,
             'amount': notice.total_tuition,
             'count': notice.num_lessons_for_tuition, #월 수업 횟수

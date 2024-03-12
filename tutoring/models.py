@@ -173,7 +173,8 @@ class TuitionNotice(models.Model):
     """ 수업 안내문 """
     student = models.ForeignKey("Student", on_delete=models.PROTECT) #학생
     date = models.DateField(auto_now=True) #작성일
-    last_payment_date = models.DateField(blank=True, null=True) #날짜
+    #last_payment_date = models.DateField(blank=True, null=True) #날짜
+    tuition = models.ForeignKey('Tuition', related_name='notice', blank=True, null=True, on_delete=models.CASCADE) #납입 수업료
     num_lessons = models.SmallIntegerField(blank=True, null=True) #수업진행 횟수
     course = models.ManyToManyField("Course", verbose_name="과정") #과정
     textbook = models.CharField(max_length=100, blank=True, null=True) #교재
