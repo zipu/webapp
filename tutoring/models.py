@@ -169,6 +169,28 @@ class Tuition(models.Model):
     def __str__(self):
         return f"[{self.date}]({self.student.name}) {self.deposit} "
 
+class TuitionNotice(models.Model):
+    """ 수업 안내문 """
+    student = models.ForeignKey("Student", on_delete=models.PROTECT) #학생
+    date = models.DateField(auto_now=True) #작성일
+    last_payment_date = models.DateField(blank=True, null=True) #날짜
+    num_lessons = models.SmallIntegerField(blank=True, null=True) #수업진행 횟수
+    course = models.ManyToManyField("Course", verbose_name="과정") #과정
+    textbook = models.CharField(max_length=100, blank=True, null=True) #교재
+    attendence = models.ManyToManyField("Attendence", verbose_name="참여수업`", related_name='notice') #수업 
+    tuition_per_lesson = models.IntegerField(blank=True, null=True) #회당 수업료
+    time_per_lesson = models.IntegerField(blank=True, null=True) #회당 수업시간
+    num_lessons_for_tuition = models.SmallIntegerField(blank=True, null=True) #수업료에 해당하는 수업횟수
+    total_tuition = models.IntegerField(blank=True, null=True) #총수업료
+    tuition_start_date = models.DateField(blank=True, null=True) #수업료 시작 날짜
+    notice_last_tuition_date = models.BooleanField(blank=True, null=True) #지난 납부 날짜 표시
+    notice_next_tuition = models.BooleanField(blank=True, null=True) #다음 수업료 안내 표시
+
+
+
+    def __str__(self):
+        return f"[{self.date}]{self.student.name}"
+
 
 class FinancialCategory(models.Model):
     """ 수입/지출 항목 종류 """

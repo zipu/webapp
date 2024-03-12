@@ -8,7 +8,7 @@ from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum, Count, F
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
-                    ,FinancialItem, Consult, DailyMemo
+                    ,FinancialItem, Consult, DailyMemo, TuitionNotice
 
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
@@ -253,7 +253,7 @@ class StatisticsView(TemplateView):
         
         context["lessons_stat"]["total_count"] = lessons.values('attendence').count()
         context["lessons_stat"]["total_tuition"] = total_tuition
-        print(context["lessons_stat"])
+        #print(context["lessons_stat"])
 
 
         # 학생통계
@@ -283,9 +283,16 @@ class StudentDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
         student = Student.objects.get(pk=kwargs['pk'])
-        courses = Course.objects.filter(student=student)
+        
+        # 안내문 삭제
+        params = dict(request.GET)
+        if 'delete_notice' in params:
+            TuitionNotice.objects.get(pk=params['delete_notice'][0]).delete()
+            return redirect('studentdetail', pk=student.pk)
+
+        courses = Course.objects.filter(student=student, status=True)
         attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')[:20] #최근 20회 수업내역
-        tuition = Tuition.objects.filter(student=student).order_by('-date')[:10] #최근 10회 납입내역 
+        tuition = Tuition.objects.filter(student=student).order_by('-date')[:5] #최근 10회 납입내역 
         consult = Consult.objects.filter(student__pk=student.pk) #최근 상담내역
         #deposit = tuition.aggregate(Sum('deposit'))['deposit__sum']
         #usage = sum([l.lesson.course.tuition for l in attendences])
@@ -299,6 +306,7 @@ class StudentDetailView(TemplateView):
             'usage': student.balance()
         }
         context['consult'] = consult
+        context['notices'] = TuitionNotice.objects.filter(student=student)
         return render(request, "tutoring/student_detail.html", context)
 
 class StatementView(TemplateView):
@@ -306,60 +314,93 @@ class StatementView(TemplateView):
     def get(self, request, *args, **kwargs):
         params = dict(request.GET)
         #print(params)
+
+        notice = TuitionNotice.objects.get(pk=params.get('notice')[0])
+        history = []
+        for course in notice.course.all():
+            history.append({
+                'course': course,
+                'attendences': notice.attendence.filter(lesson__course=course)
+            })
+        
+        tuition = {
+            'last_payment_date': notice.last_payment_date, #최근 납입일
+            'lesson_start_date': notice.tuition_start_date,
+            'amount': notice.total_tuition,
+            'count': notice.num_lessons_for_tuition, #월 수업 횟수
+            'fee': notice.tuition_per_lesson, #회당수업료
+        }
+        
+        context = {}
+        context['student'] = notice.student
+        context['history'] = history #context['attendences'] = attendences
+        #context['courses'] = courses
+        context['tuition'] = tuition
+        context['nums'] = notice.attendence.count
+        context['today'] = datetime.today().date()
+        context['last_tuition_date'] = True if notice.notice_last_tuition_date else None
+        context['guide_next_tuition'] = True if notice.notice_next_tuition else None
+        
+        return render(request, "tutoring/statement.html", context)
+    
+    def post(self, request, *args, **kwargs):
+        params = dict(request.POST)
+        #print(params)
+
         if not params.get('tuition') or len(params.get('tuition')) != 1:
             return HttpResponse("납부 수업료 내역은 한 개만 선택해야 합니다")
         
         if not params.get('attendences'):
             return HttpResponse("진행한 수업을 선택하세요")
-
-        student = Student.objects.get(pk=params.get('student')[0])
         
-        history = []
-        courses = Course.objects.filter(pk__in=params.get('course'))
-        attendences = Attendence.objects.filter(pk__in=params.get('attendences')).order_by('-lesson__date')
+        for attendence in params.get('attendences'):
+            if Attendence.objects.get(pk=attendence).notice.count() > 0:
+                return HttpResponse("선택된 수업은 이미 수업 안내되었습니다. 확인해보세요.")
 
-        for course in courses:
+        notice = TuitionNotice.objects.create(
+            student = Student.objects.get(pk=params.get('student')[0]),
+            last_payment_date = Tuition.objects.get(pk=params.get('tuition')[0]).date,
+            num_lessons_for_tuition = int(params.get('num_lectures')[0]),
+            notice_last_tuition_date = True if params.get('last_tuition_date') else False,
+            notice_next_tuition = True if params.get('guide_next_tuition') else False
+
+        )
+        notice.course.add(*Course.objects.filter(pk__in=params.get('course')))
+        notice.attendence.add(*Attendence.objects.filter(pk__in=params.get('attendences')).order_by('-lesson__date'))
+        
+        notice.tuition_start_date = notice.attendence.latest('lesson__date').lesson.date  + timedelta(1) #수업료 적용 날짜
+        notice.total_tuition = notice.course.first().tuition * notice.num_lessons_for_tuition
+        notice.tuition_per_lesson = notice.course.first().tuition
+
+        history = []
+        for course in notice.course.all():
             history.append({
                 'course': course,
-                'attendences': attendences.filter(lesson__course=course)
+                'attendences': notice.attendence.filter(lesson__course=course)
             })
         
-        #print(history)
-        #if params.get('attendences'):
-        #    for at in reversed(params['attendences']):
-        #        attendences.append(Attendence.objects.get(pk=at))
-        #course = attendences[-1].lesson.course if attendences else None
-        #if params.get('course'):
-        
-        #    courses = [Course.objects.get(pk=c) for c in params.get('course')]
-            #course = Course.objects.get(pk=params['course'][0])
-        #else:
-        #    courses = None
-
-        #if course:
-        #    count = len(course.time.split(';'))*4
-        #else:
-        #    count = 0
-
         tuition = {
-            'last_payment_date': Tuition.objects.get(pk=params.get('tuition')[0]).date, #Tuition.objects.filter(student=student).order_by('-date').first().date, #최근 납입일
-            'lesson_start_date': attendences.latest('lesson__date').lesson.date + timedelta(1) if attendences else None, #수업료 적용 날짜
-            'amount': history[0]['course'].tuition * int(params.get('num_lectures')[0]) if history else None, #총납부액
-            'count': int(params.get('num_lectures')[0]), #월 수업 횟수
-            'fee': history[0]['course'].tuition if history else None, #회당수업료
+            'last_payment_date': notice.last_payment_date, #최근 납입일
+            'lesson_start_date': notice.tuition_start_date,
+            'amount': notice.total_tuition,
+            'count': notice.num_lessons_for_tuition, #월 수업 횟수
+            'fee': notice.tuition_per_lesson, #회당수업료
         }
         
         context = {}
-        context['student'] = student
-        
+        context['student'] = notice.student
         context['history'] = history #context['attendences'] = attendences
         #context['courses'] = courses
         context['tuition'] = tuition
-        context['nums'] = len(attendences)
+        context['nums'] = notice.attendence.count()
+        #print(context['nums'])
         context['today'] = datetime.today().date()
-        context['last_tuition_date'] = True if params.get('last_tuition_date') else None
-        context['guide_next_tuition'] = True if params.get('guide_next_tuition') else None
+        context['last_tuition_date'] = True if notice.notice_last_tuition_date else None
+        context['guide_next_tuition'] = True if notice.notice_next_tuition  else None
+        
+        notice.save()
         return render(request, "tutoring/statement.html", context)
+        
 
 class PostLessonView(TemplateView):
     def get(self, request, *args, **kwargs):

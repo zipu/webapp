@@ -47,7 +47,7 @@
               </tbody>
             </table>
             <br>
-            <p><b>&#9632; 수업료 납부현황 (최근 10회)</b></p>
+            <p><b>&#9632; 수업료 납부현황 (최근 5회)</b></p>
             <table>
               <tbody>
                 <tr>
@@ -57,10 +57,13 @@
               </tbody>
             </table>
             <br>
-            <form method="get"
+
+            <form method="post"
                   target="수업내역서"
                   action="{% url 'statement' %}"
                   onsubmit="window.open('about:blank','수업내역서', 'width=800,height=800');">
+            <!-- 메타 정보 -->
+            {% csrf_token %}  
             <table>
               <thead>
                 <tr>
@@ -98,7 +101,11 @@
                 {% for course in courses %}
                 <tr>
                   <td>{{course.startdate |date:"Y-m-d"}}</td>
-                  <td><a href="{% url "coursedetail" pk=course.pk %}">{{course.name}}</a></td>
+                  <td>
+                    <a href="{% url "coursedetail" pk=course.pk %}"
+                    {% if course.status == False %} style='color:grey';{% endif %}>
+                    {{course.name}}</a>
+                  </td>
                   <td>{{course.curriculum.name}}</td>
                   <td>{% if course.status %} 진행중 {% else %} 완료 {% endif %}</td>
                   <td><input class='courses' type="checkbox" name="course" value={{course.pk}} /> </td>
@@ -108,7 +115,7 @@
             </table>
             <br>
             
-            <p><b>&#9632; 지난 수업 목록 (20회) </b> 
+            <p><b>&#9632; 지난 수업 목록 </b> 
                
                <input type="hidden" name="student" value="{{student.pk}}"> 
                </p>
@@ -126,7 +133,11 @@
                 </thead>
                 <tbody>
                   {% for at in attendences %}
-                  <tr style='display:none' name='{{at.lesson.course.pk}}'>
+                    {% if at.notice.count > 0 %} 
+                    <tr style='display:none;color:lightgrey;' name='{{at.lesson.course.pk}}'>
+                    {% else %}
+                    <tr style='display:none' name='{{at.lesson.course.pk}}'>
+                    {% endif %}
                     <td>{{at.lesson.date |date:"Y-m-d"}}</td>
                     <td>{{at.lesson.start |date:"H:i"}}~{{at.lesson.end |date:"H:i"}}</td>
                     <td>{{at.lesson.topic |default_if_none:""}}</a></td>
@@ -144,8 +155,34 @@
                   <li>수업료 안내 <input type="checkbox" name="guide_next_tuition" value=1 checked></li>
                   <li>수업 횟수 <input type="number" name="num_lectures" value=4></li>
                  </ul> 
-             <input type="submit" value="내역서 출력" style="display:block; margin: 0 auto; margin-top:10px">
+             <input type="submit" value="내역서 생성" style="display:block; margin: 0 auto; margin-top:10px">
             </form>
+            <br>
+
+
+            <p><b>&#9632; 수업안내문 기록 </b></p>
+            <table id="notice-list">
+              <thead>
+                <tr>
+                  <th style="width:25%">발행일</th>
+                  <th style="width:25%" >적용일</th>
+                  <th style="width:25%">보기</th>
+                  <th style="width:25%">삭제</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for notice in notices %}
+                <tr>
+                  <td>{{ notice.date |date:"Y-m-d"}}</td>
+                  <td>{{ notice.tuition_start_date |date:"Y-m-d"}}</td>
+                  <td><a href="{% url 'statement' %}?notice={{ notice.pk }}"
+                    target="안내문"
+                    onclick="window.open('about:blank','안내문', 'width=800,height=800');">&#x1F4DD;</a></td>
+                  <td><a href="{% url 'studentdetail' pk=student.pk %}?delete_notice={{ notice.pk }}" style='color:black'>&#8999;</a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
             <br>
           </div>
 {% endblock %}

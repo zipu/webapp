@@ -103,3 +103,9 @@
     <p style="float:right; margin-top:0; padding-right:5%;font-size:14px;"> <b>{{today |date:"Y년 n월 j일"}}</b> </p>
 
 </body>
+<script>
+  window.onload = refreshParent;
+  function refreshParent() {
+      window.opener.location.reload();
+  }
+</script>
