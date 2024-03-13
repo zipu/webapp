@@ -289,11 +289,12 @@ class StudentDetailView(TemplateView):
         if 'delete_notice' in params:
             TuitionNotice.objects.get(pk=params['delete_notice'][0]).delete()
             return redirect('studentdetail', pk=student.pk)
-
+        
         courses = Course.objects.filter(student=student, status=True)
         attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')[:20] #최근 20회 수업내역
         tuition = Tuition.objects.filter(student=student).order_by('-date')[:5] #최근 10회 납입내역 
         consult = Consult.objects.filter(student__pk=student.pk) #최근 상담내역
+        notices = TuitionNotice.objects.filter(student=student).order_by('-date', '-pk')
         #deposit = tuition.aggregate(Sum('deposit'))['deposit__sum']
         #usage = sum([l.lesson.course.tuition for l in attendences])
         context={}
@@ -306,8 +307,15 @@ class StudentDetailView(TemplateView):
             'usage': student.balance()
         }
         context['consult'] = consult
-        context['notices'] = TuitionNotice.objects.filter(student=student)
+        context['notices'] = notices
         return render(request, "tutoring/student_detail.html", context)
+    
+    def post(self, request, *args, **kwargs):
+        # 수업 안내문 pdf파일 업로드 
+        notice = TuitionNotice.objects.get(pk=request.POST.get('noticepk'))
+        notice.pdf = request.FILES['noticepdf']
+        notice.save()
+        return redirect('studentdetail', pk=notice.student.pk)
 
 class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"

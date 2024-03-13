@@ -168,10 +168,11 @@
             <table id="notice-list">
               <thead>
                 <tr>
-                  <th style="width:25%">발행일</th>
-                  <th style="width:25%" >적용일</th>
-                  <th style="width:25%">보기</th>
-                  <th style="width:25%">삭제</th>
+                  <th style="width:20%">발행일</th>
+                  <th style="width:20%" >적용일</th>
+                  <th style="width:20%">보기</th>
+                  <th style="width:20%">PDF</th>
+                  <th style="width:20%">삭제</th>
                 </tr>
               </thead>
               <tbody>
@@ -182,6 +183,19 @@
                   <td><a href="{% url 'statement' %}?notice={{ notice.pk }}"
                     target="안내문"
                     onclick="window.open('about:blank','안내문', 'width=800,height=800');">&#x1F4DD;</a></td>
+                  <td>
+                    {% if notice.pdf %}
+                      <a href='{{MEDIA_URL}}{{notice.pdf}}' target='_blank' style="text-decoration: none"> &#x1F4DD;	</a>
+                    {% else %}
+                    <form method="post" 
+                          action="{% url 'studentdetail' pk=student.pk %}"
+                          enctype="multipart/form-data"
+                          id='uploadform'>{% csrf_token %}
+                      <input type="hidden" name='noticepk' value='{{notice.pk}}'/>
+                      <input type="file" name="noticepdf" id="uploadpdf" style="width:75px;"/>
+                    </form>
+                    {% endif %}
+                  </td>
                   <td><a href="{% url 'studentdetail' pk=student.pk %}?delete_notice={{ notice.pk }}" style='color:black'>&#8999;</a></td>
                 </tr>
                 {% endfor %}
@@ -207,5 +221,10 @@
       }
     })
   });
+
+  //pdf 파일 선택시 바로 업로드
+  document.getElementById("uploadpdf").onchange = function() {
+    document.getElementById("uploadform").submit();
+  };
 </script>
 {% endblock%}

@@ -171,6 +171,9 @@ class Tuition(models.Model):
 
 class TuitionNotice(models.Model):
     """ 수업 안내문 """
+    def set_file_name(instance, filename):
+        return f'tutoring/notice/{instance.student.name}_{instance.student.pk}/{filename}'
+    
     student = models.ForeignKey("Student", on_delete=models.PROTECT) #학생
     date = models.DateField(auto_now=True) #작성일
     #last_payment_date = models.DateField(blank=True, null=True) #날짜
@@ -186,11 +189,12 @@ class TuitionNotice(models.Model):
     tuition_start_date = models.DateField(blank=True, null=True) #수업료 시작 날짜
     notice_last_tuition_date = models.BooleanField(blank=True, null=True) #지난 납부 날짜 표시
     notice_next_tuition = models.BooleanField(blank=True, null=True) #다음 수업료 안내 표시
-
-
+    pdf = models.FileField(upload_to=set_file_name, null=True, blank=True) #수업료 pdf
 
     def __str__(self):
         return f"[{self.date}]{self.student.name}"
+    
+    
 
 
 class FinancialCategory(models.Model):
