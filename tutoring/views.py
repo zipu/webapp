@@ -8,7 +8,8 @@ from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum, Count, F
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
-                    ,FinancialItem, Consult, DailyMemo, TuitionNotice
+                    ,FinancialItem, Consult, DailyMemo, TuitionNotice\
+                    ,Homework
 
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
@@ -460,6 +461,9 @@ class PostLessonView(TemplateView):
                 homework=params['homework'][0],
                 note=params['note'][0]
             )
+            for file in self.request.FILES.getlist('hwfile'):
+                hw = Homework.objects.create(file=file)
+                lesson.hwfile.add(hw)
 
             for pk in params['students']:
                 if params[f'attendence_{pk}'][0] == '1':
@@ -484,6 +488,17 @@ class PostLessonView(TemplateView):
             lesson.homework=params['homework'][0]
             lesson.note=params['note'][0]
 
+            if 'hwfile' in request.POST and not request.POST.get('hwfile'):
+                lesson.hwfile.all().delete()
+            
+            if request.FILES.getlist('hwfile'):
+                lesson.hwfile.all().delete()
+                for file in request.FILES.getlist('hwfile'):
+                    hw = Homework.objects.create()
+                    hw.file = file
+                    hw.save()
+                    lesson.hwfile.add(hw)
+            
             for pk in params['students']:
                 atts = Attendence.objects.filter(lesson=lesson).filter(student=pk)
                 if atts:

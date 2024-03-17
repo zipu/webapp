@@ -122,6 +122,7 @@ class Lesson(models.Model):
     #student = models.ManyToManyField("Student", verbose_name="출석학생")
     topic = models.CharField(max_length=256, verbose_name="단원", blank=True, null=True)
     homework = models.CharField(max_length=256, verbose_name="숙제", blank=True, null=True)
+    hwfile = models.ManyToManyField("Homework", verbose_name="숙제파일", related_name="lesson")
     note = models.CharField(max_length=128, blank=True, null=True) #비고
 
     def __str__(self):
@@ -129,7 +130,16 @@ class Lesson(models.Model):
 
     class Meta:
         ordering = ('-date', '-start')
-    
+
+class Homework(models.Model):
+    """ 숙제 파일 저장 """
+    def set_file_name(instance, filename):
+        return f"tutoring/homwork/{filename}"
+    file = models.FileField(upload_to=set_file_name)
+
+    def __str__(self):
+        return f"{self.file.name} "
+
 class Attendence(models.Model):
     """ 출결상황 """
     HOMEWORK = [
@@ -153,6 +163,8 @@ class Attendence(models.Model):
 
     class Meta:
         unique_together = ('lesson', 'student',)
+
+
 
 class Tuition(models.Model):
     """ 수업료 납부 내역 """

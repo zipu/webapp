@@ -5,6 +5,7 @@
 </head>
 <body>
    <form method="post"
+         enctype="multipart/form-data"
          action="{% url 'post-lesson' %}">
   <!-- 메타 정보 -->
   {% csrf_token %}
@@ -37,6 +38,19 @@
     </div>
     <div style="margin-top: 10px;">
       <b>숙  제</b>: <input type="text" name="homework" value="{{lesson.homework |default_if_none:''}}" style="width:500px;height:25px;">
+    </div>
+    <div style="margin-top: 10px;">
+      <b>숙제파일</b>:  
+      <div id='hwfile' style='display:inline;'>
+        {% if lesson.hwfile.count %}
+          {% for hwfile in lesson.hwfile.all %}
+            <a href='{{MEDIA_URL}}{{hwfile}}' target='_blank' style="text-decoration: none"> &#x1F4DD;	</a>
+          {% endfor %}
+            <a style='color:black;cursor:pointer;' onclick='delete_hw();'>&#8999;</a>
+        {% else %}  
+          <input type="file" name="hwfile" style="width:500px;height:25px;" multiple/>
+        {% endif %}
+      </div>
     </div>
     <div style="margin-top: 10px;">
       <b>특이사항</b>: <input type="text" name="note" value="{{lesson.note |default_if_none:''}}" style="width:500px;height:25px;">
@@ -110,3 +124,14 @@
   </div>
   </form>
 </body>
+
+<script>
+delete_hw = function(){
+  const element = document.getElementById("hwfile");
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  };
+  element.innerHTML = "<input type='file' name='hwfile' style='width:500px;height:25px;' multiple/>"
+};
+  
+</script>
