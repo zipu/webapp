@@ -117,7 +117,7 @@ class CalendarView(TemplateView):
             response = redirect('calendar')
             response['Location'] += f'?week={weekidx}'
             return response
-
+        
         c = Calendar(request.GET.get('week'))
         today = datetime.today().date()
         courses = Course.objects.filter(status=True)
@@ -162,6 +162,7 @@ class CalendarView(TemplateView):
                 # 첫 수업 시작일이 오늘보다 이후면 표시하지 않음
                 if item.startdate > date:
                     continue
+                
                 # 삭제된 수업 표시하지 않음
                 if extralessons.filter(course=item):
                     continue
@@ -465,11 +466,22 @@ class PostLessonView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         params = dict(request.POST)
-        #validation
-        if not params['content'][0] or not params['tuition'][0]: 
-           return  HttpResponse('수업내용 다시 입력 하세요')
+        
 
-        if params['submit'][0] == 'create':
+        # 예정 수업 목록에서 삭제
+        if params['submit'][0] == 'remove':
+            ExtraLessonPlan.objects.create(
+                course = Course.objects.get(pk=params.get('course')[0]),
+                date = params['date'][0],
+                type = 'remove'
+            ).save()
+
+        #validation
+        elif not params['content'][0] or not params['tuition'][0]: 
+           return  HttpResponse('수업내용 다시 입력 하세요')
+        
+
+        elif params['submit'][0] == 'create':
             course = Course.objects.get(pk=params.get('course')[0])
             lesson = Lesson.objects.create(
                 course=course,
