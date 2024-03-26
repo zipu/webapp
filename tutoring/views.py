@@ -9,7 +9,7 @@ from django.db.models import Sum, Count, F
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
                     ,FinancialItem, Consult, DailyMemo, TuitionNotice\
-                    ,Homework
+                    ,Homework, ExtraLessonPlan
 
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
@@ -142,6 +142,15 @@ class CalendarView(TemplateView):
                 attendees = list(item.attendence.all().values_list("student__name", flat=True))
                 dayworks[day]['done'].append((item, top, height, duration, attendees))
 
+            # 추가 수업
+            extralessons = ExtraLessonPlan.objects.filter(date=date)
+            for extralesson in extralessons:
+                start = extralesson.start
+                end = extralesson.end
+                strtime = start.strftime('%H%M')+end.strftime('%H%M')
+                top, height, duration = c.div_property(start, end)
+                dayworks[day]['todo'].append((item, top, height, duration, strtime))
+            
             # 예정 수업
             # 지금보다 이전날짜는 미래일정에 포함되지 않음
             if date < today:
@@ -160,7 +169,7 @@ class CalendarView(TemplateView):
                 end = time(int(strtime[7:9]),int(strtime[9:]))
                 top, height, duration = c.div_property(start, end)
                 #hour = strtime[3:5] + ':' + strtime[5:7] + '~' + strtime[7:9] + ':' + strtime[9:]  
-                dayworks[day]['todo'].append((item, top, height, duration))
+                dayworks[day]['todo'].append((item, top, height, duration, strtime[3:]))
 
         
 
@@ -424,7 +433,13 @@ class PostLessonView(TemplateView):
             context={}
             context['course'] = course
             context['date'] = date
-            context['time'] = course.get_time(c.weekdays[date.weekday()])
+            
+            # 수업시작시간, 종료시간 
+            tm = kwargs['time']
+            start = time(int(tm[0:2]), int(tm[2:4]))
+            end = time(int(tm[4:6]), int(tm[6:8]))
+            context['time'] = [start, end]
+            #context['time'] = course.get_time(c.weekdays[date.weekday()])
 
             return render(request, "tutoring/post_lesson.html", context)
 

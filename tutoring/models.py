@@ -111,6 +111,16 @@ class Course(models.Model):
     class Meta:
         ordering = ('-status','-startdate',)
 
+class ExtraLessonPlan(models.Model):
+    """ 추가 수업 입력용 """
+    course = models.ForeignKey("Course", on_delete=models.PROTECT)
+    date = models.DateField(verbose_name="날짜")
+    start = models.TimeField(verbose_name="시작시간")
+    end = models.TimeField(verbose_name="종료시간")
+    #duration = models.IntegerField(verbose_name="진행시간(분)", default=90) #수업진행시간
+    def __str__(self):
+        return f"[{self.course.name}]{self.date} ({self.start} - {self.end})"
+
 class Lesson(models.Model):
     """ 상세 수업 내용 """
     course = models.ForeignKey("Course", on_delete=models.PROTECT) #수업
@@ -135,7 +145,7 @@ class Homework(models.Model):
     """ 숙제 파일 저장 """
     def set_file_name(instance, filename):
         return f"tutoring/homwork/{filename}"
-    file = models.FileField(upload_to=set_file_name)
+    file = models.FileField(upload_to=set_file_name, null=True, blank=True)
 
     def __str__(self):
         return f"{self.file.name} "

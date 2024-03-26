@@ -20,7 +20,7 @@ urlpatterns = [
     path('statement/', StatementView.as_view(), name='statement'),
     path('postlesson/', PostLessonView.as_view(), name='post-lesson'),
     path('postlesson/<int:lesson>/', PostLessonView.as_view(), name='popup-lesson'),
-    path('postlesson/<int:course>/<str:date>/', PostLessonView.as_view(), name='popup-lesson'),
+    path('postlesson/<int:course>/<str:date>/<str:time>', PostLessonView.as_view(), name='popup-lesson'),
     path('financial/', FinancialView.as_view(), name='financial'),
     path('financial/<str:date>', FinancialView.as_view(), name='financial-date'),
 
