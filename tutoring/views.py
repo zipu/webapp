@@ -149,7 +149,7 @@ class CalendarView(TemplateView):
                 end = extralesson.end
                 strtime = start.strftime('%H%M')+end.strftime('%H%M')
                 top, height, duration = c.div_property(start, end)
-                dayworks[day]['todo'].append((item, top, height, duration, strtime))
+                dayworks[day]['todo'].append((extralesson.course, top, height, duration, strtime))
             
             # 예정 수업
             # 지금보다 이전날짜는 미래일정에 포함되지 않음
