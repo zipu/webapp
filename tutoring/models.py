@@ -243,7 +243,7 @@ class FinancialItem(models.Model):
         return f"[{self.category}]{self.amount}"
     
     class Meta:
-        ordering = ('date',)
+        ordering = ('-date',)
 
 
 
