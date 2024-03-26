@@ -143,7 +143,7 @@ class CalendarView(TemplateView):
                 dayworks[day]['done'].append((item, top, height, duration, attendees))
 
             # 추가 수업
-            extralessons = ExtraLessonPlan.objects.filter(date=date)
+            extralessons = ExtraLessonPlan.objects.filter(date=date, type='add')
             for extralesson in extralessons:
                 start = extralesson.start
                 end = extralesson.end
@@ -157,10 +157,16 @@ class CalendarView(TemplateView):
                 continue
             
             course = courses.filter(time__contains=day)
+            extralessons = ExtraLessonPlan.objects.filter(date=date, type='remove')
             for item in course:
                 # 첫 수업 시작일이 오늘보다 이후면 표시하지 않음
                 if item.startdate > date:
                     continue
+                # 삭제된 수업 표시하지 않음
+                if extralessons.filter(course=item):
+                    continue
+
+
                 strtime = [t for t in item.time.split(';') if day in t][0] #WED16001730
                 #한시간 셀의 높이 = 48px
                 #top position = ((시간-10)*60 + 분)*(4/5)

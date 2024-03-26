@@ -113,10 +113,13 @@ class Course(models.Model):
 
 class ExtraLessonPlan(models.Model):
     """ 추가 수업 입력용 """
+    TYPE = [('add','새수업추가'), ('remove','기존수업삭제')]
+
     course = models.ForeignKey("Course", on_delete=models.PROTECT)
     date = models.DateField(verbose_name="날짜")
-    start = models.TimeField(verbose_name="시작시간")
-    end = models.TimeField(verbose_name="종료시간")
+    start = models.TimeField(verbose_name="시작시간", null=True, blank=True)
+    end = models.TimeField(verbose_name="종료시간", null=True, blank=True)
+    type = models.CharField(max_length=20, choices=TYPE)
     #duration = models.IntegerField(verbose_name="진행시간(분)", default=90) #수업진행시간
     def __str__(self):
         return f"[{self.course.name}]{self.date} ({self.start} - {self.end})"
