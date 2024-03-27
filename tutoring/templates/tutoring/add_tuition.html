@@ -1,0 +1,40 @@
+<html>
+<head>
+  <title> 수업료 납부 기록 </title>
+  <style>
+        table, th, td {
+          border: 1px solid black;
+        }
+  </style>
+<body>
+      <form method="post" action="{% url 'studentdetail' pk=student.pk %}">
+        <input type="hidden" name='csrfmiddlewaretoken' value={{csrf}}>
+        <input type='hidden' name='subject' value='addtuition'></td>
+        <input type='hidden' name='student' value={{student.pk}}></td>
+        <table>
+        <tr>
+          <th style='width:30%'>학생</th>
+          <td>{{student.name}} ({{student.school}})</td>
+        </tr>
+        <tr>
+          <th>날짜</th>
+          <td><input type="date" name="date"/></td>
+        </tr>
+        <tr>
+          <th>금액</th>
+          <td><input type="number" name="deposit"></td>
+        </tr>
+        <tr>
+          <th>납부방식</th>
+          <td><input type='radio' name='method' value="위챗페이"/>위챗페이
+              <input type='radio' name='method' value="즈푸바오"/>즈푸바오
+              <input type='radio' name='method' value="현금"/>현금
+          </td>
+        </tr>
+      </table>
+      <div>
+        <input type="submit" value="입력" style="display:block; margin: 0 auto; margin-top:10px"/>
+      </div>
+    </form>
+</body>
+</html>;

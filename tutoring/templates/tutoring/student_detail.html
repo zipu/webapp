@@ -47,7 +47,7 @@
               </tbody>
             </table>
             <br>
-            <p><b>&#9632; 수업료 납부현황 (최근 5회)</b></p>
+            <p><b>&#9632; 수업료 납부현황 (최근 5회)</b> <button onclick='addTuition();'>추가</button></p>
             <table>
               <tbody>
                 <tr>
@@ -191,6 +191,7 @@
                           action="{% url 'studentdetail' pk=student.pk %}"
                           enctype="multipart/form-data"
                           id='uploadform'>{% csrf_token %}
+                      <input type="hidden" name='subject' value='noticepdf'/>
                       <input type="hidden" name='noticepk' value='{{notice.pk}}'/>
                       <input type="file" name="noticepdf" id="uploadpdf" style="width:75px;"/>
                     </form>
@@ -203,6 +204,7 @@
             </table>
             <br>
           </div>
+          
 {% endblock %}
 
 {% block script %}
@@ -226,5 +228,15 @@
   document.getElementById("uploadpdf").onchange = function() {
     document.getElementById("uploadform").submit();
   };
+
+  //수업료 입력 팝업
+  function addTuition(){
+    var w = window.open('', '수업료 납부 기록', 'width=400,height=180');
+    var html = `{{ addtuitionhtml }}`
+    w.document.write(html);
+  };
 </script>
+
+
+
 {% endblock%}

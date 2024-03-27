@@ -2,8 +2,10 @@ import json
 from datetime import datetime, timedelta, time
 from collections import OrderedDict
 
+from django.middleware import csrf
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from django.views.generic import TemplateView, DetailView
 from django.db.models import Sum, Count, F
 
@@ -325,14 +327,37 @@ class StudentDetailView(TemplateView):
         }
         context['consult'] = consult
         context['notices'] = notices
+
+        #수업료 납부 팝업 정보
+        context['addtuitionhtml'] = render_to_string('tutoring/add_tuition.html',
+                                          { 'student': student, 'csrf':csrf.get_token(request)})
+        
         return render(request, "tutoring/student_detail.html", context)
     
     def post(self, request, *args, **kwargs):
+        subject = request.POST.get('subject')
+        print(request.POST)
         # 수업 안내문 pdf파일 업로드 
-        notice = TuitionNotice.objects.get(pk=request.POST.get('noticepk'))
-        notice.pdf = request.FILES['noticepdf']
-        notice.save()
-        return redirect('studentdetail', pk=notice.student.pk)
+        if subject == 'noticepdf':
+            notice = TuitionNotice.objects.get(pk=request.POST.get('noticepk'))
+            notice.pdf = request.FILES['noticepdf']
+            notice.save()
+            return redirect('studentdetail', pk=notice.student.pk)
+        
+        # 수업료 납입 기록
+        if subject == 'addtuition':
+            try:
+                Tuition.objects.create(
+                    student=Student.objects.get(pk=request.POST.get('student')),
+                    date = request.POST.get('date'),
+                    deposit = request.POST.get('deposit'),
+                    payment = request.POST.get('method')
+                ).save()
+            except:
+                return HttpResponse('내용을 정확히 입력 하세요')
+            return HttpResponse('<script>window.close();window.opener.location.reload();</script>')
+
+        
 
 class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
