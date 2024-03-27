@@ -610,9 +610,9 @@ class FinancialView(TemplateView):
             year = today.year
             month = {'year':today.year, 'month':today.month} 
 
-        tuition = Tuition.objects.filter(date__month=month['month'], date__year=month['year']).order_by('-date')
-        expenditure = FinancialItem.objects.filter(date__year=month['year'], date__month=month['month'], category__level=2).order_by('-date')
-        income = FinancialItem.objects.filter(date__year=month['year'], date__month=month['month'], category__level=1).order_by('-date')
+        tuition = Tuition.objects.filter(date__month=month['month'], date__year=month['year'])
+        expenditure = FinancialItem.objects.filter(date__year=month['year'], date__month=month['month'], category__level=2)
+        income = FinancialItem.objects.filter(date__year=month['year'], date__month=month['month'], category__level=1)
 
         context={}
         context['year'] = year
@@ -622,9 +622,9 @@ class FinancialView(TemplateView):
             'income': income.values('category__name').annotate(amount=Sum('amount')),
             'expenditure': expenditure.values('category__name').annotate(amount=Sum('amount'))
         }
-        context["tuition"]=tuition
-        context["income"]=income
-        context["expenditure"]=expenditure
+        context["tuition"]=tuition.order_by('-date')
+        context["income"]=income.order_by('-date')
+        context["expenditure"]=expenditure.order_by('-date')
         context["total_income"]=context['summary']['tuition']+income.aggregate(Sum('amount'))['amount__sum'] if income else context['summary']['tuition'] 
         context["total_expenditure"]= expenditure.aggregate(Sum('amount'))['amount__sum']
 
