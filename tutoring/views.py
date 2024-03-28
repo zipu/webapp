@@ -329,7 +329,7 @@ class StudentDetailView(TemplateView):
         context['notices'] = notices
 
         #수업료 납부 팝업 정보
-        context['addtuitionhtml'] = render_to_string('tutoring/add_tuition.html',
+        context['addtuitionhtml'] = render_to_string('tutoring/forms/add_tuition.html',
                                           { 'student': student, 'csrf':csrf.get_token(request)})
         
         return render(request, "tutoring/student_detail.html", context)

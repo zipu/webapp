@@ -4,13 +4,13 @@
 {% block content %}
         <div>
           <div style="margin-bottom:10px;">
-            <h3 style="display:inline;"> &#9679; {{year}}년 종합 </h3>
-            <div style="float:right">
+            <div class='subtitle' style="display:inline;"> &#9679; {{year}}년 종합 </div>
+            <div style="float:right;margin-right:5%;">
               <input id='year' type="number" min="2019" value={{year}} style='width:55px;'/>년
               <button onclick="window.location.href = '/tilde/financial/'+document.getElementById('year').value">보기</button>
             </div>
           </div>
-          <table  class='financial-statement' style="border:1px solid black; width:100%">
+          <table>
           <tbody>
             <tr><th style="width:10%">월</th><th style="width:30%">수입</th><th style="width:30%">지출</th><th style="width:30%">합계</th></tr>
             {% for month in monthly_total %}
@@ -23,18 +23,18 @@
         <br/><br/>
         <div>
           <div style="margin-bottom:10px;">
-            <h3 style="display:inline;"> &#9679; {{month.year}}년 {{month.month}}월</h3>
-            <div style="float:right;">
+            <div class='subtitle' style="display:inline;"> &#9679; {{month.year}}년 {{month.month}}월</div>
+            <div style="float:right;margin-right:5%;">
               <input id='date' type="month" min="2021-12" />
               <button onclick="window.location.href = '/tilde/financial/'+document.getElementById('date').value">보기</button>
              </div>
           </div>
-            <table  class='financial-statement' style="border:1px solid black; width:100%">
+            <table>
               <tbody>
                 <tr><th colspan=2>수입</th><th colspan=2>지출</th></tr>
                 <tr>
-                  <td colspan=2 style="width:50%;vertical-align:top;">
-                    <table id="income" style="border: 1px solid black; width:100%;">
+                  <td colspan=2 style="width:50%;vertical-align:top;padding:0;margin:0">
+                    <table id="income" style="width:100%;">
                       <tbody>
                         <tr>
                           <th style='width:50%'>항목</th>
@@ -48,8 +48,8 @@
                       </tbody>
                     </table>
                   </td>
-                  <td colspan=2 style="width:50%;vertical-align:top;">
-                    <table id="expenditure" style="border: 1px solid black; width:100%;">
+                  <td colspan=2 style="width:50%;vertical-align:top;padding:0;margin:0">
+                    <table id="expenditure" style="width:100%;">
                       <tbody>
                         <tr>
                           <th style='width:50%'>항목</th>
@@ -72,14 +72,14 @@
          <br/><br/>
          <div> 
           <div style='margin-bottom:10px;'>
-            <h3 style='display:inline;'> &#9679; 세부내역 ({{month.year}}년 {{month.month}}월)</h3>
+            <div class='subtitle' style='display:inline;'> &#9679; 세부내역 ({{month.year}}년 {{month.month}}월)</div>
           </div>
-          <table  class='financial-statement' style="border:1px solid black; width:100%">
+          <table>
             <tbody>
               <tr><th colspan=2>수입</th><th colspan=2>지출</th></tr>
               <tr>
-                <td colspan=2 style="width:50%;vertical-align:top;">
-                  <table id="income" style="border: 1px solid black; width:100%;">
+                <td colspan=2 style="width:50%;vertical-align:top;padding:0;margin:0">
+                  <table id="income" style='width:100%;'>
                     <tbody>
                       <tr>
                         <th style='width:20%'>날짜</th>
@@ -93,8 +93,8 @@
                     </tbody>
                   </table>
                 </td>
-                <td colspan=2 style="width:50%;vertical-align:top;">
-                  <table id="expenditure" style="border: 1px solid black; width:100%;">
+                <td colspan=2 style="width:50%;vertical-align:top;padding:0;margin:0;">
+                  <table id="expenditure" style="width:100%;">
                     <tbody>
                       <tr>
                         <th style='width:20%'>날짜</th>

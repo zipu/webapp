@@ -20,9 +20,28 @@ body {
   background-color: white;
 }
 
+.subtitle {
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+}
+
 table {
   margin: 0 auto;
   width: 90%;
+  text-align: center;
+  border-collapse: collapse;
+}
+
+table th {
+  background-color: beige;
+  border: 1px solid grey;
+  padding: 5px;
+}
+
+table td {
+  border: 1px solid grey;
+  padding: 5px;
 }
 
 .row {
@@ -74,29 +93,6 @@ a {
   text-decoration: underline;
 }
 
-/* course view */
-.course {
-  text-align: center;
-  table-layout: fixed;
-  border-collapse: collapse;
-  min-width: 800px;
-
-}
-
-.course thead tr {
-  border-bottom: 2px solid black;
-  background-color: beige;
-  height: 40px;
-  font-weight: bold;
-  ;
-}
-
-.course tbody tr {
-  font-size: 95%;
-  border-bottom: 1px dotted grey;
-  height: 35px;
-}
-
 /* student view */
 .students {
   text-align: center;
@@ -140,36 +136,6 @@ a {
   font-size: 95%;
 }
 
-/* index view */
-#index>table {
-  text-align: center;
-  table-layout: fixed;
-  border-collapse: collapse;
-  width: 85%;
-  min-width: 800px;
-}
-
-#student_stat tr,
-#index tr {
-  height: 25px;
-}
-
-#stats th,
-#index th {
-  background-color: beige;
-  ;
-}
-
-#stats th, td,
-#index td,
-#index th {
-
-  border: 1px solid grey;
-}
-
-#index tbody td {
-  font-size: 95%;
-}
 
 /* statement */
 @media all {
@@ -296,30 +262,4 @@ a {
 #post-lesson th {
   border: 1px solid black;
   
-}
-
-.financial-statement {
-  border: 2px solid black;
-  border-collapse: collapse;
-}
-
-.financial-statement th {
-  border: 1px solid black;
-  border-collapse: collapse;
-  background-color: beige;
-  height: 40px;
-}
-
-.financial-statement td {
-  border-bottom: 1px solid black;
-  padding: 0;
-  margin: 0
-}
-
-#income {
-  border-collapse: collapse;
-}
-
-#expenditure {
-  border-collapse: collapse;
 }

@@ -2,8 +2,8 @@
 
 {% block content %}
           <div id="index">
-              <h3> &#9679; <u> 오늘의 수업</u> </h3>
-              <p> * <b>{{ today|date:"Y-m-d"}} ({{weekday}}) </b></p>
+              <div class='subtitle'> &#9679; 오늘의 수업 {{ today|date:"Y-m-d"}} ({{weekday}})</div>
+              
                 {% for course in lessons%}
                  
                   <table>
@@ -42,8 +42,8 @@
                   </table>
                   <br>
                 {% endfor %}
-
-                <h3> &#9679; <u> 수업료 납부 요망</u> </h3>
+                <br/>
+                <div class='subtitle'> &#9679; 수업료 납부 요망 </div>
                   <table>
                     <tbody>
                       <tr><th>이름</th><th>잔액</th><th>최종 납부일</th></tr>

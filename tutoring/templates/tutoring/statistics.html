@@ -4,15 +4,15 @@
 {% block content %}
 <div id="stats">
   <div>
-    <h4 style="display:inline"> &#9679; 월 수업통계 ({{year}}년 {{month}}월)</h4>
+    <div class='subtitle' style='display:inline;'> &#9679; 월 수업통계 ({{year}}년 {{month}}월)</div>
     <div style="float:right;margin-right:5%;margin-bottom:3px;">
       <input id='date' type="month" min="2021-12" />
       <button onclick="window.location.href = '/tilde/statistics/'+document.getElementById('date').value">보기</button>
     </div>
   </div>
-  <table id='lesson_stat' style="text-align: center; table-layout: fixed; border-collapse: collapse;">
+  <table id='lesson_stat'>
     <tbody>
-      <tr><th></th><th>중등</th><th>고등</th><th>AP/IB</th><th>경시</th><th>합계</th></tr>
+      <tr><th style='width:16.66%;'></th><th style='width:16.66%;'>중등</th><th style='width:16.66%;'>고등</th><th style='width:16.66%;'>AP/IB</th><th style='width:16.66%;'>경시</th><th style='width:16.66%;'>합계</th></tr>
       <tr><th>수학</th><td>{{lessons_stat.math.count.1}}</td><td>{{lessons_stat.math.count.2}}</td><td>{{lessons_stat.math.count.3}}</td><td>{{lessons_stat.math.count.4}}</td><th>{{ lessons_stat.math.count_sum}}</th></tr>
       <tr><th>물리</th><td>{{lessons_stat.physics.count.1}}</td><td>{{lessons_stat.physics.count.2}}</td><td>{{lessons_stat.physics.count.3}}</td><td>{{lessons_stat.physics.count.4}}</td><th>{{ lessons_stat.physics.count_sum}}</th></tr>
       <tr><th>계</th><th>{{lessons_stat.count.1}}</th><th>{{lessons_stat.count.2}}</th><th>{{lessons_stat.count.3}}</th><th>{{lessons_stat.count.4}}</th><th>{{ lessons_stat.total_count}}</th></tr>
@@ -25,14 +25,14 @@
     </tbody>
   </table>
   <div style='display:inline;margin-left:5%;'>*시수 = 수업횟수 x 학생수</div> 
-  <br><br>
+  <br><br/>
 
   <div id='student'>
-  <h4 style='display:inline'> &#9679; 학생통계 </h4>
+  <div class='subtitle'> &#9679; 학생통계 </h4>
   </div>
-  <table id='student_stat' style="margin-top:5px; text-align: center; table-layout: fixed; border-collapse: collapse;">
+  <table>
     <tbody>
-      <tr><th></th><th>G6/Y7</th><th>G7/Y8</th><th>G8/Y9</th><th>G9/Y10</th><th>G10/Y11</th><th>G11/Y12</th><th>G12/Y13</th><th>합계</th></tr>
+      <tr><th style='width:15%;'></th><th style='width:10%;'>G6/Y7</th><th style='width:10%;'>G7/Y8</th><th style='width:10%;'>G8/Y9</th><th style='width:10%;'>G9/Y10</th><th style='width:10%;'>G10/Y11</th><th style='width:10%;'>G11/Y12</th><th style='width:10%;'>G12/Y13</th><th style='width:15%;'>합계</th></tr>
       {% for school in stat %}
       <tr>
         <th>{{school.0}}</th>
@@ -58,10 +58,10 @@
       </tr>
     </tbody>
   </table>
-  <br>
+  <br/><br/>
   <div>
-    <h4 style='display:inline;'> &#9679; 학생목록 </h4>
-    <div style="margin-bottom:5px;padding-left:5%;">
+    <div class='subtitle' style='display:inline'> &#9679; 학생목록 </div>
+    <div style="display:inline;float:right;margin-right:5%;margin-bottom:10px;">
       <span><b id='count'></b></span>
       <select name="" id="enrollment">
         <option value="1">등록</option>

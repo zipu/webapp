@@ -13,24 +13,24 @@
           <table class="calander" style="width:100%;margin:0px;padding:0px;">
             <thead>
               <tr>
-                <td rowspan=2>시간</td>
-                <td>월</td>
-                <td>화</td>
-                <td>수</td>
-                <td>목</td>
-                <td>금</td>
-                <td>토</td>
-                <td>일</td>
+                <th rowspan=2>시간</th>
+                <th>월</th>
+                <th>화</th>
+                <th>수</th>
+                <th>목</th>
+                <th>금</th>
+                <th>토</th>
+                <th>일</th>
               </tr>
               <tr>
                 {% for num in thisweek %}
-                <td {% if today == num %}style="background-color: yellow;"{% endif %}>{{num |date:'n월 j일'}}</td>
+                <th {% if today == num %}style="background-color: yellow;"{% endif %}>{{num |date:'n월 j일'}}</th>
                 {% endfor %}
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>메모</td>
+                <th>메모</th>
                 {% for v in dayworks.values %}
                   <td style='font-size:13px;text-align:left;margin:0px;padding:1px;'>
                     {% for memo in v.memo %}
@@ -51,7 +51,7 @@
               </tr>
               {% for i in '0123456789abcdef' %}
               <tr>
-                <td style="border-top:1px solid black;" > {{forloop.counter|add:7}}:00  </td>
+                <td style='background-color: beige'> {{forloop.counter|add:7}}:00  </td>
                 {% if i == '0' %}
                   {% for v in dayworks.values %}
                   <td style="padding:0px;" rowspan=16>
@@ -59,7 +59,7 @@
                       {% if v.todo %}
                         {% for lesson in v.todo %}
                           {% if not lesson.0.pk in course_pks %}
-                          <div class="todo" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:beige;">
+                          <div class="todo" style="top:{{lesson.1}}px;height:{{lesson.2}}px;">
                               {{lesson.3}}<br>
                               <a href="{% url 'popup-lesson' course=lesson.0.pk date=v.date time=lesson.4 %}" target="수업입력" onclick="window.open('about:blank','수업입력', 'width=800,height=800');">{{lesson.0.name}}</a><br>
                               {% for student in lesson.0.student.all %}

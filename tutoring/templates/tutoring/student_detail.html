@@ -2,7 +2,7 @@
 
 {% block content %}
           <div id="student-info">
-            <p><b>&#9632; 인적사항</b></p>
+            <div class='subtitle'>&#9679; 인적사항</div>
             <table>
               <tbody>
                 <tr>
@@ -46,8 +46,8 @@
                 </tr>
               </tbody>
             </table>
-            <br>
-            <p><b>&#9632; 수업료 납부현황 (최근 5회)</b> <button onclick='addTuition();'>추가</button></p>
+            <br><br>
+            <div class='subtitle'>&#9679; 수업료 납부현황 (최근 5회) <button onclick='addTuition();'>추가</button></div>
             <table>
               <tbody>
                 <tr>
@@ -88,9 +88,9 @@
                 {% endfor %}
               </tbody>
             </table>
-            <br>
+            <br><br/>
             
-            <p><b>&#9632; 수업 리스트</b></p>
+            <div class='subtitle'>&#9679; 수업 리스트</div>
             <table id="course-list">
               <thead>
                 <tr>
@@ -119,7 +119,7 @@
             </table>
             <br>
             
-            <p><b>&#9632; 지난 수업 목록 </b> 
+            <div class='subtitle'>&#9679; 지난 수업 목록 </div> 
                
                <input type="hidden" name="student" value="{{student.pk}}"> 
                </p>
@@ -128,9 +128,9 @@
                   <tr>
                     <th style="width:12%">수업일</th>
                     <th style="width:12%" >시간</th>
-                    <th style="width:17%">단원</th>
-                    <th style="width:32%">수업내용</th>
-                    <th style="width:12%">과정</th>
+                    <th style="width:20%">단원</th>
+                    <th style="width:25%">수업내용</th>
+                    <th style="width:16%">과정</th>
                     <th style="width:8%">수업료</th>
                     <th style="width:5%"></th>
                   </tr>
@@ -164,7 +164,7 @@
             <br>
 
 
-            <p><b>&#9632; 수업안내문 기록 </b></p>
+            <div class='subtitle'>&#9679; 수업안내문 기록 </div>
             <table id="notice-list">
               <thead>
                 <tr>
@@ -210,6 +210,9 @@
 {% block script %}
 
 <script>
+  // 수업료 페이지네이션
+
+
   // 수업 체크박스 선택시 해당 레슨목록 등장
   $('.courses').change(function() {
     $('#student-lessons > tbody').children().each(function(){ $(this).css('display','none')});
