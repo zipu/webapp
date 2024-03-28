@@ -363,96 +363,110 @@ class StatementView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
         params = dict(request.GET)
-        #print(params)
 
-        notice = TuitionNotice.objects.get(pk=params.get('notice')[0])
-        history = []
-        for course in notice.course.all():
-            history.append({
-                'course': course,
-                'attendences': notice.attendence.filter(lesson__course=course)
-            })
-        
-        tuition = {
-            'last_payment_date': notice.tuition.date, #최근 납입일
-            'lesson_start_date': notice.tuition_start_date,
-            'amount': notice.total_tuition,
-            'count': notice.num_lessons_for_tuition, #월 수업 횟수
-            'fee': notice.tuition_per_lesson, #회당수업료
-        }
-        
-        context = {}
-        context['student'] = notice.student
-        context['history'] = history #context['attendences'] = attendences
-        #context['courses'] = courses
-        context['tuition'] = tuition
-        context['nums'] = notice.attendence.count
-        context['today'] = datetime.today().date()
-        context['last_tuition_date'] = True if notice.notice_last_tuition_date else None
-        context['guide_next_tuition'] = True if notice.notice_next_tuition else None
-        
-        return render(request, "tutoring/statement.html", context)
+        # 이미 생성된 안내문 보기
+        if 'pk' in kwargs.keys():
+            notice = TuitionNotice.objects.get(pk=kwargs.get('pk'))
+            history = []
+            for course in notice.course.all():
+                history.append({
+                    'course': course,
+                    'attendences': notice.attendence.filter(lesson__course=course)
+                })
+            
+            tuition = {
+                'last_payment_date': notice.tuition.date, #최근 납입일
+                'lesson_start_date': notice.tuition_start_date,
+                'amount': notice.total_tuition,
+                'count': notice.num_lessons_for_tuition, #월 수업 횟수
+                'fee': notice.tuition_per_lesson, #회당수업료
+            }
+            
+            context = {}
+            context['student'] = notice.student
+            context['history'] = history #context['attendences'] = attendences
+            #context['courses'] = courses
+            context['tuition'] = tuition
+            context['nums'] = notice.attendence.count()
+            #print(context['nums'])
+            context['today'] = datetime.today().date()
+            context['last_tuition_date'] = True if notice.notice_last_tuition_date else None
+            context['guide_next_tuition'] = True if notice.notice_next_tuition  else None
+            
+            return render(request, "tutoring/forms/statement.html", context)
+
+
+        # 생성될 안내문 미리ㅣ보기
+        else:
+            if not params.get('tuition') or len(params.get('tuition')) != 1:
+                return HttpResponse("납부 수업료 내역은 한 개만 선택해야 합니다")
+            
+            if not params.get('attendences'):
+                return HttpResponse("진행한 수업을 선택하세요")
+            
+            if Tuition.objects.get(pk=params.get('tuition')[0]).notice.count() > 0:
+                return HttpResponse("선택한 납부내역은 이미 처리되었습니다")
+            
+            for attendence in params.get('attendences'):
+                if Attendence.objects.get(pk=attendence).notice.count() > 0:
+                    return HttpResponse("선택된 수업은 이미 수업 안내되었습니다. 확인해보세요.")
+
+            student = Student.objects.get(pk=params.get('student')[0])
+            last_tuition = Tuition.objects.get(pk=params.get('tuition')[0])
+            courses = Course.objects.filter(pk__in=params.get('course'))
+            lessons = Attendence.objects.filter(pk__in=params.get('attendences')) 
+            
+            #notice = TuitionNotice.objects.get(pk=params.get('notice')[0])
+            history = []
+            for course in courses.all():
+                history.append({
+                    'course': course,
+                    'lessons': lessons.filter(lesson__course=course)
+                })
+            
+            tuition = {
+                'last_payment_date': last_tuition.date, #최근 납입일
+                'lesson_start_date': lessons.latest('lesson__date').lesson.date  + timedelta(1), #수업료 적용 날짜
+                'fee': courses.first().tuition, #회당수업료
+                'amount': 4*courses.first().tuition #다음 납입 수업료 (디폴트: 4회)
+            }
+            
+            context = {}
+            context['student'] = student
+            context['history'] = history #context['attendences'] = attendences
+            context['lessons'] = lessons
+            context['courses'] = courses
+            context['last_tuition'] = last_tuition
+            context['tuition'] = tuition
+            context['today'] = datetime.today().date()
+            
+            return render(request, "tutoring/forms/statement_preview.html", context)
     
     def post(self, request, *args, **kwargs):
         params = dict(request.POST)
-        #print(params)
-
-        if not params.get('tuition') or len(params.get('tuition')) != 1:
-            return HttpResponse("납부 수업료 내역은 한 개만 선택해야 합니다")
-        
-        if not params.get('attendences'):
-            return HttpResponse("진행한 수업을 선택하세요")
-        
-        if Tuition.objects.get(pk=params.get('tuition')[0]).notice.count() > 0:
-            return HttpResponse("선택한 납부내역은 이미 처리되었습니다")
-        
-        for attendence in params.get('attendences'):
-            if Attendence.objects.get(pk=attendence).notice.count() > 0:
-                return HttpResponse("선택된 수업은 이미 수업 안내되었습니다. 확인해보세요.")
 
         notice = TuitionNotice.objects.create(
             student = Student.objects.get(pk=params.get('student')[0]),
-            tuition = Tuition.objects.get(pk=params.get('tuition')[0]),
-            num_lessons_for_tuition = int(params.get('num_lectures')[0]),
+            tuition = Tuition.objects.get(pk=params.get('last_tuition')[0]),
+            num_lessons_for_tuition = int(params.get('count')[0]),
             notice_last_tuition_date = True if params.get('last_tuition_date') else False,
             notice_next_tuition = True if params.get('guide_next_tuition') else False
 
         )
         notice.course.add(*Course.objects.filter(pk__in=params.get('course')))
-        notice.attendence.add(*Attendence.objects.filter(pk__in=params.get('attendences')).order_by('-lesson__date'))
+        notice.attendence.add(*Attendence.objects.filter(pk__in=params.get('lesson')).order_by('-lesson__date'))
         
         notice.tuition_start_date = notice.attendence.latest('lesson__date').lesson.date  + timedelta(1) #수업료 적용 날짜
-        notice.total_tuition = notice.course.first().tuition * notice.num_lessons_for_tuition
-        notice.tuition_per_lesson = notice.course.first().tuition
+        notice.total_tuition = params.get('amount')[0]
+        notice.tuition_per_lesson = params.get('fee')[0]
+        notice.time_per_lesson = params.get('duration')[0]
 
         history = []
-        for course in notice.course.all():
-            history.append({
-                'course': course,
-                'attendences': notice.attendence.filter(lesson__course=course)
-            })
-        
-        tuition = {
-            'last_payment_date': notice.tuition.date, #최근 납입일
-            'lesson_start_date': notice.tuition_start_date,
-            'amount': notice.total_tuition,
-            'count': notice.num_lessons_for_tuition, #월 수업 횟수
-            'fee': notice.tuition_per_lesson, #회당수업료
-        }
-        
-        context = {}
-        context['student'] = notice.student
-        context['history'] = history #context['attendences'] = attendences
-        #context['courses'] = courses
-        context['tuition'] = tuition
-        context['nums'] = notice.attendence.count()
-        #print(context['nums'])
-        context['today'] = datetime.today().date()
-        context['last_tuition_date'] = True if notice.notice_last_tuition_date else None
-        context['guide_next_tuition'] = True if notice.notice_next_tuition  else None
-        
         notice.save()
-        return render(request, "tutoring/statement.html", context)
+        return HttpResponse('<script>window.close();window.opener.location.reload();</script>')
+
+
+        
         
 
 class PostLessonView(TemplateView):

@@ -28,8 +28,10 @@
      <table id="statement-info">
       <tbody>
       <tr>
-        <th style="width:10%">과정</th><td style="width:30%;border:none;">{{item.course.curriculum.name}}</td>
-        <th style="width:10%">교재</th><td style="border:none;">{{item.course.textbook}}</td>
+        <th style="width:10%;border:none;background-color:white;">과정</th>
+        <td style="width:30%;border:none;">{{item.course.curriculum.name}}</td>
+        <th style="width:10%;border:none;background-color:white;">교재</th>
+        <td style="border:none;">{{item.course.textbook}}</td>
       </tr>
       </tbody>
     </table>
@@ -81,13 +83,16 @@
     <table id="tuition-table">
       <tbody>
       <tr>
-        <th style="width:30%;padding-left:5%;"> 수업료 </th><td style="border-left:none;border-right:none;"> <b>{{tuition.fee |floatformat}} RMB/회</b></td>
+        <th style="width:30%;padding-left:5%;;border:none;border-bottom:1px solid black;background-color:white;"> 수업료 </th>
+        <td style="border:1px solid black;border-left:none;border-right:none;"> <b>{{tuition.fee |floatformat}} RMB/회</b></td>
       </tr>
       <tr>
-        <th style="width:30%;padding-left:5%;"> 수업시간 </th><td style="border-left:none;border-right:none;"> <b>{{history.0.course.duration |floatformat}} 분/회</b></td>
+        <th style="width:30%;padding-left:5%;;border:none;border-bottom:1px solid black;background-color:white;"> 수업시간 </th>
+        <td style="border:1px solid black;border-left:none;border-right:none;"> <b>{{history.0.course.duration |floatformat}} 분/회</b></td>
       </tr>
       <tr>
-        <th style="width:30%;padding-left:5%;"> 횟수 </th><td style="border-left:none;border-right:none;"> <b>{{ tuition.count }}회</b></td>
+        <th style="width:30%;padding-left:5%;;border:none;border-bottom:1px solid black;background-color:white;"> 횟수 </th>
+        <td style="border:1px solid black;border-left:none;border-right:none;"> <b>{{ tuition.count }}회</b></td>
       </tr>
       <tr>
         <th style="width:30%;padding-left:5%;border:none;background-color:rgb(242,242,242);"> 합계 </th><td style="border:none;background-color:rgb(242,242,242);"> <b>{{tuition.amount |floatformat}} RMB</b></td>
@@ -104,7 +109,7 @@
 
 </body>
 <script>
-  window.onload = refreshParent;
+  //window.onload = refreshParent;
   function refreshParent() {
       window.opener.location.reload();
   }
