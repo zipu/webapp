@@ -80,18 +80,27 @@ class IndexView(TemplateView):
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
         weekdays_kor = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일']
         day = weekdays[today.weekday()] #요일
-        lessons = courses.filter(time__contains=day)
-        l = []
-        for item in lessons:
+        courses = courses.filter(time__contains=day)
+        
+        lessons = []
+        #추가수업
+        for lesson in ExtraLessonPlan.objects.filter(date=today):
+            lessons.append(
+                (lesson.course, lesson.start, lesson.end)
+            )
+
+        
+        for item in courses:
                 strtime = [t for t in item.time.split(';') if day in t][0] #WED16001730
                 start = time(int(strtime[3:5]),int(strtime[5:7]))
                 end = time(int(strtime[7:9]),int(strtime[9:]))
-                l.append(
+                lessons.append(
                     (item, start, end)
                 )
+        
         context['today'] = today
         context['weekday'] = weekdays_kor[today.weekday()]
-        context['lessons'] = l
+        context['lessons'] = lessons
 
         students_all = Student.objects.filter(status=1)
         students = sorted([(s,s.balance()) for s in students_all if s.balance() < 500], key=lambda x: x[1])

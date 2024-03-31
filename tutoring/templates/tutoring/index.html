@@ -36,7 +36,11 @@
                       </tr>
                       <tr>
                         <th>숙제</th>
-                        <td colspan=3>{{course.0.lesson_set.first.homework|default_if_none:""}}</td>
+                        <td colspan=3>
+                          {% for hwfile in course.0.lesson_set.first.hwfile.all %}
+                            <a href='{{MEDIA_URL}}{{hwfile}}' target='_blank' style="text-decoration: none"> &#x1F4DD;	</a>
+                           {% endfor %}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
