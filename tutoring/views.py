@@ -103,7 +103,7 @@ class IndexView(TemplateView):
         
         context['today'] = today
         context['weekday'] = weekdays_kor[today.weekday()]
-        context['lessons'] = lessons
+        context['lessons'] = sorted(lessons, key=lambda x: x[1])
 
         students_all = Student.objects.filter(status=1)
         students = sorted([(s,s.balance()) for s in students_all if s.balance() < 500], key=lambda x: x[1])
