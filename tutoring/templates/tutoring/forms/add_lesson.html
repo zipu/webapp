@@ -1,0 +1,37 @@
+<html>
+<head>
+  <title> 수업추가 </title>
+  <style>
+        table, th, td {
+          border: 1px solid black;
+        }
+  </style>
+<body>
+      <form method="post" action="{% url 'course' %}">
+        <input type="hidden" name='csrfmiddlewaretoken' value={{csrf}}>
+        <input type='hidden' name='subject' value='addlesson'></td>
+        <input type='hidden' name='course' value='$coursepk'></td>
+        <table style='width:80%;margin:0 auto;'>
+          <tr>
+            <th style='width:30%'>수업명</th>
+            <td style='width:70%'>$coursename</td>
+          </tr>
+          <tr>
+            <th>날짜</th>
+            <td><input type="date" name="date"/></td>
+          </tr>
+          <tr>
+            <th>시작시간</th>
+            <td><input type="time" name="startat"></td>
+          </tr>
+          <tr>
+            <th>종료시간</th>
+            <td><input type="time" name="endat"></td>
+          </tr>
+      </table>
+      <div>
+        <input type="submit" value="추가" style="display:block; margin: 0 auto; margin-top:10px"/>
+      </div>
+    </form>
+</body>
+</html>

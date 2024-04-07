@@ -225,8 +225,29 @@ class CourseView(TemplateView):
         courses = Course.objects.filter(status=True)
         context={}
         context["courses"] = courses
+        #추가수업 입력 팝업 정보
+        context['addlessonhtml'] = render_to_string('tutoring/forms/add_lesson.html',
+                                          { 'csrf':csrf.get_token(request)})
         
         return render(request, "tutoring/course.html", context)
+    
+    def post(self, request, *args, **kwargs):
+        subject = request.POST.get('subject')
+        print(request.POST)
+        
+        # 수업 추가
+        if subject == 'addlesson':
+            try:
+                ExtraLessonPlan.objects.create(
+                    course=Course.objects.get(pk=request.POST.get('course')),
+                    date = request.POST.get('date'),
+                    start = request.POST.get('startat'),
+                    end = request.POST.get('endat'),
+                    type = 'add'
+                ).save()
+            except:
+                return HttpResponse('내용을 정확히 입력 하세요')
+            return HttpResponse('<script>window.close();window.opener.location.reload();</script>')
 
 class CourseDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
@@ -348,7 +369,7 @@ class StudentDetailView(TemplateView):
     
     def post(self, request, *args, **kwargs):
         subject = request.POST.get('subject')
-        print(request.POST)
+        #print(request.POST)
         # 수업 안내문 pdf파일 업로드 
         if subject == 'noticepdf':
             notice = TuitionNotice.objects.get(pk=request.POST.get('noticepk'))
@@ -521,11 +542,21 @@ class PostLessonView(TemplateView):
 
         # 예정 수업 목록에서 삭제
         if params['submit'][0] == 'remove':
-            ExtraLessonPlan.objects.create(
+            # 추가수업이면 그 오브젝트를 삭제
+            is_extra =  ExtraLessonPlan.objects.filter(
                 course = Course.objects.get(pk=params.get('course')[0]),
                 date = params['date'][0],
-                type = 'remove'
-            ).save()
+                type = 'add'
+            )
+            if is_extra.count() == 1:
+                is_extra[0].delete()
+            
+            else:
+                ExtraLessonPlan.objects.create(
+                    course = Course.objects.get(pk=params.get('course')[0]),
+                    date = params['date'][0],
+                    type = 'remove'
+                ).save()
 
         #validation
         elif not params['content'][0] or not params['tuition'][0]: 

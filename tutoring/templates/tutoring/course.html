@@ -8,7 +8,7 @@
                 <th style="width:35%;">수업</a></th>
                 <th style="width:20%;">과정</th>
                 <th style="width:25%;">학생</th>
-                <th style="width:15%;">시작일</th>
+                <th style="width:15%;">수업추가</th>
               </tr>
             </thead>
             <tbody>
@@ -18,9 +18,21 @@
                   <td><a href="{% url "coursedetail" pk=course.pk %}" style="color:MediumBlue;">{{course.name}}</a></td>
                   <td>{{course.curriculum.name}}</td>
                   <td>{% for s in course.student.all %}{{s.name}} {% endfor %}</td>
-                  <td>{{course.startdate |date:"y/n/j"}}</td>
+                  <td><button onclick="addTuition({{course.pk}}, '{{course.name}}');">+</button></td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+{% endblock %}
+
+
+{% block script %}
+<script>
+  //추가수업 입력 팝업
+  function addTuition(course_pk, course_name){
+    var w = window.open('', '수업추가', 'width=400,height=180');
+    var html = `{{ addlessonhtml }}`.replace('$coursepk', course_pk).replace('$coursename', course_name)
+    w.document.write(html);
+  };
+</script>
 {% endblock %}
