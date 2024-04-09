@@ -15,7 +15,7 @@
       <b>과  정</b>: {{course.curriculum.name}} <br>
     </div>
     <div style="margin-top: 10px;">
-      <b>수  업</b>: {{course.name}} 
+      <b>수  업</b>: <a style='cursor:pointer;' onclick="gotoCourse();" >{{course.name}}</a> 
     </div>
     <div  style="margin-top: 10px;">
       <b>날  짜</b>:
@@ -134,5 +134,11 @@ delete_hw = function(){
   };
   element.innerHTML = "<input type='file' name='hwfile' style='width:500px;height:25px;' multiple/>"
 };
+
+gotoCourse = function(){
+  var url = "{% url 'coursedetail' pk=course.pk %}"
+  window.close();
+  window.open(url, "_blank");
+}
   
 </script>

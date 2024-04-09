@@ -18,7 +18,7 @@
                   <td><a href="{% url "coursedetail" pk=course.pk %}" style="color:MediumBlue;">{{course.name}}</a></td>
                   <td>{{course.curriculum.name}}</td>
                   <td>{% for s in course.student.all %}{{s.name}} {% endfor %}</td>
-                  <td><button onclick="addTuition({{course.pk}}, '{{course.name}}');">+</button></td>
+                  <td><button onclick="addExtraLesson({{course.pk}}, '{{course.name}}');">+</button></td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -29,7 +29,7 @@
 {% block script %}
 <script>
   //추가수업 입력 팝업
-  function addTuition(course_pk, course_name){
+  function addExtraLesson(course_pk, course_name){
     var w = window.open('', '수업추가', 'width=400,height=235');
     var html = `{{ addlessonhtml }}`.replace('$coursepk', course_pk).replace('$coursename', course_name)
     w.document.write(html);

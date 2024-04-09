@@ -252,9 +252,11 @@ class CourseView(TemplateView):
 class CourseDetailView(TemplateView):
     #template_name = "tutoring/coursedetail.html"
     def get(self, request, *args, **kwargs):
-        lessons = Lesson.objects.filter(course__pk=kwargs['pk'])
         context={}
-        context["lessons"] = lessons
+        context['course'] = Course.objects.get(pk=kwargs['pk'])
+        context["lessons"] = Lesson.objects.filter(course__pk=kwargs['pk'])
+        context['addlessonhtml'] = render_to_string('tutoring/forms/add_lesson.html',
+                                          { 'csrf':csrf.get_token(request)})
 
         return render(request, "tutoring/course_detail.html", context)
 

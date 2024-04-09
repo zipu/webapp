@@ -1,6 +1,10 @@
 {% extends "tutoring/base.html"%}
 
 {% block content %}
+<div>
+  <div style='text-align:center; margin-bottom:15px;  '>
+    <button onclick="addExtraLesson({{course.pk}}, '{{course.name}}');">수업 스케쥴 생성</button>
+  </div>
           <table class="course">
             <thead>
               <tr>
@@ -8,8 +12,8 @@
                 <td style="width:13%;">수업일</td>
                 <td style="width:12%;">시간</td>
                 <td style="width:35%;">수업내용</td>
-                <td style="width:10%;">출석학생</td>
-                <td style="width:25%;">숙제</td>
+                <td style="width:25%;">출석학생</td>
+                <td style="width:10%;">숙제</td>
               </tr>
             </thead>
             <tbody>
@@ -19,10 +23,26 @@
                   <td>{{lesson.date |date:"Y-m-d"}}</td>
                   <td>{{lesson.start |date:"H:i"}}~{{lesson.end |date:"H:i"}}</td>
                   <td>{{lesson.name}}</td>
-                  <td>{% for at in lesson.attendence_set.all %}<a href="{% url "studentdetail" name=at.student.name %}">{{at.student.name}}</a> {% endfor %}</td>
-                  <td>{{lesson.homework |default_if_none:""}}</td>
+                  <td>{% for at in lesson.attendence.all %}<a href="{% url "studentdetail" pk=at.student.pk %}">{{at.student.name}}</a> {% endfor %}</td>
+                  <td>
+                    {% for hwfile in lesson.hwfile.all %}
+                    <a href='{{MEDIA_URL}}{{hwfile}}' target='_blank' style="text-decoration: none"> &#x1F4DD;	</a>
+                    {% endfor %}
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+  </div>
+{% endblock %}
+
+{% block script %}
+<script>
+  //추가수업 입력 팝업
+  function addExtraLesson(course_pk, course_name){
+    var w = window.open('', '수업추가', 'width=400,height=235');
+    var html = `{{ addlessonhtml }}`.replace('$coursepk', course_pk).replace('$coursename', course_name)
+    w.document.write(html);
+  };
+</script>
 {% endblock %}
