@@ -165,7 +165,7 @@ class Attendence(models.Model):
     student = models.ForeignKey("Student", on_delete=models.PROTECT)
     homework = models.CharField(choices=HOMEWORK, blank=True, null=True, max_length=250)
     note = models.CharField(max_length=250, blank=True, null=True)
-    #checked = models.BooleanField(default=False) #안내문 작성된 수업 
+    attended = models.BooleanField() #출석: True, 결석: False 
 
     def __str__(self):
         return f"[{self.lesson.name}]{self.student.name} "
@@ -176,6 +176,7 @@ class Attendence(models.Model):
 
     class Meta:
         unique_together = ('lesson', 'student',)
+        ordering = ('-student__date',)
 
 
 

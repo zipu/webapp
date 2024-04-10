@@ -58,56 +58,59 @@
     <br>
 
     <b>* 출석체크</b>
-    {% for att in attendence %}
-      <table id="attendence">
-        <tbody>
-        <tr>
-          <th style="width:30%"> 이름 </th><td> {{att.student.name}}
-          <input type='hidden' name='students' value='{{att.student.pk}}'></td>
-        </tr>
-        <tr>
-          <th> 출석 </th><td> <input type='radio' name="attendence_{{att.student.pk}}" value=1 checked> 출석
-                              <input type='radio' name="attendence_{{att.student.pk}}" value=0 >결석 </td>
-        </tr>
-        <tr>
-          <th> 숙제 </th><td> <input type='radio' name="homework_{{att.student.pk}}" value=1 {% if att.homework == '1' %}checked {% endif %}>잘함
-                              <input type='radio' name="homework_{{att.student.pk}}" value=2 {% if att.homework == '2' %}checked {% endif %}>미흡
-                              <input type='radio' name="homework_{{att.student.pk}}" value=3 {% if att.homework == '3' %}checked {% endif %}>안함
-                              <input type='radio' name="homework_{{att.student.pk}}" value=4 {% if att.homework == '4' %}checked {% endif %}> 기타 </td>
-        </tr>
-        <tr>
-          <th> 비고 </th><td> <input type="text" name="student-note_{{att.student.pk}}" value="{{att.note |default_if_none:''}}" style="width:80%;height:25px;"></td>
-        </tr>
-        </tbody>
-      </table>
-    {% endfor %}
+    {% if status == 'before' %}
+      {% for student in course.student.all %}
+        <table id="attendence">
+          <tbody>
+          <tr>
+            <th style="width:30%"> 이름 </th><td> {{student.name}}
+            <input type='hidden' name='students' value='{{student.pk}}'></td>
+          </tr>
+          <tr>
+            <th> 출석 </th><td> <input type='radio' name="attendence_{{student.pk}}" value=1> 출석
+                                <input type='radio' name="attendence_{{student.pk}}" value=0>결석 </td>
+          </tr>
+          <tr>
+            <th> 숙제 </th><td> <input type='radio' name="homework_{{student.pk}}" value=1>잘함
+                                <input type='radio' name="homework_{{student.pk}}" value=2>미흡
+                                <input type='radio' name="homework_{{student.pk}}" value=3>안함
+                                <input type='radio' name="homework_{{student.pk}}" value=4> 기타 </td>
+          </tr>
+          <tr>
+            <th> 비고 </th><td> <input type="text" name="student-note_{{student.pk}}" style="width:80%;height:25px;"></td>
+          </tr>
+          </tbody>
+        </table>
+      {% endfor %}
+    {% elif status == 'after' %}
+      {% for att in attendence %}
+        <table id="attendence">
+          <tbody>
+          <tr>
+            <th style="width:30%"> 이름 </th><td> {{att.student.name}}
+            <input type='hidden' name='students' value='{{att.student.pk}}'></td>
+          </tr>
+          <tr>
+            <th> 출석 </th><td> <input type='radio' name="attendence_{{att.student.pk}}" value=1 {% if att.attended == True %}checked{% endif %}> 출석
+                                <input type='radio' name="attendence_{{att.student.pk}}" value=0 {% if att.attended == False %}checked{% endif %}>결석 </td>
+          </tr>
+          <tr>
+            <th> 숙제 </th><td> <input type='radio' name="homework_{{att.student.pk}}" value=1 {% if att.homework == '1' %}checked {% endif %}>잘함
+                                <input type='radio' name="homework_{{att.student.pk}}" value=2 {% if att.homework == '2' %}checked {% endif %}>미흡
+                                <input type='radio' name="homework_{{att.student.pk}}" value=3 {% if att.homework == '3' %}checked {% endif %}>안함
+                                <input type='radio' name="homework_{{att.student.pk}}" value=4 {% if att.homework == '4' %}checked {% endif %}> 기타 </td>
+          </tr>
+          <tr>
+            <th> 비고 </th><td> <input type="text" name="student-note_{{att.student.pk}}" value="{{att.note |default_if_none:''}}" style="width:80%;height:25px;"></td>
+          </tr>
+          </tbody>
+        </table>
+      {% endfor %}
+    {% endif %}
     
-    {% for student in course.student.all %}
-      {% if student.pk in students %}
-      {% else %}
-      <table id="attendence">
-        <tbody>
-        <tr>
-          <th style="width:30%"> 이름 </th><td> {{student.name}}
-          <input type='hidden' name='students' value='{{student.pk}}'></td>
-        </tr>
-        <tr>
-          <th> 출석 </th><td> <input type='radio' name="attendence_{{student.pk}}" value=1> 출석
-                              <input type='radio' name="attendence_{{student.pk}}" value=0 checked>결석 </td>
-        </tr>
-        <tr>
-          <th> 숙제 </th><td> <input type='radio' name="homework_{{student.pk}}" value=1 checked >잘함
-                              <input type='radio' name="homework_{{student.pk}}" value=2>미흡
-                              <input type='radio' name="homework_{{student.pk}}" value=3>안함
-                              <input type='radio' name="homework_{{student.pk}}" value=4> 기타 </td>
-        </tr>
-        <tr>
-          <th> 비고 </th><td> <input type="text" name="student-note_{{student.pk}}" style="width:80%;height:25px;"></td>
-        </tr>
-        </tbody>
-      </table>
-      {% endif %}
-    {% endfor %}
+    
+    
+    
     <div style="margin-top:10px;text-align:center;">
       {% if lesson %}
         <input type='hidden' name='lesson' value={{lesson.pk}}>

@@ -153,7 +153,8 @@ class CalendarView(TemplateView):
             lesson = lessons.filter(date=date)
             for item in lesson:
                 top, height, duration = c.div_property(item.start, item.end)
-                attendees = list(item.attendence.all().values_list("student__name", flat=True))
+                #attendees = list(item.attendence.all().values_list("student__name", flat=True))
+                attendees = item.attendence.all()
                 dayworks[day]['done'].append((item, top, height, duration, attendees))
 
             # 추가 수업
@@ -345,7 +346,7 @@ class StudentDetailView(TemplateView):
             return redirect('studentdetail', pk=student.pk)
         
         courses = Course.objects.filter(student=student, status=True)
-        attendences = Attendence.objects.filter(student=student).order_by('-lesson__date')[:20] #최근 20회 수업내역
+        attendences = Attendence.objects.filter(student=student, attended=True).order_by('-lesson__date')[:20] #최근 20회 수업내역
         tuition = Tuition.objects.filter(student=student).order_by('-date')[:5] #최근 10회 납입내역 
         consult = Consult.objects.filter(student__pk=student.pk) #최근 상담내역
         notices = TuitionNotice.objects.filter(student=student).order_by('-date', '-pk')
@@ -521,7 +522,7 @@ class PostLessonView(TemplateView):
             end = time(int(tm[4:6]), int(tm[6:8]))
             context['time'] = [start, end]
             #context['time'] = course.get_time(c.weekdays[date.weekday()])
-
+            context['status'] = 'before'
             return render(request, "tutoring/post_lesson.html", context)
 
         #입력된 수업 확인
@@ -533,15 +534,15 @@ class PostLessonView(TemplateView):
             context['date'] = lesson.date
             context['time'] = (lesson.start, lesson.end)
             context['attendence'] = Attendence.objects.filter(lesson=lesson)
-            context['students'] = [i.student.pk for i in context['attendence']]
+            #context['students'] = [i.student.pk for i in context['attendence']]
+            context['status'] = 'after'
 
             return render(request, "tutoring/post_lesson.html", context)
 
 
     def post(self, request, *args, **kwargs):
         params = dict(request.POST)
-        print(params)
-
+        #print(params)
         # 예정 수업 목록에서 삭제
         if params['submit'][0] == 'remove':
             # 추가수업이면 그 오브젝트를 삭제
@@ -562,12 +563,16 @@ class PostLessonView(TemplateView):
                     type = 'remove'
                 ).save()
 
-        #validation
-        elif not params['content'][0] or not params['tuition'][0]: 
-           return  HttpResponse('수업내용 다시 입력 하세요')
         
-
         elif params['submit'][0] == 'create':
+            #validation
+            if not params['content'][0] or not params['tuition'][0] or not params['topic'][0]: 
+                return  HttpResponse('수업내용 다시 입력 하세요')
+            else:
+                for pk in params['students']:
+                    if not params.get(f'attendence_{pk}') or not params.get(f'homework_{pk}'):
+                        return HttpResponse('출결 및 숙제를 반드시 체크하세요')
+            
             course = Course.objects.get(pk=params.get('course')[0])
             lesson = Lesson.objects.create(
                 course=course,
@@ -585,18 +590,33 @@ class PostLessonView(TemplateView):
                 lesson.hwfile.add(hw)
 
             for pk in params['students']:
-                if params[f'attendence_{pk}'][0] == '1':
-                    student = Student.objects.get(pk=pk)
-                    Attendence.objects.create(
-                        lesson=lesson,
-                        student=student,
-                        homework=params[f'homework_{pk}'][0],
-                        note=params[f'student-note_{pk}'][0],
-                    ).save()
+                #if params[f'attendence_{pk}'][0] == '1':
+                student = Student.objects.get(pk=pk)
+                
+                if params[f'attendence_{pk}'][0] == '1': #출석
+                    attended = True 
+                elif  params[f'attendence_{pk}'][0] == '0': #결석
+                    attended = False
+                
+                att = Attendence.objects.create(
+                    lesson=lesson,
+                    student=student,
+                    attended=attended,
+                    homework=params[f'homework_{pk}'][0],
+                    note=params[f'student-note_{pk}'][0],
+                ).save()
 
             lesson.save()
 
         elif params['submit'][0] == 'update':
+            #validation
+            if not params['content'][0] or not params['tuition'][0] or not params['topic'][0]: 
+                return  HttpResponse('수업내용 다시 입력 하세요')
+            else:
+                for pk in params['students']:
+                    if not params.get(f'attendence_{pk}') or not params.get(f'homework_{pk}'):
+                        return HttpResponse('출결 및 숙제를 반드시 체크하세요')
+                    
             lesson = Lesson.objects.get(pk=params.get('lesson')[0])
             lesson.tuition = params['tuition'][0]
             lesson.date=params['date'][0]
@@ -619,24 +639,15 @@ class PostLessonView(TemplateView):
                     lesson.hwfile.add(hw)
             
             for pk in params['students']:
-                atts = Attendence.objects.filter(lesson=lesson).filter(student=pk)
-                if atts:
-                    if params[f'attendence_{pk}'][0] == '1':
-                        att = atts[0]
-                        att.homework = params[f'homework_{pk}'][0]
-                        att.note = params[f'student-note_{pk}'][0]
-                        att.save()
-                    elif params[f'attendence_{pk}'][0] == '0':
-                        atts[0].delete()
-                else:
-                    if params[f'attendence_{pk}'][0] == '1':
-                        student = Student.objects.get(pk=pk)
-                        Attendence.objects.create(
-                            lesson=lesson,
-                            student=student,
-                            homework=params[f'homework_{pk}'][0],
-                            note=params[f'student-note_{pk}'][0],
-                        ).save()
+                att = Attendence.objects.filter(lesson=lesson).get(student=pk)
+                if params[f'attendence_{pk}'][0] == '1': #출석
+                    att.attended = True 
+                elif  params[f'attendence_{pk}'][0] == '0': #결석
+                    att.attended = False
+                att.homework = params[f'homework_{pk}'][0]
+                att.note = params[f'student-note_{pk}'][0]
+                att.save()
+                
             lesson.save()
 
         elif params['submit'][0] == 'delete':
