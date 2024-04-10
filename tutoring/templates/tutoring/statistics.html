@@ -69,6 +69,7 @@
         <option value="2">퇴원</option>
         <option value="3">졸업</option>
         <option value="4">미등록</option>
+        <option value="5">대기</option>
       </select>
     </div>
   </div>
@@ -93,7 +94,7 @@
                   <td><a href="{% url 'studentdetail' pk=student.pk %}">{{student.name}}</a></td>
                   <td>{{student.school}}</td>
                   <td>{{student.year2}}</td>
-                  <td>{% if student.status == 1 %} 등록 {% elif student.status == 2 %} 퇴원 {% elif student.status == 3 %} 졸업 {% elif student.status == 4 %} 미등록 {% endif %}</td>
+                  <td>{% if student.status == 1 %} 등록 {% elif student.status == 2 %} 퇴원 {% elif student.status == 3 %} 졸업 {% elif student.status == 4 %} 미등록 {% elif student.status == 5 %} 대기 {% endif %}</td>
                   <td>{{student.note |default_if_none:""}}</td>
                 </tr>
               {% endfor %}

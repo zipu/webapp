@@ -19,7 +19,7 @@ SCHOOLS = [
 class Student(models.Model):
     """ This class represents the categories related with problems """
     # 개인정보
-    STATUS = [ (1, '등록'), (2, '퇴원'), (3, '졸업'), (4, '미등록')]
+    STATUS = [ (1, '등록'), (2, '퇴원'), (3, '졸업'), (4, '미등록'), (5, '대기')]
 
     name = models.CharField(max_length=64) #이름
     date = models.DateField(verbose_name="등록일")
