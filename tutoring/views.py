@@ -540,7 +540,7 @@ class PostLessonView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         params = dict(request.POST)
-        
+        print(params)
 
         # 예정 수업 목록에서 삭제
         if params['submit'][0] == 'remove':
@@ -548,6 +548,8 @@ class PostLessonView(TemplateView):
             is_extra =  ExtraLessonPlan.objects.filter(
                 course = Course.objects.get(pk=params.get('course')[0]),
                 date = params['date'][0],
+                start = params['start'][0],
+                end = params['end'][0],
                 type = 'add'
             )
             if is_extra.count() == 1:

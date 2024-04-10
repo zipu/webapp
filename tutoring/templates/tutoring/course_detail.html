@@ -8,20 +8,22 @@
           <table class="course">
             <thead>
               <tr>
-                <td style="width:5%;">#</td>
-                <td style="width:13%;">수업일</td>
-                <td style="width:12%;">시간</td>
-                <td style="width:35%;">수업내용</td>
-                <td style="width:25%;">출석학생</td>
-                <td style="width:10%;">숙제</td>
+                <th style="width:5%;">#</th>
+                <th style="width:10%;">수업일</th>
+                <th style="width:10%;">시간</th>
+                <th style="width:20%;">단원</th>
+                <th style="width:30%;">수업내용</th>
+                <th style="width:15%;">출석학생</th>
+                <th style="width:10%;">숙제</th>
               </tr>
             </thead>
             <tbody>
               {%for lesson in lessons %}
-                <tr style="font-weight:normal">
+                <tr style="font-size:small;">
                   <td>{{forloop.revcounter}}</td>
                   <td>{{lesson.date |date:"Y-m-d"}}</td>
                   <td>{{lesson.start |date:"H:i"}}~{{lesson.end |date:"H:i"}}</td>
+                  <td>{{lesson.topic}}</td>
                   <td>{{lesson.name}}</td>
                   <td>{% for at in lesson.attendence.all %}<a href="{% url "studentdetail" pk=at.student.pk %}">{{at.student.name}}</a> {% endfor %}</td>
                   <td>
