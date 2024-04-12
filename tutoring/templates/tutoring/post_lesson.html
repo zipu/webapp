@@ -111,7 +111,7 @@
     
     
     
-    <div style="margin-top:10px;text-align:center;">
+    <div style="margin:0 auto; margin-top:10px;text-align:center;width:90%;">
       {% if lesson %}
         <input type='hidden' name='lesson' value={{lesson.pk}}>
         <button type='submit' name='submit' value='update'>수정</button>
@@ -120,7 +120,7 @@
       {% else %}
       <input type='hidden' name='type' value='create'>
       <input type='hidden' name='course' value={{course.pk}}>
-      <button type='submit' name='submit' value='create'>입력</button>
+      <button type='submit' name='submit' value='create' style='position:absolute;'>입력</button>
       <button type='submit' name='submit' value='remove' style='float:right;'>수업삭제</button>
       {% endif %}
     
@@ -140,8 +140,8 @@ delete_hw = function(){
 
 gotoCourse = function(){
   var url = "{% url 'coursedetail' pk=course.pk %}"
-  window.close();
-  window.open(url, "_blank");
+  //window.close();
+  window.open(url, "_blank", "left=720,width=700,height=1000");
 }
   
 </script>

@@ -61,7 +61,9 @@
                           {% if not lesson.0.pk in course_pks %}
                           <div class="todo" style="top:{{lesson.1}}px;height:{{lesson.2}}px;">
                               {{lesson.3}}<br>
-                              <a href="{% url 'popup-lesson' course=lesson.0.pk date=v.date time=lesson.4 %}" target="수업입력" onclick="window.open('about:blank','수업입력', 'width=800,height=800');">{{lesson.0.name}}</a><br>
+                              <a href="{% url 'popup-lesson' course=lesson.0.pk date=v.date time=lesson.4 %}" 
+                                 target="수업입력" 
+                                 onclick="window.open('about:blank','수업입력', 'width=700,height=1000');">{{lesson.0.name}}</a><br>
                               {% for student in lesson.0.student.all %}
                                 <a href="{% url 'studentdetail' pk=student.pk %}" target='_blank'>{{ student.name }}</a>
                               {% endfor %} <br>
