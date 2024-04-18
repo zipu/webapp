@@ -11,7 +11,7 @@ from django.db.models import Sum, Count, F
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
                     ,FinancialItem, Consult, DailyMemo, TuitionNotice\
-                    ,Homework, ExtraLessonPlan
+                    ,Homework, ExtraLessonPlan, FinancialCategory
 
 
 #from maths.models import Document, Klass, Lecture, PastExamPaper
@@ -731,5 +731,24 @@ class FinancialView(TemplateView):
             yearly_total[2] = yearly_total[2] + tuition+income-expenditure
         context['monthly_total'] = list(reversed(monthly_total))
         context['yearly_total'] = yearly_total
+
+        #수입지출내역 입력 팝업 템플릿
+        context['addfinancialitemhtml'] = render_to_string('tutoring/forms/add_financialitem.html',
+                                          { 'financialitems': FinancialCategory.objects.all, 'csrf':csrf.get_token(request)})
+        
         
         return render(request, "tutoring/financial.html", context)
+    
+    def post(self, request, *args, **kwargs):
+        subject = request.POST.get('subject')
+        if subject == 'addfinancialitem':
+           try:
+               FinancialItem.objects.create(
+                   date = request.POST.get('date'),
+                   category = FinancialCategory.objects.get(pk=request.POST.get('category')),
+                   amount = request.POST.get('amount'),
+                   note = request.POST.get('note'),
+               ).save()
+           except:
+               return HttpResponse('내용을 정확히 입력 하세요')
+           return HttpResponse('<script>window.close();window.opener.location.reload();</script>')

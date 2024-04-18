@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title> 수입지출 기록 </title>
+  <style>
+        table, th, td {
+          border: 1px solid black;
+        }
+  </style>
+<body>
+      <form method="post" action="{% url 'financial' %}">
+        <input type="hidden" name='csrfmiddlewaretoken' value={{csrf}}>
+        <input type='hidden' name='subject' value='addfinancialitem'></td>
+        <table style='width:90%;'>
+        <tr>
+          <th>날짜</th>
+          <td><input type="date" name="date"/></td>
+        </tr>
+        <tr>
+          <th>항목</th>
+          <td>
+            <select name="category">
+              <option value=""></option>
+              {% for item in financialitems %}
+              <option value="{{item.pk}}">{{item}}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th>금액</th>
+          <td><input type='number' name='amount' /></td>
+        </tr>
+        <tr>
+          <th>비고</th>
+          <td><input type='text' name='note' style='width:100%;' /></td>
+        </tr>
+      </table>
+      <div>
+        <input type="submit" value="입력" style="display:block; margin: 0 auto; margin-top:10px"/>
+      </div>
+    </form>
+</body>
+</html>

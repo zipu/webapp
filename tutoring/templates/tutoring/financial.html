@@ -73,6 +73,9 @@
          <div> 
           <div style='margin-bottom:10px;'>
             <div class='subtitle' style='display:inline;'> &#9679; 세부내역 ({{month.year}}년 {{month.month}}월)</div>
+            <div style="float:right;margin-right:5%;">
+              <button onclick='addFinancialItem();'>추가</button>
+             </div>
           </div>
           <table>
             <tbody>
@@ -116,4 +119,12 @@
             </tbody>
           </table>
         </div>
+<script>
+//수입지출 기록 팝업
+function addFinancialItem(){
+  var w = window.open('', '수입지출 기록', 'width=400,height=180');
+  var html = `{{ addfinancialitemhtml }}`
+  w.document.write(html);
+};
+</script>
 {% endblock %}
