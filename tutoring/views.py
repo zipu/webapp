@@ -72,9 +72,10 @@ class Calendar:
 class IndexView(TemplateView):
     def get(self, request, *args, **kwargs):
         context={}
-        courses = Course.objects.filter(status=True).all()
+        
         #courses = Course.objects.filter(status=True)
         today = datetime.today().date()
+        courses = Course.objects.filter(status=True, startdate__lte=today).all()
 
 
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
