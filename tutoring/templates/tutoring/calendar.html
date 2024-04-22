@@ -74,7 +74,12 @@
 
                       {% if v.done %}
                         {% for lesson in v.done %}
-                        <div class="done" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:#AFEEEE;">
+                          {% if lesson.5 > 0 %}
+                           <div class="done" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:#AFEEEE;">
+                          {% else %}
+                           <div class="done cancelled" style="top:{{lesson.1}}px;height:{{lesson.2}}px;background-color:whitesmoke;">
+                          {% endif %}
+                        
                             {{lesson.3}}<br>
                             <a href="{% url 'popup-lesson' lesson=lesson.0.pk %}"
                                target="수업입력"

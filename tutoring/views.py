@@ -156,7 +156,9 @@ class CalendarView(TemplateView):
                 top, height, duration = c.div_property(item.start, item.end)
                 #attendees = list(item.attendence.all().values_list("student__name", flat=True))
                 attendees = item.attendence.all()
-                dayworks[day]['done'].append((item, top, height, duration, attendees))
+                num_attended = attendees.filter(attended=True).count()
+
+                dayworks[day]['done'].append((item, top, height, duration, attendees, num_attended))
 
             # 추가 수업
             extralessons = ExtraLessonPlan.objects.filter(date=date, type='add')

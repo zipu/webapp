@@ -93,6 +93,10 @@ a {
   text-decoration: underline;
 }
 
+.cancelled > a {
+  color:black;
+}
+
 /* student view */
 .students {
   text-align: center;
