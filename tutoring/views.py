@@ -180,6 +180,10 @@ class CalendarView(TemplateView):
                 # 첫 수업 시작일이 오늘보다 이후면 표시하지 않음
                 if item.startdate > date:
                     continue
+
+                # 마지막 수업일이 오늘보다 이전이면 표시하지 않음
+                if item.enddate and item.enddate < date:
+                    continue
                 
                 # 삭제된 수업 표시하지 않음
                 if extralessons.filter(course=item):

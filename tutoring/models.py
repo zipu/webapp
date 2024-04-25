@@ -77,6 +77,7 @@ class Course(models.Model):
     name = models.CharField(max_length=64) #수업명
     curriculum = models.ForeignKey(Curriculum, on_delete=models.PROTECT) #과정
     startdate = models.DateField() #수업개설일
+    enddate = models.DateField(blank=True, null=True) #폐강예정일 
     duration = models.IntegerField(verbose_name="진행시간(분)", default=90) #수업진행시간
     # 수업시간
     # 수요일 3시-4시30분 일요일 4시-5시30분의 경우
@@ -87,7 +88,7 @@ class Course(models.Model):
         help_text="수요일 3시-4시30분 일요일 4시-5시30분의 경우\
                    WED15001630;SUN16001730"
     )
-    student = models.ManyToManyField("Student", verbose_name="학생", null=True, blank=True)
+    student = models.ManyToManyField("Student", verbose_name="학생")
     textbook = models.CharField(max_length=50, blank=True, null=True, verbose_name="주교재")
     tuition = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="수업료")
     status = models.BooleanField(verbose_name="진행상태")
