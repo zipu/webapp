@@ -608,6 +608,7 @@ class PostLessonView(TemplateView):
                 att = Attendence.objects.create(
                     lesson=lesson,
                     student=student,
+                    tuition=params[f'tuition_{pk}'][0],
                     attended=attended,
                     homework=params[f'homework_{pk}'][0],
                     note=params[f'student-note_{pk}'][0],
@@ -651,6 +652,7 @@ class PostLessonView(TemplateView):
                     att.attended = True 
                 elif  params[f'attendence_{pk}'][0] == '0': #결석
                     att.attended = False
+                att.tuition = params[f'tuition_{pk}'][0]
                 att.homework = params[f'homework_{pk}'][0]
                 att.note = params[f'student-note_{pk}'][0]
                 att.save()

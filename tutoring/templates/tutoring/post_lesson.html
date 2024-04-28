@@ -53,7 +53,7 @@
       </div>
     </div>
     <div style="margin-top: 10px;">
-      <b>특이사항</b>: <input type="text" name="note" value="{{lesson.note |default_if_none:''}}" style="width:500px;height:25px;">
+        <b>비고</b>: <input type="text" name="note" value="{{lesson.note |default_if_none:''}}" style="width:500px;height:25px;">
     </div>
     <br>
 
@@ -63,21 +63,31 @@
         <table id="attendence">
           <tbody>
           <tr>
-            <th style="width:30%"> 이름 </th><td> {{student.name}}
-            <input type='hidden' name='students' value='{{student.pk}}'></td>
+            <th style="width:30%"> 이름 </th>
+            <td> {{student.name}} <input type='hidden' name='students' value='{{student.pk}}'></td>
+            <th> 수업료 </th>
+            <td>
+              <input type="number" name="tuition_{{student.pk}}"
+              value= {{course.tuition |floatformat:0}} min=0 style="width:60px;">위안
+            </td>
           </tr>
           <tr>
-            <th> 출석 </th><td> <input type='radio' name="attendence_{{student.pk}}" value=1> 출석
-                                <input type='radio' name="attendence_{{student.pk}}" value=0>결석 </td>
+            <th> 출석 </th>
+            <td colspan=3> <input type='radio' name="attendence_{{student.pk}}" value=1> 출석
+                                <input type='radio' name="attendence_{{student.pk}}" value=0>결석
+            </td>
           </tr>
           <tr>
-            <th> 숙제 </th><td> <input type='radio' name="homework_{{student.pk}}" value=1>잘함
+            <th> 숙제 </th>
+            <td colspan=3> <input type='radio' name="homework_{{student.pk}}" value=1>잘함
                                 <input type='radio' name="homework_{{student.pk}}" value=2>미흡
                                 <input type='radio' name="homework_{{student.pk}}" value=3>안함
-                                <input type='radio' name="homework_{{student.pk}}" value=4> 기타 </td>
+                                <input type='radio' name="homework_{{student.pk}}" value=4> 기타
+            </td>
           </tr>
           <tr>
-            <th> 비고 </th><td> <input type="text" name="student-note_{{student.pk}}" style="width:80%;height:25px;"></td>
+            <th> 비고 </th>
+            <td colspan=3> <input type="text" name="student-note_{{student.pk}}" style="width:80%;height:25px;"></td>
           </tr>
           </tbody>
         </table>
@@ -87,21 +97,29 @@
         <table id="attendence">
           <tbody>
           <tr>
-            <th style="width:30%"> 이름 </th><td> {{att.student.name}}
-            <input type='hidden' name='students' value='{{att.student.pk}}'></td>
+            <th style="width:30%"> 이름 </th>
+            <td> {{att.student.name}}  <input type='hidden' name='students' value='{{att.student.pk}}'>
+            </td>
+            <th> 수업료 </th>
+            <td>
+              <input type="number" name="tuition_{{att.student.pk}}" value= {{att.tuition |floatformat:0}} min=0 style="width:60px;">위안
+            </td>
           </tr>
           <tr>
-            <th> 출석 </th><td> <input type='radio' name="attendence_{{att.student.pk}}" value=1 {% if att.attended == True %}checked{% endif %}> 출석
+            <th> 출석 </th>
+            <td colspan=3> <input type='radio' name="attendence_{{att.student.pk}}" value=1 {% if att.attended == True %}checked{% endif %}> 출석
                                 <input type='radio' name="attendence_{{att.student.pk}}" value=0 {% if att.attended == False %}checked{% endif %}>결석 </td>
           </tr>
           <tr>
-            <th> 숙제 </th><td> <input type='radio' name="homework_{{att.student.pk}}" value=1 {% if att.homework == '1' %}checked {% endif %}>잘함
+            <th> 숙제 </th>
+            <td colspan=3> <input type='radio' name="homework_{{att.student.pk}}" value=1 {% if att.homework == '1' %}checked {% endif %}>잘함
                                 <input type='radio' name="homework_{{att.student.pk}}" value=2 {% if att.homework == '2' %}checked {% endif %}>미흡
                                 <input type='radio' name="homework_{{att.student.pk}}" value=3 {% if att.homework == '3' %}checked {% endif %}>안함
                                 <input type='radio' name="homework_{{att.student.pk}}" value=4 {% if att.homework == '4' %}checked {% endif %}> 기타 </td>
           </tr>
           <tr>
-            <th> 비고 </th><td> <input type="text" name="student-note_{{att.student.pk}}" value="{{att.note |default_if_none:''}}" style="width:80%;height:25px;"></td>
+            <th> 비고 </th>
+            <td colspan=3> <input type="text" name="student-note_{{att.student.pk}}" value="{{att.note |default_if_none:''}}" style="width:80%;height:25px;"></td>
           </tr>
           </tbody>
         </table>
