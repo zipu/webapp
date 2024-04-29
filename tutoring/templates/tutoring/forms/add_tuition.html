@@ -11,7 +11,7 @@
         <input type="hidden" name='csrfmiddlewaretoken' value={{csrf}}>
         <input type='hidden' name='subject' value='addtuition'></td>
         <input type='hidden' name='student' value={{student.pk}}></td>
-        <table>
+        <table style='width:100%'>
         <tr>
           <th style='width:30%'>학생</th>
           <td>{{student.name}} ({{student.school}})</td>
@@ -26,10 +26,18 @@
         </tr>
         <tr>
           <th>납부방식</th>
-          <td><input type='radio' name='method' value="위챗페이"/>위챗페이
-              <input type='radio' name='method' value="즈푸바오"/>즈푸바오
-              <input type='radio' name='method' value="현금"/>현금
+          <td>
+              <select name="method" >
+                <option value="위챗페이"/>위챗페이</option>
+                <option value="즈푸바오"/>즈푸바오</option>
+                <option value="현금"/>현금</option>
+                <option value="환불"/>환불</option>
+              </select>
           </td>
+        </tr>
+        <tr>
+          <th>비고</th>
+          <td><input type="text" name='note' > </td>
         </tr>
       </table>
       <div>

@@ -394,7 +394,8 @@ class StudentDetailView(TemplateView):
                     student=Student.objects.get(pk=request.POST.get('student')),
                     date = request.POST.get('date'),
                     deposit = request.POST.get('deposit'),
-                    payment = request.POST.get('method')
+                    payment = request.POST.get('method'),
+                    note = request.POST.get('note')
                 ).save()
             except:
                 return HttpResponse('내용을 정확히 입력 하세요')

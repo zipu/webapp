@@ -190,13 +190,15 @@ class Tuition(models.Model):
     METHOD = [
         ("위챗페이", "위챗페이"),
         ("즈푸바오", "즈푸바오"),
-        ("현금", "현금")
+        ("현금", "현금"),
+        ("환불", "환불")
     ]
 
     student = models.ForeignKey("Student", on_delete=models.CASCADE) #학생
     date = models.DateField() #날짜
     deposit = models.DecimalField(max_digits=8, decimal_places=2) #납입액
-    payment = models.CharField(max_length=250, choices=METHOD) #비고
+    payment = models.CharField(max_length=250, choices=METHOD) #납부방법
+    note = models.CharField(max_length=250, null=True, blank=True) #비고
     def __str__(self):
         return f"[{self.date}]({self.student.name}) {self.deposit} "
 
