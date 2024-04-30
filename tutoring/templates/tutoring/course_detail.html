@@ -25,7 +25,15 @@
                   <td>{{lesson.start |date:"H:i"}}~{{lesson.end |date:"H:i"}}</td>
                   <td>{{lesson.topic}}</td>
                   <td>{{lesson.name}}</td>
-                  <td>{% for at in lesson.attendence.all %}<a href="{% url "studentdetail" pk=at.student.pk %}">{{at.student.name}}</a> {% endfor %}</td>
+                  <td>
+                    {% for at in lesson.attendence.all %}
+                      {% if at.attended %}
+                        <a href="{% url "studentdetail" pk=at.student.pk %}">{{at.student.name}}</a> 
+                      {% else%}
+                        <a href="{% url "studentdetail" pk=at.student.pk %}" style="text-decoration: line-through;">{{at.student.name}}</a>
+                      {% endif %}
+                    {% endfor %}
+                  </td>
                   <td>
                     {% for hwfile in lesson.hwfile.all %}
                     <a href='{{MEDIA_URL}}{{hwfile}}' target='_blank' style="text-decoration: none"> &#x1F4DD;	</a>
