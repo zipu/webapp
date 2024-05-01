@@ -295,14 +295,14 @@ class StatisticsView(TemplateView):
         total_tuition = 0
         # 중등:1, 고등:2, IB/AP:3, 경시:4
         for subject in ['math','physics']:
-            lessons_by_subject = lessons.filter(course__curriculum__subject=subject)
+            #lessons_by_subject = lessons.filter(course__curriculum__subject=subject)
             attendence_by_subject = attendence.filter(lesson__course__curriculum__subject=subject)
             context["lessons_stat"][subject] = {}
             context["lessons_stat"][subject]["count"] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
             context["lessons_stat"][subject]["tuition"] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
             
             for i in [1,2,3,4]:
-                lessons_by_level = lessons_by_subject.filter(course__curriculum__level=i)
+                #lessons_by_level = lessons_by_subject.filter(course__curriculum__level=i)
                 attendence_by_level = attendence_by_subject.filter(lesson__course__curriculum__level=i)
                 #count = lessons_by_level.filter(attendence__attended=True).count()
                 count = attendence_by_level.count()
