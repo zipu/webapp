@@ -289,21 +289,26 @@ class StatisticsView(TemplateView):
         context["month"] = month
         
         lessons = Lesson.objects.filter(date__month=month, date__year=year)
+        attendence = Attendence.objects.filter(lesson__date__month=month, lesson__date__year=year, attended=True)
         context['lessons_stat']['count'] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
         context['lessons_stat']['tuition'] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
         total_tuition = 0
         # 중등:1, 고등:2, IB/AP:3, 경시:4
         for subject in ['math','physics']:
             lessons_by_subject = lessons.filter(course__curriculum__subject=subject)
+            attendence_by_subject = attendence.filter(lesson__course__curriculum__subject=subject)
             context["lessons_stat"][subject] = {}
             context["lessons_stat"][subject]["count"] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
             context["lessons_stat"][subject]["tuition"] = [0,0,0,0,0] #[없음,중등,고등,ib/ap,경시]
             
             for i in [1,2,3,4]:
                 lessons_by_level = lessons_by_subject.filter(course__curriculum__level=i)
-                count = lessons_by_level.values('attendence').count()
-                tuition = lessons_by_level.annotate(tuition_sum=F('tuition')*Count(F('attendence')))\
-                                        .aggregate(sum=Sum('tuition_sum'))['sum'] or 0
+                attendence_by_level = attendence_by_subject.filter(lesson__course__curriculum__level=i)
+                #count = lessons_by_level.filter(attendence__attended=True).count()
+                count = attendence_by_level.count()
+                #tuition = lessons_by_level.annotate(tuition_sum=F('tuition')*Count(F('attendence')))\
+                #                        .aggregate(sum=Sum('tuition_sum'))['sum'] or 0
+                tuition  = attendence_by_level.aggregate(sum=Sum('tuition'))['sum'] or 0
                 context["lessons_stat"][subject]['count'][i] = count
                 context["lessons_stat"][subject]["tuition"][i] = tuition
                 context['lessons_stat']['count'][i] += count
@@ -313,7 +318,7 @@ class StatisticsView(TemplateView):
             context["lessons_stat"][subject]["tuition_sum"] = sum(context["lessons_stat"][subject]['tuition'])
             total_tuition += context["lessons_stat"][subject]["tuition_sum"]
         
-        context["lessons_stat"]["total_count"] = lessons.values('attendence').count()
+        context["lessons_stat"]["total_count"] = attendence.count()
         context["lessons_stat"]["total_tuition"] = total_tuition
         #print(context["lessons_stat"])
 
