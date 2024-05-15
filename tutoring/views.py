@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.generic import TemplateView, DetailView
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Case, Value, When, Q
 
 from .models import Course, Lesson, Student, Tuition, Attendence\
                     ,FinancialItem, Consult, DailyMemo, TuitionNotice\
@@ -81,7 +81,7 @@ class IndexView(TemplateView):
         weekdays = ['MON','TUE','WED','THU','FRI','SAT','SUN']
         weekdays_kor = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일']
         day = weekdays[today.weekday()] #요일
-        courses = courses.filter(time__contains=day)
+        courses = courses.filter(time__contains=day, status=True).filter(Q(enddate__gte=today) | Q(enddate__isnull=True))
         extralessons = ExtraLessonPlan.objects.filter(date=today, type='add')
         canceled =  ExtraLessonPlan.objects.filter(date=today, type='remove')
         
@@ -92,7 +92,6 @@ class IndexView(TemplateView):
                 (lesson.course, lesson.start, lesson.end)
             )
 
-        
         for item in courses:
             if not canceled.filter(course=item):
                 strtime = [t for t in item.time.split(';') if day in t][0] #WED16001730
