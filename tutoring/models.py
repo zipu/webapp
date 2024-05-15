@@ -91,7 +91,7 @@ class Course(models.Model):
         help_text="수요일 3시-4시30분 일요일 4시-5시30분의 경우\
                    WED15001630;SUN16001730"
     )
-    student = models.ManyToManyField("Student", verbose_name="학생")
+    student = models.ManyToManyField("Student", verbose_name="학생", blank=True)
     textbook = models.CharField(max_length=50, blank=True, null=True, verbose_name="주교재")
     tuition = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="수업료")
     status = models.BooleanField(verbose_name="진행상태")
