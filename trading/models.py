@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, time
 #from forex_python.converter import CurrencyRates
 import requests
 from bs4 import BeautifulSoup
+from currency_converter import CurrencyConverter
 
 class Currency(models.Model):
     """ 
@@ -23,19 +24,24 @@ class Currency(models.Model):
 
     @staticmethod
     def update():
+        c=CurrencyConverter()
         for currency in Currency.objects.all():
-            url = f'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRW{currency.symbol}'
-            response = requests.get(url)
-
-            if response.ok:
-                rate = response.json()
-                currency.rate = D(str(rate[0]['basePrice']))
-                currency.save()
-                print(f"날짜: {currency.date}, 심볼: {currency.symbol}, 환율: {currency.rate} ")
+            currency.rate = D(c.convert(1, currency.symbol, 'KRW'))
+            currency.save()
+            print(f"날짜: {currency.date}, 심볼: {currency.symbol}, 환율: {currency.rate} ")
             
-            else:
+            #url = f'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRW{currency.symbol}'
+            #response = requests.get(url)
+
+            #if response.ok:
+            #    rate = response.json()
+            #    currency.rate = D(str(rate[0]['basePrice']))
+            #    currency.save()
+            #    print(f"날짜: {currency.date}, 심볼: {currency.symbol}, 환율: {currency.rate} ")
+            
+            #else:
                 #print(f"환율정보 갱신 실패: {base}/{target}")
-                raise ValueError(f"환율정보 갱신 실패 {currency.symbol}")
+            #    raise ValueError(f"환율정보 갱신 실패 {currency.symbol}")
 
     def convert(self, amount):
         converted = D(str(amount)) * self.rate
