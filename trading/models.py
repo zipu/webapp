@@ -1,3 +1,4 @@
+import os
 from django.db import models
 
 from django.db.models import Avg, Sum, Max, StdDev, F, ExpressionWrapper
@@ -9,24 +10,55 @@ from django.conf import settings
 from decimal import Decimal as D
 from datetime import datetime, timedelta, time
 
-#from forex_python.converter import CurrencyRates
-import requests
-from bs4 import BeautifulSoup
-from currency_converter import CurrencyConverter
-
 class Currency(models.Model):
     """ 
      환율 정보 모델
     """
-    date = models.DateField(auto_now=True)
+    date = models.DateField(auto_now=False)
     symbol = models.CharField(max_length=20)
     rate = models.DecimalField(max_digits=12, decimal_places=5, null=True, blank=True)
 
+    
     @staticmethod
     def update():
-        c=CurrencyConverter()
+        import requests
+        import zipfile
+        import io
+        import csv
+        
+        # 다운로드할 ZIP 파일의 URL
+        url = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref.zip"
+        
+        # 1. ZIP 파일 다운로드 (메모리에서 처리)
+        response = requests.get(url)
+        if response.status_code == 200:
+            # 2. ZIP 파일을 메모리로 열기
+            with zipfile.ZipFile(io.BytesIO(response.content)) as zip_ref:
+                # 3. ZIP 파일 안의 파일 목록 확인
+                for file_name in zip_ref.namelist():
+                    # CSV 파일만 처리 (필요에 따라 파일 필터링 가능)
+                    if file_name.endswith(".csv"):
+                        # 4. CSV 파일을 메모리에서 읽기
+                        currency_rates_list =[]
+                        with zip_ref.open(file_name) as csv_file:
+                            csv_reader = csv.reader(io.TextIOWrapper(csv_file, encoding='utf-8'))
+                            
+                            # CSV 데이터를 출력하거나 원하는 방식으로 처리
+                            for row in csv_reader:
+                                currency_rates_list.append(row)
+                date = datetime.strptime(currency_rates_list[1][0], '%d %B %Y')
+                currency_rates_dict = {key.strip(): value.strip() for key, value in list(zip(currency_rates_list[0],currency_rates_list[1]))[1:]}
+        else:
+            print(f"파일을 다운로드하는데 실패했습니다. 상태 코드: {response.status_code}")
+        
+        
+        currency_rates_dict['EUR'] = '1'
+        eur_to_krw = D(currency_rates_dict['KRW'])
+
         for currency in Currency.objects.all():
-            currency.rate = D(c.convert(1, currency.symbol, 'KRW'))
+            
+            currency.rate = eur_to_krw / D(currency_rates_dict[currency.symbol])
+            currency.date = date
             currency.save()
             print(f"날짜: {currency.date}, 심볼: {currency.symbol}, 환율: {currency.rate} ")
             
