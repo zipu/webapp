@@ -10,12 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='futuresinstrument',
-            name='option_unit',
-        ),
-        migrations.RemoveField(
-            model_name='futuresinstrument',
-            name='option_weight',
-        ),
+        
     ]
