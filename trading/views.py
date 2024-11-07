@@ -355,9 +355,15 @@ class TransactionView(TemplateView):
             transactions = []
 
             if not Transaction.objects.filter(date=date, ebest_id=ebest_id):
+                print(transaction)
                 num_cons = int(transaction['ExecQty'])
                 # 체결 수량 1개당 한개의 transaction으로 함
-                if '_' in symbol:
+                if symbol.count('_') == 2: #주식옵션
+                    tradetype='StockOption'
+                    code = symbol.split('_')[0][1:]
+                    instrument = FuturesInstrument.objects.get(symbol=code)
+
+                elif symbol.count('_') == 1: #선물옵션
                     tradetype = 'Option'
                     code = symbol.split('_')[0][:-3]
                     filter = FuturesInstrument.objects.filter(option_codes__contains=code)
@@ -372,11 +378,12 @@ class TransactionView(TemplateView):
                 
                 else:
                     tradetype = 'Futures'
+                    
                     instrument = FuturesInstrument.objects.get(symbol=symbol[:-3])
                 
                 for i in range(num_cons):
                     #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
-                    if tradetype == 'Option' and not transaction['AbrdFutsExecPrc']:
+                    if (tradetype == 'Option' or tradetype == 'StockOption') and not transaction['AbrdFutsExecPrc']:
                         price = 0
                     #elif tradetype == 'Option' and line[13]:
                     #    price = instrument.convert_to_decimal(line[13].replace(',',''))

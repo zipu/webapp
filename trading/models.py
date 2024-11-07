@@ -271,7 +271,8 @@ class FuturesInstrument(models.Model):
         ('EUREX', 'EUREX'),
         ('HKEX', 'HKEX'),
         ('SGX', 'SGX'),
-        ('ICE_US', 'ICE_US')
+        ('ICE_US', 'ICE_US'),
+        ('STOCK OPTION', 'STOCK OPTION')
     ]
 
     MARKETS = [
@@ -282,7 +283,8 @@ class FuturesInstrument(models.Model):
         ('MTL', '금속'),
         ('Grain', '곡물'),
         ('Tropical', '열대과일'),
-        ('Meat', '육류')
+        ('Meat', '육류'),
+        ('Stock', '주식')
     ]
 
     NUMBER_SYSTEMS = [
@@ -305,7 +307,7 @@ class FuturesInstrument(models.Model):
     is_micro = models.BooleanField("마이크로", default=False)
     #option_unit = models.SmallIntegerField("옵션단위", default=1)
     #option_weight = models.SmallIntegerField("옵션승수", default=50)
-    option_codes = models.CharField("옵션명", max_length=100, default='') 
+    option_codes = models.CharField("옵션명", max_length=200, default='') 
 
     def calc_value(self, entry_price, exit_price, num_cons, position, type):
         # 가격 차이를 돈 가치로 변환
@@ -389,7 +391,8 @@ class Transaction(models.Model):
     TYPES = [
         ("Futures","Futures"),
         ("Option", "Option"),
-        ("Spread", "Spread")
+        ("Spread", "Spread"),
+        ("StockOption", "StockOption")
     ]
 
     instrument = models.ForeignKey(
