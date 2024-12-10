@@ -5,7 +5,7 @@ from tutoring.models import Student, Curriculum, Course, Lesson, Tuition, Attend
                             ,FinancialItem, FinancialCategory, Consult, ExtraLessonPlan, DailyMemo, TuitionNotice
 
 admin.site.register(
- [Student, Curriculum, Tuition, Lesson, FinancialItem, FinancialCategory, Consult, ExtraLessonPlan]
+ [Student, Curriculum, Tuition, Lesson, FinancialItem, FinancialCategory, Consult, ExtraLessonPlan, Attendence]
  #Attendence, DailyMemo, TuitionNotice]
 )
 
