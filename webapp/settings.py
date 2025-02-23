@@ -101,7 +101,8 @@ CSRF_TRUSTED_ORIGINS = [
         'http://*.koreacentral.cloudapp.azure.com',
         'https://openapi.ebestsec.co.kr',
     ]
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['yosep.koreacentral.cloudapp.azure.com', 'www.yosep.koreacentral.cloudapp.azure.com', 'yourdomain.com']
+
 
 
 # Application definition
