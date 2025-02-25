@@ -357,7 +357,7 @@ class StudentDetailView(TemplateView):
             return redirect('studentdetail', pk=student.pk)
         
         courses = Course.objects.filter(student=student, status=True)
-        attendences = Attendence.objects.filter(student=student, attended=True).order_by('-lesson__date')[:20] #최근 20회 수업내역
+        attendences = Attendence.objects.filter(student=student, attended=True).order_by('-lesson__date')[:25] #최근 20회 수업내역
         tuition = Tuition.objects.filter(student=student).order_by('-date')[:5] #최근 10회 납입내역 
         consult = Consult.objects.filter(student__pk=student.pk) #최근 상담내역
         notices = TuitionNotice.objects.filter(student=student).order_by('-date', '-pk')
