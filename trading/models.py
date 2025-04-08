@@ -295,6 +295,7 @@ class FuturesInstrument(models.Model):
 
     name = models.CharField("상품명", max_length=64) #상품명
     symbol = models.CharField("상품코드", max_length=16) #상품코드
+    kiwoom_symbol = models.CharField("키움상품코드", max_length=16, null=True, blank=True) #키움상품코드
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, null=True, blank=True)
     exchange = models.CharField("거래소", max_length=16, choices=EXCHANGES) #거래소
     market = models.CharField("시장 구분", max_length=16, choices=MARKETS) #시장구분
@@ -598,6 +599,20 @@ class FuturesTrade(models.Model):
 
     def __str__(self):
         return f"({self.id}/{self.pub_date}/{self.instrument.name}/{self.realized_profit}"  
+
+
+class KiwoomPosition(models.Model):
+    """ 영웅문에 나오는 개인 포지현 현황을 저장 """
+    datetime = models.DateTimeField(auto_now_add=True)
+    instrument = models.ForeignKey(FuturesInstrument, on_delete=models.PROTECT)
+    amount_buy = models.PositiveIntegerField("매수보유수량", null=True, blank=True)
+    amount_sell = models.PositiveIntegerField("매도보유수량", null=True, blank=True)
+    percent_buy = models.PositiveIntegerField("매수비율", null=True, blank=True)
+    percent_sell = models.PositiveIntegerField("매도비율", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.datetime}, {self.instrument.symbol},{self.amount_buy},{self.amount_sell})"
+
 
 class Note(models.Model):
     date = models.DateTimeField(auto_now_add=True)

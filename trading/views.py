@@ -4,11 +4,13 @@ from django.views.generic import TemplateView, ListView
 from django.http import JsonResponse
 from django.core.serializers import serialize
 
-from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper
+from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper,Func
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from trading.models import Asset
 from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy\
                           ,FuturesTrade, Transaction, Tags, Currency, Note, NoteFile
-from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell
+from trading.models import StockTradeUnit, StockAccount, StockBuy, StockSell, KiwoomPosition
 
 from datetime import datetime, time, timedelta
 import json, csv
@@ -21,6 +23,13 @@ import statistics
 from .api import stockapi, futuresapi, cftc
 from tools.ebest.futures import Futures
 
+
+class UnixTimestamp(Func):
+    """
+    mysql에서 로드한 datetime 을 초단위 timestamp로 변환
+    """
+    function = 'UNIX_TIMESTAMP'
+    template = "%(function)s(%(expressions)s)"
 
 def is_ajax(request):
   """ 들어온 request 가 ajax인지 아닌지 확인"""
@@ -405,6 +414,50 @@ class TransactionView(TemplateView):
         # 거래 기록 생성
         #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
+
+class KiwoomPositionView(TemplateView):
+    template_name = "trading/futures/kiwoom_position.html"
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        #datetime field 를 초단위 timestamp로 저장
+        objects = KiwoomPosition.objects.all().annotate(
+            timestamp=Cast(UnixTimestamp('datetime'), IntegerField())
+        )
+        data = []
+
+        instruments = objects.values('instrument').distinct()
+        for item in instruments:
+            instrument = FuturesInstrument.objects.get(pk=item['instrument'])
+            values = objects.filter(instrument=instrument).values_list(
+                'timestamp','amount_buy','amount_sell','percent_buy','percent_sell'
+            )
+            data.append({
+                'instrument':instrument,
+                'data':values
+            })
+        context['data'] = data
+
+        return render(request, KiwoomPositionView.template_name, context=context)
+
+    def post(self, request, *args, **kwargs):
+        """ 
+        로컬 컴퓨터에서 보낸 개인별 포지션 현황 데이터를 받아 db에 저장
+        """
+        data = json.loads(request.body)
+        for positions in data['data']:
+                print(positions)
+                KiwoomPosition.objects.create(
+                    instrument=FuturesInstrument.objects.get(kiwoom_symbol=positions[0]),
+                    amount_buy=positions[2],
+                    amount_sell=positions[3],
+                    percent_buy=positions[4],
+                    percent_sell=positions[5]
+                ).save()
+        return JsonResponse({'result':True})
+    
+    
+
 
 class CFTCView(TemplateView):
     template_name = "trading/futures/cftc.html"

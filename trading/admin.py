@@ -5,10 +5,10 @@ from trading.models import FuturesAccount, FuturesInstrument, FuturesStrategy\
                             ,Transaction, FuturesTrade, Tags, Note, NoteImage, NoteFile
 from trading.models import Asset
 from trading.models import StockAccount, StockBuy, StockSell, StockTradeUnit
-from trading.models import Transfer, Currency
+from trading.models import Transfer, Currency, KiwoomPosition
 
 admin.site.register(
- [FuturesAccount, FuturesStrategy, Transaction, FuturesTrade, Tags, Currency, Note, NoteImage, NoteFile])
+ [FuturesAccount, FuturesStrategy, Transaction, FuturesTrade, Tags, Currency, Note, NoteImage, NoteFile,KiwoomPosition])
 admin.site.register(
  [Asset]
 )

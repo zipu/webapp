@@ -4,7 +4,7 @@ from django.views.generic import RedirectView
 from .views import FuturesView, TransactionView, FuturesTradeView, FuturesStatView,\
       CalculatorView, CFTCView, OptionStrategyView
 from .views import StockView, StockHistoryView
-from .views import NoteView
+from .views import NoteView, KiwoomPositionView
 
 urlpatterns = [
     path('', RedirectView.as_view(url='futures', permanent=False)),
@@ -12,6 +12,7 @@ urlpatterns = [
     path('futures/statdata', FuturesStatView.as_view(), name='statdata'),
     path('futures/transaction/<int:page>', TransactionView.as_view(), name='transaction'),
     path('futures/trade/<int:page>', FuturesTradeView.as_view(), name='futurestrade'),
+    path('futures/kiwoom-position', KiwoomPositionView.as_view(), name='kiwoom-position'),
     path('futures/calculator', CalculatorView.as_view(), name='calculator'),
     path('futures/cftc', CFTCView.as_view(), name='cftc'),
     path('futures/opstrat', OptionStrategyView.as_view(), name='opstrat'),
