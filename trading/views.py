@@ -425,24 +425,26 @@ class KiwoomPositionView(TemplateView):
         #datetime field 를 초단위 timestamp로 저장
         two_month_ago = datetime.today() - timedelta(days=60)
         objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
-        .order_by(('datetime'))\
         .annotate(
             timestamp=UnixTimestamp('datetime')
         )
         
         chart_data = []
-        instruments = objects.values_list('instrument', flat=True).order_by().distinct()
+        instruments = objects.order_by('-datetime')\
+            .values_list('instrument', flat=True).order_by().distinct()
         for item in instruments:
             instrument = FuturesInstrument.objects.get(pk=item)
-            values = objects.filter(instrument=instrument).values_list(
+            values = objects.filter(instrument=instrument).order_by('datetime').values_list(
                 'timestamp','amount_buy','amount_sell','percent_buy','percent_sell'
             )
             date,abuy,asell,pbuy,psell = zip(*values)
+            total_amount = [x + y for x, y in zip(abuy, asell)]
             chart_data.append({
                 'title':instrument.name,
                 'series':[
                     {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#F08080"} ,
                     {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"skyblue"} ,
+                    
                     {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":1, "color":"skyblue"} ,
                     {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":1, "color":"#F08080"} ,
                     
@@ -457,6 +459,7 @@ class KiwoomPositionView(TemplateView):
         로컬 컴퓨터에서 보낸 개인별 포지션 현황 데이터를 받아 db에 저장
         """
         data = json.loads(request.body)
+        data.reverse()
         try:
             for positions in data['data']:
                     KiwoomPosition.objects.create(
