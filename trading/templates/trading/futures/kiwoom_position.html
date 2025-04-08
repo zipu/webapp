@@ -1,8 +1,92 @@
 {% extends "trading/futures/base.html"%}
 {% load humanize %}
 {% load static %}
+
+{% block css %}
+<style>
+.chart-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.chart-box {
+  width: calc(50% - 10px); /* 두 개씩 */
+  min-width: 300px;
+  height: 400px;
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+</style>
+  
+{% endblock css %}
+
+
 {% block content2 %}
-<div class='row' style="width:60%; margin: 0 auto;">
-    {{ data }}
+
+<div class="chart-grid" id="charts-container">
+    {% for chart in charts_data %}
+       <div class="chart-box" id="chart-{{ forloop.counter0 }}"></div>
+    {% endfor %}
 </div>
 {% endblock content2%}
+
+
+{% block script %}
+
+<script>
+
+//데이터 가져오기
+const charts = {{ chart_data|safe }};
+const container = document.getElementById('charts-container');
+Highcharts.setOptions({
+    time: {
+      timezoneOffset: -540  // 한국: UTC+9 → -9 * 60 = -540
+    }
+});
+
+charts.forEach((chart, index) => {
+    // DOM 만들기
+    const div = document.createElement('div');
+    div.id = `chart-${index}`;
+    div.style.height = '400px';
+    div.style.marginBottom = '40px';
+    container.appendChild(div);
+
+    // 차트 그리기
+    Highcharts.chart(div.id, {
+        chart: { zoomType: 'x' },
+        title: { text: chart.title },
+        xAxis: {
+          type: 'datetime'
+        },
+        yAxis: [
+          {
+            title: { text: 'Line Data' }, // index 0: 위쪽
+            height: '60%',
+            lineWidth: 2
+          },
+          {
+            title: { text: 'Column Data' }, // index 1: 아래쪽
+            top: '65%',
+            height: '35%',
+            offset: 0,
+            lineWidth: 2
+          }
+        ],
+        tooltip: {
+          shared: true,
+          crosshairs: true
+        },
+        plotOptions: {
+            line: {
+              marker: {
+                enabled: true,
+                radius: 3  // ✅ 마커 사이즈 조정 (default는 4~5)
+              }
+            }
+          },
+        series: chart.series
+      });
+  });
+</script>
+{% endblock script %}

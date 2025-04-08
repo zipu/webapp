@@ -4,6 +4,7 @@ from django.views.generic import TemplateView, ListView
 from django.http import JsonResponse
 from django.core.serializers import serialize
 
+
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper,Func
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
@@ -28,8 +29,9 @@ class UnixTimestamp(Func):
     """
     mysql에서 로드한 datetime 을 초단위 timestamp로 변환
     """
-    function = 'UNIX_TIMESTAMP'
-    template = "%(function)s(%(expressions)s)"
+    function = None #'UNIX_TIMESTAMP'
+    template = "(UNIX_TIMESTAMP(%(expressions)s) * 1000)"#"%(function)s(%(expressions)s)"
+    output_field = IntegerField()
 
 def is_ajax(request):
   """ 들어온 request 가 ajax인지 아닌지 확인"""
@@ -420,24 +422,32 @@ class KiwoomPositionView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
-        print(datetime.now())
         #datetime field 를 초단위 timestamp로 저장
-        objects = KiwoomPosition.objects.all().annotate(
-            timestamp=Cast(UnixTimestamp('datetime'), IntegerField())
+        two_month_ago = datetime.today() - timedelta(days=60)
+        objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
+        .order_by(('datetime'))\
+        .annotate(
+            timestamp=UnixTimestamp('datetime')
         )
-        data = []
-
-        instruments = objects.values('instrument').distinct()
+        
+        chart_data = []
+        instruments = objects.values_list('instrument', flat=True).order_by().distinct()
         for item in instruments:
-            instrument = FuturesInstrument.objects.get(pk=item['instrument'])
+            instrument = FuturesInstrument.objects.get(pk=item)
             values = objects.filter(instrument=instrument).values_list(
                 'timestamp','amount_buy','amount_sell','percent_buy','percent_sell'
             )
-            data.append({
-                'instrument':instrument,
-                'data':values
+            date,abuy,asell,pbuy,psell = zip(*values)
+            chart_data.append({
+                'title':instrument.name,
+                'series':[
+                    {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#F08080"} ,
+                    {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"skyblue"} ,
+                    {"name":"매수비율", "type":"column", "data": list(zip(date,pbuy)), "yAxis":1, "color":"#F08080"} ,
+                    {"name":"매도비율", "type":"column", "data": list(zip(date,psell)), "yAxis":1, "color":"skyblue"} ,
+                ]
             })
-        context['data'] = data
+        context['chart_data'] = json.dumps(chart_data)
 
         return render(request, KiwoomPositionView.template_name, context=context)
 
