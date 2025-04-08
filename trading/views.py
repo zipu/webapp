@@ -444,18 +444,20 @@ class KiwoomPositionView(TemplateView):
         """ 
         로컬 컴퓨터에서 보낸 개인별 포지션 현황 데이터를 받아 db에 저장
         """
-        data = json.loads(request.body)
-        for positions in data['data']:
-                print(positions)
-                KiwoomPosition.objects.create(
-                    instrument=FuturesInstrument.objects.get(kiwoom_symbol=positions[0]),
-                    amount_buy=positions[2],
-                    amount_sell=positions[3],
-                    percent_buy=positions[4],
-                    percent_sell=positions[5]
-                ).save()
-        return JsonResponse({'result':True})
-    
+        try:
+            data = json.loads(request.body)
+            for positions in data['data']:
+                    KiwoomPosition.objects.create(
+                        instrument=FuturesInstrument.objects.get(kiwoom_symbol=positions[0]),
+                        amount_buy=positions[2],
+                        amount_sell=positions[3],
+                        percent_buy=positions[4],
+                        percent_sell=positions[5]
+                    ).save()
+            return JsonResponse({'result':'Done'})
+        except Exception as e:
+            return JsonResponse({'error': f"An error occurred: {str(e)}"}, status=500)
+        
     
 
 
