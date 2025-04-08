@@ -443,8 +443,9 @@ class KiwoomPositionView(TemplateView):
                 'series':[
                     {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#F08080"} ,
                     {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"skyblue"} ,
-                    {"name":"매수비율", "type":"column", "data": list(zip(date,pbuy)), "yAxis":1, "color":"#F08080"} ,
-                    {"name":"매도비율", "type":"column", "data": list(zip(date,psell)), "yAxis":1, "color":"skyblue"} ,
+                    {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":1, "color":"skyblue"} ,
+                    {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":1, "color":"#F08080"} ,
+                    
                 ]
             })
         context['chart_data'] = json.dumps(chart_data)

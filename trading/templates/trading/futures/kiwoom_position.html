@@ -63,16 +63,17 @@ charts.forEach((chart, index) => {
         },
         yAxis: [
           {
-            title: { text: 'Line Data' }, // index 0: 위쪽
+            title: { text: '보유수량' }, // index 0: 위쪽
             height: '60%',
             lineWidth: 2
           },
           {
-            title: { text: 'Column Data' }, // index 1: 아래쪽
+            title: { text: '백분율(%)' }, // index 1: 아래쪽
             top: '65%',
             height: '35%',
             offset: 0,
-            lineWidth: 2
+            lineWidth: 2,
+            max: 100, // 비율 100%
           }
         ],
         tooltip: {
@@ -85,6 +86,9 @@ charts.forEach((chart, index) => {
                 enabled: true,
                 radius: 3  // ✅ 마커 사이즈 조정 (default는 4~5)
               }
+            },
+            column: {
+              stacking: 'normal',
             }
           },
         series: chart.series
