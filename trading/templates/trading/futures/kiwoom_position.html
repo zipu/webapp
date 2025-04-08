@@ -38,11 +38,13 @@
 //데이터 가져오기
 const charts = {{ chart_data|safe }};
 const container = document.getElementById('charts-container');
+/*
 Highcharts.setOptions({
     time: {
       timezoneOffset: -540  // 한국: UTC+9 → -9 * 60 = -540
     }
 });
+*/
 
 charts.forEach((chart, index) => {
     // DOM 만들기
