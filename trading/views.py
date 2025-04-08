@@ -420,6 +420,7 @@ class KiwoomPositionView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
+        print(datetime.now())
         #datetime field 를 초단위 timestamp로 저장
         objects = KiwoomPosition.objects.all().annotate(
             timestamp=Cast(UnixTimestamp('datetime'), IntegerField())
