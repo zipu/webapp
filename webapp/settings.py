@@ -261,7 +261,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Seoul'
-USE_TZ = True
+USE_TZ = False
 
 USE_I18N = True
 
