@@ -308,7 +308,7 @@ class FuturesInstrument(models.Model):
     is_micro = models.BooleanField("마이크로", default=False)
     #option_unit = models.SmallIntegerField("옵션단위", default=1)
     #option_weight = models.SmallIntegerField("옵션승수", default=50)
-    option_codes = models.CharField("옵션명", max_length=200, default='') 
+    option_codes = models.CharField("옵션명", max_length=200, default='', null=True, blank=True) 
 
     def calc_value(self, entry_price, exit_price, num_cons, position, type):
         # 가격 차이를 돈 가치로 변환
