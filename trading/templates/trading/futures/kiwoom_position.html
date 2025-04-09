@@ -8,6 +8,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  justify-content: center; 
 }
 .chart-box {
   width: calc(50% - 10px); /* 두 개씩 */
@@ -22,6 +23,7 @@
 
 
 {% block content2 %}
+<div><p>업데이트 : {{lastdate|date:"Y년 m월 d일 H:i" }}</p></div>
 
 <div class="chart-grid" id="charts-container">
     {% for chart in charts_data %}

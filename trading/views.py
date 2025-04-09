@@ -7,7 +7,7 @@ from django.core.serializers import serialize
 
 from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper,Func
 from django.db.models import IntegerField
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, TruncDate
 from trading.models import Asset
 from trading.models import FuturesInstrument, FuturesAccount, FuturesStrategy\
                           ,FuturesTrade, Transaction, Tags, Currency, Note, NoteFile
@@ -424,21 +424,34 @@ class KiwoomPositionView(TemplateView):
         context = self.get_context_data()
         #datetime field 를 초단위 timestamp로 저장
         two_month_ago = datetime.today() - timedelta(days=60)
-        objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
-        .annotate(
-            timestamp=UnixTimestamp('datetime')
+        #objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
+        #.annotate(
+        #    timestamp=UnixTimestamp('datetime'),
+        #    date_only=TruncDate('d'),
+        #)
+
+        #정렬 query set
+        objects = (
+            KiwoomPosition.objects
+            .filter(datetime__gte=two_month_ago)
+            .annotate(
+                date_only=TruncDate('datetime'),
+                timestamp=UnixTimestamp('datetime'),
+                amount=F('amount_buy') + F('amount_sell'),
+            )
+            .order_by('date_only', 'amount')
         )
         
         chart_data = []
-        instruments = objects.order_by('-datetime')\
-            .values_list('instrument', flat=True).order_by().distinct()
+        #instruments = objects.order_by('-datetime')\
+        instruments = objects.values_list('instrument', flat=True).order_by().distinct()
         for item in instruments:
             instrument = FuturesInstrument.objects.get(pk=item)
             values = objects.filter(instrument=instrument).order_by('datetime').values_list(
                 'timestamp','amount_buy','amount_sell','percent_buy','percent_sell'
             )
             date,abuy,asell,pbuy,psell = zip(*values)
-            total_amount = [x + y for x, y in zip(abuy, asell)]
+            #total_amount = [x + y for x, y in zip(abuy, asell)]
             chart_data.append({
                 'title':instrument.name,
                 'series':[
@@ -451,6 +464,7 @@ class KiwoomPositionView(TemplateView):
                 ]
             })
         context['chart_data'] = json.dumps(chart_data)
+        context['lastdate'] = objects.latest('datetime').datetime if objects.exists() else None
 
         return render(request, KiwoomPositionView.template_name, context=context)
 
