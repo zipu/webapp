@@ -58,7 +58,19 @@ charts.forEach((chart, index) => {
 
     // 차트 그리기
     Highcharts.chart(div.id, {
-        chart: { zoomType: 'x' },
+          chart: {
+            zooming: {
+                type: 'x',
+                resetButton: {
+                    position: {
+                        //align: 'left', // by default
+                        // verticalAlign: 'top', // by default
+                        x: 5,
+                        y: -50
+                    }
+                }
+            }
+        },
         title: { text: chart.title },
         xAxis: {
           type: 'datetime'
@@ -78,6 +90,17 @@ charts.forEach((chart, index) => {
             max: 100, // 비율 100%
           }
         ],
+        resetZoomButton: {
+          position: {
+            align: 'left', // 'left', 'center' 도 가능
+            verticalAlign: 'bottom', // 'bottom'도 가능
+            x: -10,
+            y: 10
+          },
+          theme: {
+            zIndex: 10 // 혹시 다른 요소랑 겹칠 경우
+          }
+        },
         tooltip: {
           shared: true,
           crosshairs: true
