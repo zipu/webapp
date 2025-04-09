@@ -439,13 +439,13 @@ class KiwoomPositionView(TemplateView):
                 timestamp=UnixTimestamp('datetime'),
                 amount=F('amount_buy') + F('amount_sell'),
             )
-            .order_by('date_only', 'amount')
+            .order_by('-date_only', '-amount')
         )
         
         chart_data = []
         #instruments = objects.order_by('-datetime')\
-        instruments = objects.values_list('instrument', flat=True).order_by().distinct()
-        for item in instruments:
+        instruments = objects.values_list('instrument', flat=True)
+        for item in list(dict.fromkeys(list(instruments))):
             instrument = FuturesInstrument.objects.get(pk=item)
             values = objects.filter(instrument=instrument).order_by('datetime').values_list(
                 'timestamp','amount_buy','amount_sell','percent_buy','percent_sell'
