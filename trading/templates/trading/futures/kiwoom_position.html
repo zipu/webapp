@@ -23,7 +23,7 @@
 
 
 {% block content2 %}
-<div><p>업데이트 : {{lastdate|date:"Y년 m월 d일 H:i" }}</p></div>
+<div style='display:flex; justify-content:left;margin-left:20%;'><p>업데이트 : {{lastdate|date:"Y년 m월 d일 H:i" }}</p></div>
 
 <div class="chart-grid" id="charts-container">
     {% for chart in charts_data %}
@@ -72,6 +72,9 @@ charts.forEach((chart, index) => {
             }
         },
         title: { text: chart.title },
+        subtitle: {
+          text: chart.lastdate
+        },
         xAxis: {
           type: 'datetime'
         },
@@ -108,7 +111,7 @@ charts.forEach((chart, index) => {
         plotOptions: {
             line: {
               marker: {
-                enabled: true,
+                enabled: false,
                 radius: 3  // ✅ 마커 사이즈 조정 (default는 4~5)
               }
             },

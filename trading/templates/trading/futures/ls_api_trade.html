@@ -1,0 +1,81 @@
+{% extends "trading/futures/base.html"%}
+{% load humanize %}
+{% load static %}
+
+
+{% block content2 %}
+<div class="container py-5">
+        <h2 class="mb-4">해외선물 주문</h2>
+        <form id="order-form">
+            <div class="mb-3">
+                <label for="symbol" class="form-label">종목 선택</label>
+                <select class="form-select" id="symbol" name="symbol">
+                    <option value="CL">Crude Oil (CL)</option>
+                    <option value="ES">E-mini S&P 500 (ES)</option>
+                    <option value="GC">Gold (GC)</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="price" class="form-label">가격</label>
+                <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-success" onclick="submitOrder('buy')">매수</button>
+                <button type="button" class="btn btn-danger" onclick="submitOrder('sell')">매도</button>
+            </div>
+        </form>
+
+        <div class="mt-4" id="response-message"></div>
+  </div>
+
+
+
+{% endblock content2%}
+
+{% block script %}
+<script>
+  function submitOrder(orderType) {
+      const symbol = document.getElementById('symbol').value;
+      const price = document.getElementById('price').value;
+
+      fetch('/api/place_order/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+              symbol: symbol,
+              price: price,
+              order_type: orderType
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          document.getElementById('response-message').innerText = data.message;
+      })
+      .catch(error => {
+          document.getElementById('response-message').innerText = '에러 발생: ' + error;
+      });
+  }
+
+  // CSRF 토큰 가져오기 (Django용)
+  function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+</script>
+{% endblock script %}
+

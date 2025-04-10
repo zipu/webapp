@@ -454,6 +454,7 @@ class KiwoomPositionView(TemplateView):
             #total_amount = [x + y for x, y in zip(abuy, asell)]
             chart_data.append({
                 'title':instrument.name,
+                'lastdate': objects.filter(instrument=instrument).latest('datetime').datetime.strftime('%Y-%m-%d %H:%M'),
                 'series':[
                     {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#F08080"} ,
                     {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"skyblue"} ,
