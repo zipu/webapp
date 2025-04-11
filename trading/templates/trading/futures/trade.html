@@ -43,7 +43,7 @@
 
   <table class="table table-sm table-bordered" style="font-size:small">
       <tr class="table table-secondary">
-        <td scope="col" rowspan=2>#</td>
+        <td scope="col" rowspan=2>계좌</td>
         <td scope="col" rowspan=2>시작일</td>
         <td scope="col" rowspan=2>상품</td>
         <td scope="col" rowspan=2>종류</td>
@@ -69,7 +69,7 @@
        {% if trade.is_open %} bgcolor='azure' 
        {% elif not trade.entry_strategy %} bgcolor='#FBEEE6'
        {% endif %}>
-          <td>{{trade.id}} </td>
+          <td>{{trade.transactions.all.0.account}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
           <td>{{trade.instrument.name}} </td>
           <td>{{trade.type}} </td>

@@ -10,9 +10,9 @@
             <div class="mb-3">
                 <label for="symbol" class="form-label">종목 선택</label>
                 <select class="form-select" id="symbol" name="symbol">
-                    <option value="CL">Crude Oil (CL)</option>
-                    <option value="ES">E-mini S&P 500 (ES)</option>
-                    <option value="GC">Gold (GC)</option>
+                  {% for instrument in instruments %}
+                    <option value="{{instrument.symbol}}">{{instrument.name}} ({{instrument.symbol}})</option>
+                  {% endfor %}
                 </select>
             </div>
 

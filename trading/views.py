@@ -366,7 +366,7 @@ class TransactionView(TemplateView):
             transactions = []
 
             if not Transaction.objects.filter(date=date, ebest_id=ebest_id):
-                print(transaction)
+                #print(transaction)
                 num_cons = int(transaction['ExecQty'])
                 # 체결 수량 1개당 한개의 transaction으로 함
                 if symbol.count('_') == 2: #주식옵션
@@ -422,6 +422,7 @@ class KiwoomPositionView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
+        context['active'] = 'lsapi'
         #datetime field 를 초단위 timestamp로 저장
         two_month_ago = datetime.today() - timedelta(days=60)
         #objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
@@ -489,7 +490,14 @@ class KiwoomPositionView(TemplateView):
             return JsonResponse({'error': f"An error occurred: {str(e)}",'data':data}, status=500)
         
     
+class LsApiTradeView(TemplateView):
+    template_name = "trading/futures/ls_api_trade.html"
 
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        context['active'] = 'lsapi'
+        context['instruments'] = FuturesInstrument.objects.filter(is_micro=False)
+        return render(request, LsApiTradeView.template_name, context=context)
 
 class CFTCView(TemplateView):
     template_name = "trading/futures/cftc.html"

@@ -401,6 +401,7 @@ class Transaction(models.Model):
                     verbose_name="상품",
                     on_delete=models.PROTECT)
 
+    account = models.CharField("계좌번호", max_length=100, default="A001")
     order_id = models.PositiveSmallIntegerField("주문번호")
     ebest_id = models.PositiveSmallIntegerField("이베스트 체결번호")
     ebest_code = models.CharField("이베스트 상품코드", max_length=20)
@@ -409,6 +410,7 @@ class Transaction(models.Model):
     position = models.SmallIntegerField("포지션", choices=POSITIONS)
     price = models.DecimalField("진입가", max_digits=12, decimal_places=6)
     commission = models.DecimalField("수수료", max_digits=6, decimal_places=2)
+    device = models.CharField("접속기기", max_length=100, null=True, blank=True)
     
     trade = models.ForeignKey(
         "FuturesTrade",
@@ -534,6 +536,7 @@ class FuturesTrade(models.Model):
                     pub_date = transaction.date,
                     ebest_code = transaction.ebest_code,
                     position = transaction.position,
+                    #account = transaction.account
                 )
                 trade.save()
             # 기존 거래가 있으면 transaction을 추가

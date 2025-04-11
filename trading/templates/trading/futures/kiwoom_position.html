@@ -23,7 +23,7 @@
 
 
 {% block content2 %}
-<div style='display:flex; justify-content:left;margin-left:20%;'><p>업데이트 : {{lastdate|date:"Y년 m월 d일 H:i" }}</p></div>
+<div style='display:flex; justify-content:center'><p>업데이트 : {{lastdate|date:"Y년 m월 d일 H:i" }}</p></div>
 
 <div class="chart-grid" id="charts-container">
     {% for chart in charts_data %}
