@@ -57,11 +57,12 @@ class FuturesStatView(TemplateView):
     def get(self, request, *args, **kwargs):
         query= request.GET
         if query.get('account'):
+            
             trades = FuturesTrade.objects.filter(account=query.get('account'))
         else:
             trades = FuturesTrade.objects.all()
 
-        trades = FuturesTrade.objects.filter(is_open=False)\
+        trades = trades.filter(is_open=False)\
                 .annotate(
                     profit_krw = ExpressionWrapper(
                         F('realized_profit')*F('instrument__currency__rate'), output_field=FloatField()),
