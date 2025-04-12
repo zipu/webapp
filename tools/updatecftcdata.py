@@ -3,6 +3,7 @@ import requests, zipfile, io
 from datetime import datetime
 import pandas as pd
 
+
 basedir = os.path.join(os.path.dirname(__file__), 'data','futures','cftc')
 year = datetime.today().year
 url_dir_file = [
@@ -20,7 +21,7 @@ for url, dir, file in url_dir_file:
    dirname = os.path.join(basedir, dir)
    r = requests.get(url)
    z = zipfile.ZipFile(io.BytesIO(r.content))
-   df = pd.read_excel(z.read(file))
+   df = pd.read_excel(io.BytesIO(z.read(file)))
    df['Report_Date_as_MM_DD_YYYY'] = df['Report_Date_as_MM_DD_YYYY'].dt.strftime('%Y-%m-%d')
    for name, group in df.groupby('Market_and_Exchange_Names'):
       name = name.replace('/','-').replace('<','-')

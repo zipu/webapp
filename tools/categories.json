@@ -39,7 +39,7 @@
         "Lumber": "RANDOM LENGTH LUMBER - CHICAGO MERCANTILE EXCHANGE"
     },
     "currencies":{
-        "Dollar Index": "U.S. DOLLAR INDEX - ICE FUTURES U.S.",
+        "Dollar Index": "USD INDEX - ICE FUTURES U.S.",
         "Euro": "EURO FX - CHICAGO MERCANTILE EXCHANGE",
         "British Pound": "BRITISH POUND - CHICAGO MERCANTILE EXCHANGE",
         "Australian Dollar": "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE",

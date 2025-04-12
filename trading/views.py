@@ -519,7 +519,7 @@ class CFTCView(TemplateView):
            params = request.GET.get('params')
            if params:
             args = params.split(',')
-            print(params)
+            #print(params)
             return getattr(CFTC, action)(*args)
            else:
             return getattr(CFTC, action)()

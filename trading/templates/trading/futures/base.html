@@ -13,16 +13,13 @@
         <a class="nav-link {% if active == 'transaction' %}active {% endif %}" href="{% url 'transaction' page=1 %}">체결 내역</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link {% if active == 'ls-api-trade' %}active {% endif %}" href="{% url 'ls-api-trade' %}">API매매</a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link {% if active == 'kiwoom-position' %}active {% endif %}" href="{% url 'kiwoom-position'%}">키움 포지션</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link {% if active == 'calculator' %}active {% endif %}" href="{% url 'calculator' %}">계산기</a>
+        <a class="nav-link {% if active == 'cftc' %}active {% endif %}" href="{% url 'cftc' %}">CFTC</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link {% if active == 'cftc' %}active {% endif %}" href="{% url 'cftc' %}">CFTC</a>
+        <a class="nav-link {% if active == 'calculator' %}active {% endif %}" href="{% url 'calculator' %}">계산기</a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if active == 'opstrat' %}active {% endif %}" href="{% url 'opstrat' %}">합성전략</a>

@@ -124,7 +124,7 @@ INSTALLED_APPS = [
     'tutoring.apps.TutoringConfig', # 과외 
     'trading.apps.TradingConfig', #트레이딩 ,
     'aops.apps.AopsConfig', #수학문제, art of problem solving
-    'ebest.apps.EbestConfig', #이베스트
+   # 'ebest.apps.EbestConfig', #이베스트
 ]
 
 MIDDLEWARE = [
@@ -222,14 +222,14 @@ DATABASES = {
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
     },
-    'ebest' : {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': get_secret('DB_HOST'),
-        'PORT': PORT,
-        'NAME': 'ebest',
-        'USER': get_secret('DB_USERNAME'),
-        'PASSWORD': get_secret('DB_PASSWORD'),
-    }
+    #'ebest' : {
+    #    'ENGINE': 'django.db.backends.mysql',
+    #    'HOST': get_secret('DB_HOST'),
+    #    'PORT': PORT,
+    #    'NAME': 'ebest',
+    #    'USER': get_secret('DB_USERNAME'),
+    #    'PASSWORD': get_secret('DB_PASSWORD'),
+    #}
 }
 
 

@@ -2,10 +2,17 @@ var legacy_futures_chart = Highcharts.chart('legacy-futures-chart', {
     credits: {
       enabled: false
     },
-    chart:{
-      type:'line',
-      panning: true
-    },
+    chart: {
+      zooming: {
+          type: 'x',
+          resetButton: {
+              position: {
+                  x: 13,
+                  y: -50
+              }
+          }
+      }
+    }, 
     title: {
         text: 'Legacy - Futures',
     },
@@ -22,9 +29,29 @@ var legacy_futures_chart = Highcharts.chart('legacy-futures-chart', {
       height:'20%'
     }],
     tooltip :{
-      shared: true
+      enabled: false
     },
     plotOptions: {
+      series: {
+          states: {
+            hover: {
+              enabled: false
+            },
+            inactive: {
+              opacity: 1
+            }
+          },
+          marker: {
+              enabled: false,
+              states: {
+                  hover: {
+                      enabled: false
+                  }
+              }
+          }
+      },
+    },
+    Options: {
       series: {
           states: {
             hover: {
@@ -56,9 +83,18 @@ var legacy_option_chart = Highcharts.chart('legacy-option-chart', {
   credits: {
     enabled: false
   },
-  chart:{
-    panning: 'true',
-  },
+  
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Legacy - Option',
   },
@@ -75,7 +111,8 @@ var legacy_option_chart = Highcharts.chart('legacy-option-chart', {
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -109,9 +146,17 @@ var legacy_spread_chart = Highcharts.chart('legacy-spread-chart', {
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Legacy - Spread',
   },
@@ -128,7 +173,8 @@ var legacy_spread_chart = Highcharts.chart('legacy-spread-chart', {
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -160,9 +206,17 @@ var disaggregated_futures_chart = Highcharts.chart('disaggregated-futures-chart'
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Disaggregated - Futures',
   },
@@ -179,7 +233,8 @@ var disaggregated_futures_chart = Highcharts.chart('disaggregated-futures-chart'
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -214,9 +269,17 @@ var disaggregated_option_chart = Highcharts.chart('disaggregated-option-chart', 
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Disaggregated - Option',
   },
@@ -233,7 +296,8 @@ var disaggregated_option_chart = Highcharts.chart('disaggregated-option-chart', 
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false 
   },
   plotOptions: {
     series: {
@@ -269,9 +333,17 @@ var disaggregated_spread_chart = Highcharts.chart('disaggregated-spread-chart', 
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Disaggregated - spread',
   },
@@ -288,7 +360,8 @@ var disaggregated_spread_chart = Highcharts.chart('disaggregated-spread-chart', 
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -326,9 +399,17 @@ var financials_futures_chart = Highcharts.chart('financials-futures-chart', {
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Financials - Futures',
   },
@@ -345,7 +426,8 @@ var financials_futures_chart = Highcharts.chart('financials-futures-chart', {
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -380,9 +462,17 @@ var financials_option_chart = Highcharts.chart('financials-option-chart', {
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Financials - Option',
   },
@@ -399,7 +489,8 @@ var financials_option_chart = Highcharts.chart('financials-option-chart', {
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -435,9 +526,17 @@ var financials_spread_chart = Highcharts.chart('financials-spread-chart', {
   credits: {
     enabled: false
   },
-  chart:{
-    panning: true
-  },
+  chart: {
+    zooming: {
+        type: 'x',
+        resetButton: {
+            position: {
+                x: 13,
+                y: -50
+            }
+        }
+    }
+  }, 
   title: {
       text: 'Financials - spread',
   },
@@ -454,7 +553,8 @@ var financials_spread_chart = Highcharts.chart('financials-spread-chart', {
     height:'20%'
   }],
   tooltip: {
-    shared:true
+    shared:true,
+    enabled: false
   },
   plotOptions: {
     series: {
@@ -491,9 +591,11 @@ var financials_spread_chart = Highcharts.chart('financials-spread-chart', {
 
 var load_data = function(sector, name) {
   $('#name').text(name);
+
   $.get( $(location).attr('href')+`?action=legacy&params=${sector},${name}`, function( res ) {
       let futures = res.futures;
       let option = res.option;
+      $('#last-update').text('('+res.last_update+')');
 
       let commercial = [];
       let non_commercial = [];
@@ -519,6 +621,7 @@ var load_data = function(sector, name) {
       }, false);
 
       legacy_futures_chart.redraw();
+   
 
       commercial = [];
       non_commercial = [];

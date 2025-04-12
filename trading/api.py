@@ -276,6 +276,7 @@ class cftc:
          'futures': futuresdata.values.tolist(),
          'option': optiondata.values.tolist(),
          'spread': spread.values.tolist(),
+         'last_update': df.index[-1].strftime('%Y-%m-%d')
       }
       
       return JsonResponse(response, safe=False)
@@ -317,6 +318,7 @@ class cftc:
          'futures': futuresdata.values.tolist(),
          'option': optiondata.values.tolist(),
          'spread': spread.values.tolist(),
+         'last_update': df.index[-1].strftime('%Y-%m-%d')
       }
       
       return JsonResponse(response, safe=False)
@@ -354,7 +356,8 @@ class cftc:
          'futures': futuresdata.values.tolist(),
          'option': optiondata.values.tolist(),
          'spread_position': df2[['date','NonComm_Postions_Spread_All']].drop_duplicates('date').values.tolist(),
-         'spread_traders': df2[['date','Traders_NonComm_Spread_All']].drop_duplicates('date').values.tolist()
+         'spread_traders': df2[['date','Traders_NonComm_Spread_All']].drop_duplicates('date').values.tolist(),
+         'last_update': df.index[-1].strftime('%Y-%m-%d')
       }
 
       return JsonResponse(response, safe=False)
