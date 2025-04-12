@@ -109,7 +109,7 @@ class Futures:
 
             res = requests.post(url, headers=headers, data=json.dumps(body))
             
-            if not data:
+            if not res.json():
                 print(f"Transaction: ({account}) 새로운 체결 기록이 없음")
                 print(res.json())
                 continue

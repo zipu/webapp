@@ -66,35 +66,38 @@ class FuturesStatView(TemplateView):
         
         if query.get('start'):
             # 부분 통계를 위해 그 이전까지의 수익을 합산한것을 원금으로 잡음
-            olds = trades.filter(end_date__lt=query.get('start'))\
-                         .annotate(
-                           profit=F('realized_profit')*F('instrument__currency__rate'),
-                           commission_krw = F('commission')*F('instrument__currency__rate'))\
-                       .aggregate(Sum('profit'), Sum('commission_krw'))
-            profit_diff = (olds['profit__sum'] or 0) - (olds['commission_krw__sum'] or 0) or 0
+            #olds = trades.filter(end_date__lt=query.get('start'))\
+            #             .annotate(
+            #               profit=F('realized_profit')*F('instrument__currency__rate'),
+            #               commission_krw = F('commission')*F('instrument__currency__rate'))\
+            #           .aggregate(Sum('profit'), Sum('commission_krw'))
+            #profit_diff = (olds['profit__sum'] or 0) - (olds['commission_krw__sum'] or 0) or 0
             
             trades = trades.filter(end_date__gte=query.get('start'))
         
-        else:
-            profit_diff = 0
+        #else:
+        #    profit_diff = 0
 
         if query.get('end'):
             trades = trades.filter(end_date__lte=query.get('end'))
         
-        if query.get('mental'):
-            trades = trades.filter(mental=query.get('mental'))
-        if query.get('entry_strategy'):
-            trades = trades.filter(entry_strategy__id=query.get('entry_strategy'))
-        if query.get('exit_strategy'):
-            trades = trades.filter(exit_strategy__id=query.get('exit_strategy'))
+        #if query.get('mental'):
+        #    trades = trades.filter(mental=query.get('mental'))
+        #if query.get('entry_strategy'):
+        #    trades = trades.filter(entry_strategy__id=query.get('entry_strategy'))
+        #if query.get('exit_strategy'):
+        #    trades = trades.filter(exit_strategy__id=query.get('exit_strategy'))
         if query.get('tags'):
             tags = [x for x in query.get('tags').split(';') if x]
             trades = trades.filter(entry_tags__name__in=tags)\
                            .filter(exit_tags__name__in=tags)
-        if query.get('timeframe'):
-            trades = trades.filter(timeframe = query.get('timeframe'))
+        #if query.get('timeframe'):
+        #    trades = trades.filter(timeframe = query.get('timeframe'))
+        if query.get('account'):
+            trades = trades.filter(transactions__account=query.get('account')).distinct()
         
-        account = FuturesAccount.objects.last()
+        trades = trades.order_by('end_date')
+        #account = FuturesAccount.objects.last()
         wins = trades.filter(profit_krw__gt=0)
         loses = trades.filter(profit_krw__lte=0)
         cnt = trades.count() #매매횟수
@@ -115,11 +118,11 @@ class FuturesStatView(TemplateView):
             Avg('realized_profit_ticks'), Sum('realized_profit_ticks')
         )
 
-        principal = float(account.principal + profit_diff)
+        #principal = float(account.principal + profit_diff)
         commission = trades_agg['commission_krw__sum'] or 0
         revenue = trades_agg['profit_krw__sum'] or 0
         revenue_ticks = trades_agg['realized_profit_ticks__sum']
-        value = principal + revenue - commission
+        #value = principal + revenue - commission
         profit = revenue - commission
         win = wins_agg['profit_krw__sum'] or 0
         avg_win = wins_agg['profit_krw__avg'] or 0
@@ -132,10 +135,10 @@ class FuturesStatView(TemplateView):
         
         avg_profit = trades_agg['profit_krw__avg'] or 0
         avg_profit_ticks = trades_agg['realized_profit_ticks__avg'] or 0
-        std_profit = trades_agg['profit_krw__stddev'] or 0
-        std_profit_ticks = trades_agg['realized_profit_ticks__stddev'] or 0
+        #std_profit = trades_agg['profit_krw__stddev'] or 0
+        #std_profit_ticks = trades_agg['realized_profit_ticks__stddev'] or 0
 
-        roe = revenue/principal if revenue and principal else 0
+        #roe = revenue/principal if revenue and principal else 0
         if loses_agg['profit_krw__avg'] and wins_agg['profit_krw__avg']:
             pnl = -1*wins_agg['profit_krw__avg']/loses_agg['profit_krw__avg']
         else:
@@ -145,19 +148,19 @@ class FuturesStatView(TemplateView):
         optimal_f = ((pnl+1)*win_rate-1)/pnl if pnl else 0
 
         if trades.count():
-            duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
+            #duration_in_year = (trades.last().end_date - trades.first().pub_date).days/365
             
-            if duration_in_year > 0 and principal+revenue-commission > 0:
-                cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
-            else: 
-                cagr = 0
-            
+            #if duration_in_year > 0 and principal+revenue-commission > 0:
+            #    cagr = pow((principal+revenue-commission)/principal, 1/duration_in_year)-1
+            #else: 
+            #    cagr = 0
+            #print(principal, revenue, commission, duration_in_year)
             
             
             
             data = {
-                'value': value,
-                'principal':principal,
+                #'value': value,
+                #'principal':principal,
                 'revenue': revenue,
                 'revenue_ticks': revenue_ticks,
                 'profit':profit,
@@ -172,19 +175,19 @@ class FuturesStatView(TemplateView):
                 'commission':commission,
                 'avg_profit':avg_profit,
                 'avg_profit_ticks': avg_profit_ticks,
-                'std_profit':std_profit,
-                'std_profit_ticks':std_profit_ticks,
+                #'std_profit':std_profit,
+                #'std_profit_ticks':std_profit_ticks,
                 'pnl':pnl,
                 'win_rate':win_rate*100,
-                'roe':roe*100,
+                #'roe':roe*100,
                 'num_trades': cnt,
-                'cagr': cagr,
+                #'cagr': cagr,
                 'optimal_f': optimal_f
             }
         else:
             data = {
-                'value': value,
-                'principal':principal,
+                #'value': value,
+                #'principal':principal,
                 'revenue': 0,
                 'revenue_ticks': 0,
                 'profit':0,
@@ -203,9 +206,9 @@ class FuturesStatView(TemplateView):
                 'std_profit_ticks':0,
                 'pnl':0,
                 'win_rate':0,
-                'roe':0,
+                #'roe':0,
                 'num_trades': 0,
-                'cagr': 0,
+                #'cagr': 0,
                 'optimal_f': 0
             }
 
@@ -217,7 +220,6 @@ class FuturesStatView(TemplateView):
                       volume=Count('id'))
         
         data['chart_data'] = list(trades_by_day.values_list('end_date__date','day_profit','day_commission', 'volume'))
-        
         # 일간 데이터
         cnt = trades_by_day.count()
         revenue = trades_by_day.annotate(
@@ -231,10 +233,11 @@ class FuturesStatView(TemplateView):
                             Avg('revenue')
                         )['revenue__avg']
         data['days'] = cnt
-        data['day_avg_revenue'] = revenue.aggregate(Avg('revenue'))['revenue__avg']
+        data['day_avg_revenue'] = revenue.aggregate(Avg('revenue'))['revenue__avg'] or 0
         data['day_win_rate'] = wins.count()/cnt if cnt else 0
         data['day_pnl'] = abs(win_revenue/lose_revenue) if lose_revenue else 0
         data['day_optimal_f'] = ((1+data['day_pnl'])*data['day_win_rate']-1)/data['day_pnl'] if data['day_pnl'] else 0
+        print(data)
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):

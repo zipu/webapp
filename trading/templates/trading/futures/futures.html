@@ -10,50 +10,25 @@
     <div>
       <table class="table table-bordered table-sm">
         <tr>
-          <td style="width:10%;"> 시작 </td>
-          <td style="width:10%;"> 종료 </td>
-          <td style="width:5%;"> 멘탈 </td>
-          <td style="width:15%;"> 진입 </td>
-          <td style="width:15%;"> 청산 </td>
-          <td style="width:10%;"> 태그 </td>
-          <td style="width:10%;"> 기간 </td>
-          <td style="width:8%;">  </td>
+          <td style="width:20%;"> 시작 </td>
+          <td style="width:20%;"> 종료 </td>
+          <td style="width:15%;"> 계좌 </td>
+          <td style="width:35%;"> 태그 </td>
+          <td style="width:10%;">  </td>
         </tr>
         <tr>
           <td> <input type="date" class="date" id='start' name="start"> </td>
           <td> <input type="date" class="date" id='end' name="end"> </td>
-          <td> <select name="mental" id='mental'>
-            <option value=''>    </option>
-            <option value='Good'> Good </option>
-            <option value='Normal'> Normal </option>
-            <option value='Bad'> Bad </option>
-            </select>
-          </td>
-          <td> <select id="entry_strategy" name="entry_strategy">
-            <option value=''> </option>
-            {% for strategy in entry_strategies%}
-            <option value='{{strategy.id}}'> {{ strategy.name }} </option>
-            {% endfor %}
-            </select>
-          </td>
-          <td> <select id="exit_strategy" name="exit_strategy">
-            <option value=''> </option>
-            {% for strategy in exit_strategies%}
-            <option value='{{strategy.id}}'> {{ strategy.name }} </option>
-            {% endfor %}
+          <td><select id='account' name="account">
+            <option value=''> 합산 </option>
+            <option value='A001'> A001 </option>
+            <option value='A002'> A002 </option>
             </select>
           </td>
           <td> 
-            <input type="text" id='tags' name="tags" style='width:100px;'>
+            <input type="text" id='tags' name="tags" style='width:100%;'>
           </td>
-          <td><select id='timeframe' name="timeframe">
-            <option value=''>    </option>
-            <option value='scalping'> Scalping </option>
-            <option value='day'> Day </option>
-            <option value='swing'> Swing </option>
-            <option value='longterm'> Long term </option>
-            </select>
-          </td>
+          
           <td>
             <input type="submit" value="조회" onclick="requestStatData('part');">
           </td>
@@ -63,47 +38,36 @@
     </div>
       <table class="table table-bordered">
         <tr class="table-success">
-          <th scope="col" style="width:20%">총자산</th>
-          <th scope="col" style="width:20%">원금</th>
-          <th scope="col" style="width:20%">누적손익</th>
-          <th scope="col" style="width:20%">수수료</th>
-          <th scope="col" style="width:20%">순손익</th>
+          <th scope="col" style="width:33.3%">누적손익</th>
+          <th scope="col" style="width:33.3%">수수료</th>
+          <th scope="col" style="width:33.3%">순손익</th>
         </tr>
         <tr>
-          <td id="value"></td>
-          <td id="principal"></td>
           <td id="revenue"></td>
           <td id="commission"></td>
           <td id="profit"></td>
         </tr>
         <tr class="table-success">
-          <th scope="col" style="width:20%">수익률</th>
-          <th scope="col" style="width:20%">자본인하율</th>
-          <th scope="col" style="width:20%">MDD</th>
-          <th scope="col" style="width:20%">CAGR</th>
-          <th scope="col" style="width:20%">매매횟수</th>
-        </tr>
-        <tr>
-          <td id="roe"></td>
-          <td id="dd"></td>
-          <td id="mdd"></td>
-          <td id="cagr"></td>
-          <td id="num_trades"></td>
-        </tr>
-        <tr class="table-success">
-          <th scope="col" style="width:20%">평균손익</th>
-          <th scope="col" style="width:20%">손익표준편차</th>
           <th scope="col" style="width:20%">승률</th>
           <th scope="col" style="width:20%">손익비</th>
           <th scope="col" style="width:20%">Optimal F</th>
         </tr>
         <tr>
-          <td id="avg_profit"></td>
-          <td id="std_profit"></td>
           <td id="win_rate"></td>
           <td id="pnl"></td>
           <td id="optimal_f"></td>
         </tr>
+        <tr class="table-success">
+          <th scope="col" style="width:20%">자본인하율</th>
+          <th scope="col" style="width:20%">MDD</th>
+          <th scope="col" style="width:20%">매매횟수</th>
+        </tr>
+        <tr>
+          <td id="dd"></td>
+          <td id="mdd"></td>
+          <td id="num_trades"></td>
+        </tr>
+        
       </table>
       <table class="table table-bordered">
         <tr class="table-info">
@@ -122,39 +86,7 @@
         </tr>
       </table>
 
-      <table class="table table-bordered">
-        <tr class="table-secondary">
-          <th scope="col" style="width:20%">누적손익(원)</th>
-          <th scope="col" style="width:20%">누적수익(원)</th>
-          <th scope="col" style="width:20%">수익평균(원)</th>
-          <th scope="col" style="width:20%">누적손실(원)</th>
-          <th scope="col" style="width:20%">손실평균(원)</th>
-        </tr>
-        <tr>
-          <td id="revenue_2"></td>
-          <td id="win"></td>
-          <td id="avg_win"></td>
-          <td id="loss"></td>
-          <td id="avg_loss"></td>
-        </tr>
-        <tr class="table-secondary">
-          <th scope="col" style="width:20%">누적손익(틱)</th>
-          <th scope="col" style="width:20%">누적수익(틱)</th>
-          <th scope="col" style="width:20%">수익평균(틱)</th>
-          <th scope="col" style="width:20%">누적손실(틱)</th>
-          <th scope="col" style="width:20%">손실평균(틱)</th>
-        </tr>
-        <tr>
-          <td id="revenue_ticks"></td>
-          <td id="win_ticks"></td>
-          <td id="avg_win_ticks"></td>
-          <td id="loss_ticks"></td>
-          <td id="avg_loss_ticks"></td>
-        </tr>
-      </table>
-
   </br>
-  <div id="history" style="width:100%"></div>
 </div>
 {% endblock content2%}
 
@@ -168,6 +100,17 @@ Highcharts.setOptions({
 var chart = Highcharts.chart('profit-chart', {
             //chart: { height: '600', width:'1000' },// 16:9 ratio}
             legend: { enabled: false},
+            chart: {
+              zooming: {
+                  type: 'x',
+                  resetButton: {
+                      position: {
+                          x: 5,
+                          y: -50
+                      }
+                  }
+              }
+            },           
             title: { text: "Profit Curve" },
             xAxis: { 
                 type: 'datetime',
@@ -268,12 +211,13 @@ var chart = Highcharts.chart('profit-chart', {
     filter = {
       start: $('#start').val(),
       end: $('#end').val(),
-      mental: $('#mental').val(),
-      entry_strategy: $('#entry_strategy').val(),
-      exit_strategy: $('#exit_strategy').val(),
+      //mental: $('#mental').val(),
+      //entry_strategy: $('#entry_strategy').val(),
+      //exit_strategy: $('#exit_strategy').val(),
       tags: $('#tags').val(),
-      timeframe: $('#timeframe').val(),
-      pnl:$('#timeframe').val()
+      account: $('#account').val(),
+      //timeframe: $('#timeframe').val(),
+      //pnl:$('#timeframe').val()
     }
   }
 
@@ -282,32 +226,32 @@ var chart = Highcharts.chart('profit-chart', {
     type: "get", //send it through get method
     data: filter,
     success: function(data) {
-      $('#value').text((data.value).toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#principal').text(data.principal.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
+      //$('#value').text((data.value).toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
+      //$('#principal').text(data.principal.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
       $('#revenue').text(data.revenue.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
       $('#profit').text(data.profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
       $('#loss').text(data.loss+'원');
-      $('#commission').text(data.commission.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#roe').text(data.roe.toFixed(2)+' %');
+      $('#commission').text((-data.commission).toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
+      //$('#roe').text(data.roe.toFixed(2)+' %');
       $('#num_trades').text(data.num_trades);
       $('#avg_profit').text(data.avg_profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#std_profit').text(data.std_profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
+      //$('#std_profit').text(data.std_profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
       $('#win_rate').text(data.win_rate.toFixed(2)+'%');
       $('#pnl').text(data.pnl.toFixed(2)+' : 1');
-      $('#cagr').text(data.cagr.toFixed(2));
+      //$('#cagr').text(data.cagr.toFixed(2));
       $('#optimal_f').text(data.optimal_f.toFixed(2));
 
-      $('#revenue_2').text(data.revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
-      $('#win').text(data.win.toLocaleString('en-US', {maximumFractionDigits: 0}));
-      $('#avg_win').text(data.avg_win.toLocaleString('en-US', {maximumFractionDigits: 0 }));
-      $('#loss').text(data.loss.toLocaleString('en-US', {maximumFractionDigits: 0 }));
-      $('#avg_loss').text(data.avg_loss.toLocaleString('en-US', {maximumFractionDigits: 0 }));
+      //$('#revenue_2').text(data.revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
+      //$('#win').text(data.win.toLocaleString('en-US', {maximumFractionDigits: 0}));
+      //$('#avg_win').text(data.avg_win.toLocaleString('en-US', {maximumFractionDigits: 0 }));
+      //$('#loss').text(data.loss.toLocaleString('en-US', {maximumFractionDigits: 0 }));
+      //$('#avg_loss').text(data.avg_loss.toLocaleString('en-US', {maximumFractionDigits: 0 }));
 
-      $('#revenue_ticks').text(data.revenue_ticks.toFixed(1));
-      $('#win_ticks').text(data.win_ticks.toFixed(1));
-      $('#avg_win_ticks').text(data.avg_win_ticks.toFixed(1));
-      $('#loss_ticks').text(data.loss_ticks.toFixed(1));
-      $('#avg_loss_ticks').text(data.avg_loss_ticks.toFixed(1));
+      //$('#revenue_ticks').text(data.revenue_ticks.toFixed(1));
+      //$('#win_ticks').text(data.win_ticks.toFixed(1));
+      //$('#avg_win_ticks').text(data.avg_win_ticks.toFixed(1));
+      //$('#loss_ticks').text(data.loss_ticks.toFixed(1));
+      //$('#avg_loss_ticks').text(data.avg_loss_ticks.toFixed(1));
 
       $('#days').text(data.days+'일');
       $('#day_avg_revenue').text(data.day_avg_revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
@@ -318,7 +262,8 @@ var chart = Highcharts.chart('profit-chart', {
 
       //console.log(data);
       //차트 데이터 
-      profit = data.principal;
+      //profit = data.principal;
+      profit = 0;
       max_profit = profit;
       mdd = 0
       commission =0;
