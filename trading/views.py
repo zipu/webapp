@@ -60,7 +60,7 @@ class FuturesStatView(TemplateView):
             trades = FuturesTrade.objects.filter(account=query.get('account'))
         else:
             trades = FuturesTrade.objects.all()
-            
+
         trades = FuturesTrade.objects.filter(is_open=False)\
                 .annotate(
                     profit_krw = ExpressionWrapper(
@@ -238,7 +238,7 @@ class FuturesStatView(TemplateView):
         data['day_win_rate'] = wins.count()/cnt if cnt else 0
         data['day_pnl'] = abs(win_revenue/lose_revenue) if lose_revenue else 0
         data['day_optimal_f'] = ((1+data['day_pnl'])*data['day_win_rate']-1)/data['day_pnl'] if data['day_pnl'] else 0
-        print(data)
+        #print(data)
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):
