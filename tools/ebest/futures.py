@@ -109,11 +109,13 @@ class Futures:
 
             res = requests.post(url, headers=headers, data=json.dumps(body))
             data += res.json().get("CIDBQ02400OutBlock2")
-            #if not data:
-            #    print("Transaction: 새로운 체결 기록이 없음")
-            #    print(res.json())
+            if not data:
+                print(f"Transaction: ({account}) 새로운 체결 기록이 없음")
+                print(res.json())
+                continue
+
             #    return []
-            while res.headers['tr_cont'] == "Y":
+            while res.json() and res.headers['tr_cont'] == "Y":
                 time.sleep(1) #초당 전송수: 1초당 1건
                 headers['tr_cont'] = "Y"
                 headers['tr_cont_key'] = res.headers['tr_cont_key']
