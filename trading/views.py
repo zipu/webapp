@@ -467,8 +467,8 @@ class KiwoomPositionView(TemplateView):
                     {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#dd3333"} ,
                     {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"#1e73be"} ,
                     {"name":"수량변화", "type":"column", "data": list(zip(date,total_diff)), "yAxis":1, "color":"#282a22"} ,
-                    {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":2, "color":"#1e73be"} ,
-                    {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":2, "color":"#dd3333"} ,
+                    {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":2, "color":"skyblue"} ,
+                    {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":2, "color":"#F08080"} ,
                     
                 ]
             })
