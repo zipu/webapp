@@ -52,7 +52,7 @@ charts.forEach((chart, index) => {
     // DOM 만들기
     const div = document.createElement('div');
     div.id = `chart-${index}`;
-    div.style.height = '400px';
+    div.style.height = '500px';
     div.style.marginBottom = '40px';
     container.appendChild(div);
 
@@ -81,13 +81,20 @@ charts.forEach((chart, index) => {
         yAxis: [
           {
             title: { text: '보유수량' }, // index 0: 위쪽
-            height: '60%',
+            height: '40%',
             lineWidth: 2
           },
           {
-            title: { text: '백분율(%)' }, // index 1: 아래쪽
-            top: '65%',
-            height: '35%',
+            title: { text: '수량변화' }, // index 1: 중간
+            top: '45%',
+            height: '25%',
+            offset: 0,
+            lineWidth: 2,
+          },
+          {
+            title: { text: '백분율(%)' }, // index 2: 아래쪽
+            top: '75%',
+            height: '25%',
             offset: 0,
             lineWidth: 2,
             max: 100, // 비율 100%
@@ -112,11 +119,22 @@ charts.forEach((chart, index) => {
             line: {
               marker: {
                 enabled: false,
-                radius: 3  // ✅ 마커 사이즈 조정 (default는 4~5)
+                radius: 2,
               }
             },
             column: {
               stacking: 'normal',
+              borderRadius: 0
+            },
+            area:{
+              marker:{
+                enabled:false, 
+                states: {
+                  hover: {
+                    enabled: false // hover 상태 마커 비활성화
+                  }
+                }
+              }
             }
           },
         series: chart.series

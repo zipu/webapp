@@ -457,16 +457,18 @@ class KiwoomPositionView(TemplateView):
                 'timestamp','amount_buy','amount_sell','percent_buy','percent_sell'
             )
             date,abuy,asell,pbuy,psell = zip(*values)
-            #total_amount = [x + y for x, y in zip(abuy, asell)]
+            total_amount = [x + y for x, y in zip(abuy, asell)]
+            total_diff = [x-y for x, y in zip(total_amount[1:], total_amount[:-1])]
+            total_diff.insert(0, 0)
             chart_data.append({
                 'title':instrument.name,
                 'lastdate': objects.filter(instrument=instrument).latest('datetime').datetime.strftime('%Y-%m-%d %H:%M'),
                 'series':[
-                    {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#F08080"} ,
-                    {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"skyblue"} ,
-                    
-                    {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":1, "color":"skyblue"} ,
-                    {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":1, "color":"#F08080"} ,
+                    {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#dd3333"} ,
+                    {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"#1e73be"} ,
+                    {"name":"수량변화", "type":"column", "data": list(zip(date,total_diff)), "yAxis":1, "color":"#282a22"} ,
+                    {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":2, "color":"#1e73be"} ,
+                    {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":2, "color":"#dd3333"} ,
                     
                 ]
             })

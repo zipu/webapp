@@ -43,11 +43,6 @@ var legacy_futures_chart = Highcharts.chart('legacy-futures-chart', {
           },
           marker: {
               enabled: false,
-              states: {
-                  hover: {
-                      enabled: false
-                  }
-              }
           }
       },
     },
