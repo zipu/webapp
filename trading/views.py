@@ -56,6 +56,11 @@ class FuturesStatView(TemplateView):
     """
     def get(self, request, *args, **kwargs):
         query= request.GET
+        if query.get('account'):
+            trades = FuturesTrade.objects.filter(account=query.get('account'))
+        else:
+            trades = FuturesTrade.objects.all()
+            
         trades = FuturesTrade.objects.filter(is_open=False)\
                 .annotate(
                     profit_krw = ExpressionWrapper(
@@ -93,10 +98,6 @@ class FuturesStatView(TemplateView):
                            .filter(exit_tags__name__in=tags)
         #if query.get('timeframe'):
         #    trades = trades.filter(timeframe = query.get('timeframe'))
-        if query.get('account'):
-            trades = trades.filter(transactions__account=query.get('account')).distinct()
-        
-        trades = trades.order_by('end_date')
         #account = FuturesAccount.objects.last()
         wins = trades.filter(profit_krw__gt=0)
         loses = trades.filter(profit_krw__lte=0)
@@ -106,7 +107,7 @@ class FuturesStatView(TemplateView):
             Sum('profit_krw'), Sum('commission_krw'),
             Avg('profit_krw'), StdDev('profit_krw'),
             Sum('realized_profit_ticks'),
-            Avg('realized_profit_ticks'), StdDev('realized_profit_ticks'),
+            Avg('realized_profit_ticks'), #StdDev('realized_profit_ticks'),
         )
         
         wins_agg = wins.aggregate(
@@ -237,7 +238,7 @@ class FuturesStatView(TemplateView):
         data['day_win_rate'] = wins.count()/cnt if cnt else 0
         data['day_pnl'] = abs(win_revenue/lose_revenue) if lose_revenue else 0
         data['day_optimal_f'] = ((1+data['day_pnl'])*data['day_win_rate']-1)/data['day_pnl'] if data['day_pnl'] else 0
-        #print(data)
+        print(data)
         return JsonResponse(data, safe=False)
 
 class FuturesTradeView(TemplateView):

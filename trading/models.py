@@ -450,7 +450,7 @@ class FuturesTrade(models.Model):
                     on_delete=models.PROTECT)
     
     type = models.CharField("타입", max_length=20, choices=TYPES, default='Futures')
-
+    account = models.CharField("계좌번호", max_length=100, default="A001")
     entry_strategy = models.ForeignKey(
                     FuturesStrategy,
                     on_delete=models.PROTECT,
@@ -536,7 +536,7 @@ class FuturesTrade(models.Model):
                     pub_date = transaction.date,
                     ebest_code = transaction.ebest_code,
                     position = transaction.position,
-                    #account = transaction.account
+                    account = transaction.account
                 )
                 trade.save()
             # 기존 거래가 있으면 transaction을 추가

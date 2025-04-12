@@ -69,7 +69,7 @@
        {% if trade.is_open %} bgcolor='azure' 
        {% elif not trade.entry_strategy %} bgcolor='#FBEEE6'
        {% endif %}>
-          <td>{{trade.transactions.all.0.account}} </td>
+          <td>{{trade.account}} </td>
           <td>{{trade.pub_date | date:"Y-m-d"}} </td>
           <td>{{trade.instrument.name}} </td>
           <td>{{trade.type}} </td>
