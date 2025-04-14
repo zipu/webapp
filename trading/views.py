@@ -59,6 +59,8 @@ class FuturesStatView(TemplateView):
         if query.get('account'):
             
             trades = FuturesTrade.objects.filter(account=query.get('account'))
+            print(query.get('account'))
+            print(trades)
         else:
             trades = FuturesTrade.objects.all()
 
@@ -237,7 +239,7 @@ class FuturesStatView(TemplateView):
         data['days'] = cnt
         data['day_avg_revenue'] = revenue.aggregate(Avg('revenue'))['revenue__avg'] or 0
         data['day_win_rate'] = wins.count()/cnt if cnt else 0
-        data['day_pnl'] = abs(win_revenue/lose_revenue) if lose_revenue else 0
+        data['day_pnl'] = abs(win_revenue/lose_revenue) if (lose_revenue and win_revenue) else 0
         data['day_optimal_f'] = ((1+data['day_pnl'])*data['day_win_rate']-1)/data['day_pnl'] if data['day_pnl'] else 0
         #print(data)
         return JsonResponse(data, safe=False)
