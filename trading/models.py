@@ -527,8 +527,8 @@ class FuturesTrade(models.Model):
         #1. 선물 매매 등록
         transactions = Transaction.objects.filter(trade=None).order_by('date')
         for transaction in transactions:
-            trades = FuturesTrade.objects.filter(ebest_code = transaction.ebest_code, is_open=True)
-            # 해당 transaction의 상품코드와 같은 열려있는 거래가 없으면 생성
+            trades = FuturesTrade.objects.filter(ebest_code = transaction.ebest_code, account=transaction.account, is_open=True)
+            # 해당 transaction과 계좌와 상품코드가 같은 열려있는 거래가 없으면 생성
             if not trades:
                 trade = FuturesTrade(
                     instrument = transaction.instrument,

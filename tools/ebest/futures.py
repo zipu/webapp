@@ -97,8 +97,9 @@ class Futures:
                     }
                 }
         
-        data = []
+        data = {}
         for account in ["A001","A002"]:
+            data[account] = []
             headers = {  
                 "content-type":"application/json; charset=utf-8", 
                 "authorization": f"Bearer {self.secret[account]['access_token']}",
@@ -115,13 +116,15 @@ class Futures:
                 continue
 
             #    return []
-            data += res.json().get("CIDBQ02400OutBlock2")
+            #print(res.json().get("CIDBQ02400OutBlock2"))
+            data[account] += res.json().get("CIDBQ02400OutBlock2")
+
             while res.json() and res.headers['tr_cont'] == "Y":
                 time.sleep(1) #초당 전송수: 1초당 1건
                 headers['tr_cont'] = "Y"
                 headers['tr_cont_key'] = res.headers['tr_cont_key']
                 res = requests.post(url, headers=headers, data=json.dumps(body))
-                data += res.json()["CIDBQ02400OutBlock2"]
-        #print(data)
+                data[account] += res.json()["CIDBQ02400OutBlock2"]
+        #print(data['A002'])
         return data        
     

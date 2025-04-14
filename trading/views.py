@@ -361,63 +361,68 @@ class TransactionView(TemplateView):
             start = (Transaction.objects.order_by('-date').first().date-timedelta(1)).strftime('%Y%m%d')
             new_transactions = api.transactions(start=start)
         else:
-            new_transactions = []
+            new_transactions = {}
         
-        for transaction in new_transactions:
-            # 중복 신청시 코등 안보임 해결
-            symbol = transaction['IsuCodeVal']
-            date = datetime.strptime(transaction['ExecDttm'][:-3], "%Y%m%d%H%M%S" )
-            ebest_id = int(transaction['OvrsFutsExecNo'].lstrip('0'))
-            transactions = []
 
-            if not Transaction.objects.filter(date=date, ebest_id=ebest_id):
-                #print(transaction)
-                num_cons = int(transaction['ExecQty'])
-                # 체결 수량 1개당 한개의 transaction으로 함
-                if symbol.count('_') == 2: #주식옵션
-                    tradetype='StockOption'
-                    code = symbol.split('_')[0][1:]
-                    instrument = FuturesInstrument.objects.get(symbol=code)
-
-                elif symbol.count('_') == 1: #선물옵션
-                    tradetype = 'Option'
-                    code = symbol.split('_')[0][:-3]
-                    filter = FuturesInstrument.objects.filter(option_codes__contains=code)
-                    if not filter:
-                        raise LookupError(f"No Futures Instrument contains option code: {code}")
-                    
-                    else: 
-                        instrument = filter[0]
-
-                elif '-' in symbol:
-                    tradetype = 'Spread'
+        for account, transactions_by_account in new_transactions.items():
+            for transaction in transactions_by_account:
+                # 중복 신청시 코등 안보임 해결
+                symbol = transaction['IsuCodeVal']
+                date = datetime.strptime(transaction['ExecDttm'][:-3], "%Y%m%d%H%M%S" )
+                ebest_id = int(transaction['OvrsFutsExecNo'].lstrip('0'))
                 
-                else:
-                    tradetype = 'Futures'
+                transactions = []
+                print(ebest_id, date, symbol)
+                if not Transaction.objects.filter(date=date, ebest_id=ebest_id):
+                    #print(transaction)
+                    num_cons = int(transaction['ExecQty'])
+                    # 체결 수량 1개당 한개의 transaction으로 함
+                    if symbol.count('_') == 2: #주식옵션
+                        tradetype='StockOption'
+                        code = symbol.split('_')[0][1:]
+                        instrument = FuturesInstrument.objects.get(symbol=code)
+
+                    elif symbol.count('_') == 1: #선물옵션
+                        tradetype = 'Option'
+                        code = symbol.split('_')[0][:-3]
+                        filter = FuturesInstrument.objects.filter(option_codes__contains=code)
+                        if not filter:
+                            raise LookupError(f"No Futures Instrument contains option code: {code}")
+                        
+                        else: 
+                            instrument = filter[0]
+
+                    elif '-' in symbol:
+                        tradetype = 'Spread'
                     
-                    instrument = FuturesInstrument.objects.get(symbol=symbol[:-3])
-                
-                for i in range(num_cons):
-                    #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
-                    if (tradetype == 'Option' or tradetype == 'StockOption') and not transaction['AbrdFutsExecPrc']:
-                        price = 0
-                    #elif tradetype == 'Option' and line[13]:
-                    #    price = instrument.convert_to_decimal(line[13].replace(',',''))
                     else:
-                        price = instrument.convert_to_decimal(transaction['AbrdFutsExecPrc'].replace(',',''))
+                        tradetype = 'Futures'
+                        
+                        instrument = FuturesInstrument.objects.get(symbol=symbol[:-3])
+                    
+                    for i in range(num_cons):
+                        #instrument = FuturesInstrument.objects.get(symbol=line[4][:-3])
+                        if (tradetype == 'Option' or tradetype == 'StockOption') and not transaction['AbrdFutsExecPrc']:
+                            price = 0
+                        #elif tradetype == 'Option' and line[13]:
+                        #    price = instrument.convert_to_decimal(line[13].replace(',',''))
+                        else:
+                            price = instrument.convert_to_decimal(transaction['AbrdFutsExecPrc'].replace(',',''))
 
-                    transactions.append(Transaction(
-                        instrument = instrument,
-                        type = tradetype,
-                        order_id = transaction['OvrsFutsOrdNo'].lstrip('0'),
-                        ebest_id = transaction['OvrsFutsExecNo'].lstrip('0'),
-                        ebest_code = transaction['IsuCodeVal'],
-                        date = date,
-                        position = 1 if transaction['ExecBnsTpCode']=="2" else -1,
-                        price = price,
-                        commission = float(transaction['CsgnCmsn'])/num_cons or 0
-                    ))
-            Transaction.objects.bulk_create(transactions)
+                        transactions.append(Transaction(
+                            instrument = instrument,
+                            type = tradetype,
+                            account = account,
+                            order_id = transaction['OvrsFutsOrdNo'].lstrip('0'),
+                            ebest_id = transaction['OvrsFutsExecNo'].lstrip('0'),
+                            ebest_code = transaction['IsuCodeVal'],
+                            date = date,
+                            position = 1 if transaction['ExecBnsTpCode']=="2" else -1,
+                            price = price,
+                            commission = float(transaction['CsgnCmsn'])/num_cons or 0
+                        
+                        ))
+                Transaction.objects.bulk_create(transactions)
         # 거래 기록 생성
         #FuturesTrade.add_transactions()
         return redirect('transaction', page=1)
