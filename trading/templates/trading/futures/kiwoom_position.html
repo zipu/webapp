@@ -57,8 +57,17 @@ charts.forEach((chart, index) => {
     container.appendChild(div);
 
     // 차트 그리기
-    Highcharts.chart(div.id, {
-          chart: {
+    Highcharts.stockChart(div.id, {
+        rangeSelector: {
+          enabled: false // 범위 선택기 제거
+        },
+        navigator: {
+          enabled: false // 아래 미니맵 제거
+        },
+        scrollbar: {
+          enabled: false // 스크롤바 제거
+        },
+        chart: {
             zooming: {
                 type: 'x',
                 resetButton: {
@@ -76,28 +85,31 @@ charts.forEach((chart, index) => {
           text: chart.lastdate
         },
         xAxis: {
-          type: 'datetime'
+          type: 'datetime',
+          ordinal: true // x축 날짜 형식
         },
         yAxis: [
           {
             title: { text: '보유수량' }, // index 0: 위쪽
             height: '40%',
-            lineWidth: 2
+            lineWidth: 2,
+            opposite: false,
           },
           {
             title: { text: '수량변화' }, // index 1: 중간
-            top: '45%',
-            height: '25%',
+            top: '42%',
+            height: '28%',
             offset: 0,
             lineWidth: 2,
+            opposite: false,
           },
           {
             title: { text: '백분율(%)' }, // index 2: 아래쪽
-            top: '75%',
-            height: '25%',
+            top: '72%',
+            height: '28%',
             offset: 0,
-            lineWidth: 2,
             max: 100, // 비율 100%
+            opposite: false
           }
         ],
         resetZoomButton: {
@@ -113,29 +125,46 @@ charts.forEach((chart, index) => {
         },
         tooltip: {
           shared: true,
-          crosshairs: true
+          crosshairs: false,
+          enabled:false, // 툴팁 비활성화
+          backgroundColor: 'rgba(255, 255, 255, 0.9)'  // tooltip 배경색 지정 (선택 사항)
+
         },
         plotOptions: {
+            series: {
+              allowPointSelect: false, // 포인트 선택 비활성화
+              
+              dataGrouping: {
+                enabled: false
+              },
+              states: {
+                hover: {
+                  enabled: false // 마우스 호버 시 하이라이트 비활성화
+                },
+                inactive: {
+                  opacity: 1, // 비활성화 상태일 때의 투명도를 1로 설정하여 희미해지는 효과를 방지
+                  enabled: false // 다른 시리즈 비활성화 방지
+                },
+              },
+            },
             line: {
               marker: {
                 enabled: false,
-                radius: 2,
+                states: {
+                  select: {
+                    enabled: false // 마커 선택 비활성화
+                  }
+                }
               }
             },
             column: {
               stacking: 'normal',
-              borderRadius: 0
-            },
-            area:{
-              marker:{
-                enabled:false, 
-                states: {
-                  hover: {
-                    enabled: false // hover 상태 마커 비활성화
-                  }
-                }
+              borderRadius: 0,
+              dataLabels: {
+                enabled: false // 데이터 레이블 비활성화
               }
-            }
+            },
+           
           },
         series: chart.series
       });

@@ -436,7 +436,7 @@ class KiwoomPositionView(TemplateView):
         context = self.get_context_data()
         context['active'] = 'lsapi'
         #datetime field 를 초단위 timestamp로 저장
-        two_month_ago = datetime.today() - timedelta(days=60)
+        two_month_ago = datetime.today() - timedelta(days=10)
         #objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
         #.annotate(
         #    timestamp=UnixTimestamp('datetime'),
@@ -474,8 +474,8 @@ class KiwoomPositionView(TemplateView):
                     {"name":"매수보유수량", "type":"line", "data": list(zip(date,abuy)), "color":"#dd3333"} ,
                     {"name":"매도보유수량", "type":"line", "data": list(zip(date,asell)), "color":"#1e73be"} ,
                     {"name":"수량변화", "type":"column", "data": list(zip(date,total_diff)), "yAxis":1, "color":"#282a22"} ,
-                    {"name":"매도비율", "type":"column", "stack":"volume", "data": list(zip(date,psell)), "yAxis":2, "color":"skyblue"} ,
-                    {"name":"매수비율", "type":"column",'stack':'volume', "data": list(zip(date,pbuy)), "yAxis":2, "color":"#F08080"} ,
+                    {"name":"매도비율", "type":"column", "data": list(zip(date,psell)), "yAxis":2, "color":"skyblue"} ,
+                    {"name":"매수비율", "type":"column", "data": list(zip(date,pbuy)), "yAxis":2, "color":"#F08080"} ,
                     
                 ]
             })
