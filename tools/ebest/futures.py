@@ -55,12 +55,13 @@ class Futures:
                     #print(res.json())
                     #self.access_token = res.json()['access_token']
                     #self.token_issued_date = datetime.today().strftime("%Y%m%d")
-                    self.secret[account]['access_token'] = res.json()['access_token']
-                    self.secret[account]['token_issued_date'] = datetime.today().strftime("%Y%m%d%H%M")
-                    set_secret(account, {
-                        'access_token': self.secret[account]['access_token'],
-                        'token_issued_date': self.secret[account]['token_issued_date']
-                    })
+                    if res.json()['access_token'] != self.secret[account]['access_token']:
+                        self.secret[account]['access_token'] = res.json()['access_token']
+                        self.secret[account]['token_issued_date'] = datetime.today().strftime("%Y%m%d%H%M")
+                        set_secret(account, {
+                            'access_token': self.secret[account]['access_token'],
+                            'token_issued_date': self.secret[account]['token_issued_date']
+                     })
 
                     #print("*연결계좌: 국내주식")
                     #print(f"*접속주소: {self.baseurl}")
