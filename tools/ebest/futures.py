@@ -1,7 +1,7 @@
 import os
 import requests
 import json, time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 BASEDIR = os.path.dirname(__file__)
 def get_secret(setting):
@@ -36,9 +36,11 @@ class Futures:
 
     def get_access_token(self):
         """ 엑세스 토큰 발행 및 갱신"""
+        now = datetime.now()
         
         for account in ["A001","A002"]:
-            if self.secret[account]['token_issued_date'] != datetime.today().strftime("%Y%m%d"):    
+            lastupdate = datetime.strptime(self.secret[account]['token_issued_date'], '%Y%m%d%H%M')
+            if now - lastupdate > timedelta(hours=12):    
                 path = "oauth2/token"
                 url = f"{self.baseurl}/{path}"
                 header = {"content-type":"application/x-www-form-urlencoded"}
@@ -54,7 +56,7 @@ class Futures:
                     #self.access_token = res.json()['access_token']
                     #self.token_issued_date = datetime.today().strftime("%Y%m%d")
                     self.secret[account]['access_token'] = res.json()['access_token']
-                    self.secret[account]['token_issued_date'] = datetime.today().strftime("%Y%m%d")
+                    self.secret[account]['token_issued_date'] = datetime.today().strftime("%Y%m%d%H%M")
                     set_secret(account, {
                         'access_token': self.secret[account]['access_token'],
                         'token_issued_date': self.secret[account]['token_issued_date']

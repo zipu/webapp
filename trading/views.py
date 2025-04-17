@@ -374,7 +374,7 @@ class TransactionView(TemplateView):
                 ebest_id = int(transaction['OvrsFutsExecNo'].lstrip('0'))
                 
                 transactions = []
-                print(ebest_id, date, symbol)
+                #print(ebest_id, date, symbol)
                 if not Transaction.objects.filter(date=date, ebest_id=ebest_id):
                     #print(transaction)
                     num_cons = int(transaction['ExecQty'])
@@ -436,7 +436,7 @@ class KiwoomPositionView(TemplateView):
         context = self.get_context_data()
         context['active'] = 'lsapi'
         #datetime field 를 초단위 timestamp로 저장
-        two_month_ago = datetime.today() - timedelta(days=10)
+        two_month_ago = datetime.today() - timedelta(days=8)
         #objects = KiwoomPosition.objects.filter(datetime__gte=two_month_ago)\
         #.annotate(
         #    timestamp=UnixTimestamp('datetime'),
