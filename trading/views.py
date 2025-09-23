@@ -295,6 +295,7 @@ class FuturesTradeView(TemplateView):
         id = request.POST.get('id')
         entry_tags = [x.strip(' ') for x in request.POST.get('entrytags').split(';') if x]
         exit_tags = [x.strip(' ') for x in request.POST.get('exittags').split(';') if x]
+
         # 태그 등록
         tags = set(entry_tags+exit_tags)
         Tags.objects.bulk_create([Tags(name=x) for x in tags if x], ignore_conflicts=True)
@@ -311,7 +312,7 @@ class FuturesTradeView(TemplateView):
         trade.exit_tags.add(*Tags.objects.filter(name__in=exit_tags))
         trade.entry_reason = request.POST.get('entryreason').strip()
         trade.exit_reason = request.POST.get('exitreason').strip()
-        #trade.save()
+        trade.save()
         trade.update()
 
         return redirect('futurestrade', page=1)

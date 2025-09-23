@@ -178,10 +178,20 @@ thead {
     font-weight: bold;
 }
 
-/* Pell Editor 이미지 크기 제한 */
+/* Pell Editor 스타일 조정 */
+.pell-content {
+    text-align: left !important;
+}
+
 .pell-content img {
     max-width: 100%;
     height: auto;
+}
+
+.pell-content p, .pell-content div, .pell-content h1, .pell-content h2,
+.pell-content h3, .pell-content h4, .pell-content h5, .pell-content h6,
+.pell-content ol, .pell-content ul, .pell-content li {
+    text-align: left !important;
 }
 
 /* Responsive design */

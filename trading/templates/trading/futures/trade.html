@@ -276,7 +276,7 @@
                    <label class="form-label">이유</label>
                    <div id="entryreason-{{trade.id}}" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
                    <script type="text/template" id="entry-content-{{trade.id}}">{{trade.entry_reason|safe}}</script>
-                   <input type="hidden" name="entryreason">
+                   <input type="hidden" name="entryreason" id="entryreason-hidden-{{trade.id}}">
                  </div>
                </div>
                <div class="reason-edit-exit">
@@ -291,7 +291,7 @@
                    <label class="form-label">이유</label>
                    <div id="exitreason-{{trade.id}}" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
                    <script type="text/template" id="exit-content-{{trade.id}}">{{trade.exit_reason|safe}}</script>
-                   <input type="hidden" name="exitreason">
+                   <input type="hidden" name="exitreason" id="exitreason-hidden-{{trade.id}}">
                  </div>
                </div>
              </div>
@@ -345,8 +345,8 @@ function initPellEditor(tradeId) {
   const entryTemplate = document.getElementById('entry-content-' + tradeId);
   const exitTemplate = document.getElementById('exit-content-' + tradeId);
   
-  const entryHidden = document.querySelector(`input[name="entryreason"]`);
-  const exitHidden = document.querySelector(`input[name="exitreason"]`);
+  const entryHidden = document.getElementById(`entryreason-hidden-${tradeId}`);
+  const exitHidden = document.getElementById(`exitreason-hidden-${tradeId}`);
   
   // 진입 이유 에디터 초기화
   if (entryDiv && !entryDiv.classList.contains('pell')) {
@@ -393,7 +393,32 @@ function initPellEditor(tradeId) {
   }
 }
 
-// 폼 제출은 hidden input으로 자동 처리됨 (onChange에서 업데이트)
+// 폼 제출 이벤트 핸들러
+document.addEventListener('DOMContentLoaded', function() {
+  // 모든 폼에 submit 이벤트 리스너 추가
+  document.querySelectorAll('form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+      // 해당 폼 내의 모든 Pell 에디터에서 hidden input 업데이트
+      const pellContents = form.querySelectorAll('.pell-content');
+      pellContents.forEach(function(pellContent) {
+        const editorDiv = pellContent.parentElement;
+        const tradeId = editorDiv.id.split('-').pop();
+
+        if (editorDiv.id.includes('entryreason')) {
+          const hiddenInput = document.getElementById(`entryreason-hidden-${tradeId}`);
+          if (hiddenInput) {
+            hiddenInput.value = pellContent.innerHTML;
+          }
+        } else if (editorDiv.id.includes('exitreason')) {
+          const hiddenInput = document.getElementById(`exitreason-hidden-${tradeId}`);
+          if (hiddenInput) {
+            hiddenInput.value = pellContent.innerHTML;
+          }
+        }
+      });
+    });
+  });
+});
 
 
 </script>
