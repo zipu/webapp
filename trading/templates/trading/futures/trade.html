@@ -178,7 +178,7 @@
                   {% endfor %}
                 </div>
                 <div class="reason-content">
-                  {{ trade.entry_reason |linebreaks }}
+                  {{ trade.entry_reason |safe }}
                 </div>
               </div>
               <div class="reason-exit">
@@ -189,7 +189,7 @@
                   {% endfor %}
                 </div>
                 <div class="reason-content">
-                  {{ trade.exit_reason |linebreaks}}
+                  {{ trade.exit_reason |safe }}
                 </div>
               </div>
             </div>
@@ -274,7 +274,9 @@
                  </div>
                  <div>
                    <label class="form-label">이유</label>
-                   <textarea name="entryreason" placeholder="진입 이유" rows="4" class="form-control form-control-sm">{{trade.entry_reason }}</textarea>
+                   <div id="entryreason-{{trade.id}}" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
+                   <script type="text/template" id="entry-content-{{trade.id}}">{{trade.entry_reason|safe}}</script>
+                   <input type="hidden" name="entryreason">
                  </div>
                </div>
                <div class="reason-edit-exit">
@@ -287,7 +289,9 @@
                  </div>
                  <div>
                    <label class="form-label">이유</label>
-                   <textarea name="exitreason" placeholder="청산 이유" rows="4" class="form-control form-control-sm">{{trade.exit_reason}}</textarea>
+                   <div id="exitreason-{{trade.id}}" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
+                   <script type="text/template" id="exit-content-{{trade.id}}">{{trade.exit_reason|safe}}</script>
+                   <input type="hidden" name="exitreason">
                  </div>
                </div>
              </div>
@@ -309,6 +313,10 @@
 {% block script %}
 
 <link rel="stylesheet" href="{% static 'css/trading.css' %}">
+<!-- 텍스트 에디터 -->
+<link rel="stylesheet" href="{% static 'css/pell.min.css' %}">
+<script src="{% static 'js/pell.min.js' %}"></script>
+
 <script>
 // 매매내역 디테일 드롭다운 보이기
 var ShowDetail = function(id){
@@ -324,7 +332,68 @@ var ShowUpdateDetal = function(id){
   $('#'+id).css('display','none');
   $('#'+id+'-mod').css('display','table-row');
 
+  // 해당 수정 폼의 Pell Editor 초기화
+  initPellEditor(id);
 }
+
+// Pell Editor 초기화 함수
+function initPellEditor(tradeId) {
+  const entryDiv = document.getElementById('entryreason-' + tradeId);
+  const exitDiv = document.getElementById('exitreason-' + tradeId);
+  
+  // template 스크립트에서 기존 내용 가져오기
+  const entryTemplate = document.getElementById('entry-content-' + tradeId);
+  const exitTemplate = document.getElementById('exit-content-' + tradeId);
+  
+  const entryHidden = document.querySelector(`input[name="entryreason"]`);
+  const exitHidden = document.querySelector(`input[name="exitreason"]`);
+  
+  // 진입 이유 에디터 초기화
+  if (entryDiv && !entryDiv.classList.contains('pell')) {
+    pell.init({
+      element: entryDiv,
+      actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
+      onChange: html => {
+        if (entryHidden) entryHidden.value = html;
+      }
+    });
+    
+    // 기존 내용 설정 (template에서)
+    setTimeout(() => {
+      if (entryTemplate && entryDiv.querySelector('.pell-content')) {
+        const content = entryTemplate.innerHTML.trim();
+        if (content) {
+          entryDiv.querySelector('.pell-content').innerHTML = content;
+          if (entryHidden) entryHidden.value = content;
+        }
+      }
+    }, 100);
+  }
+  
+  // 청산 이유 에디터 초기화
+  if (exitDiv && !exitDiv.classList.contains('pell')) {
+    pell.init({
+      element: exitDiv,
+      actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
+      onChange: html => {
+        if (exitHidden) exitHidden.value = html;
+      }
+    });
+    
+    // 기존 내용 설정 (template에서)
+    setTimeout(() => {
+      if (exitTemplate && exitDiv.querySelector('.pell-content')) {
+        const content = exitTemplate.innerHTML.trim();
+        if (content) {
+          exitDiv.querySelector('.pell-content').innerHTML = content;
+          if (exitHidden) exitHidden.value = content;
+        }
+      }
+    }, 100);
+  }
+}
+
+// 폼 제출은 hidden input으로 자동 처리됨 (onChange에서 업데이트)
 
 
 </script>

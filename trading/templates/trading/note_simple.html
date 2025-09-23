@@ -211,7 +211,7 @@
         
         <div class="mb-3">
             <label class="form-label">내용</label>
-            <textarea name="memo" id="editor" rows="10" class="form-control"></textarea>
+            <div id="editor"></div>
         </div>
         
         <div class="row mb-3">
@@ -364,28 +364,23 @@
 {% endblock content2 %}
 
 {% block script %}
-<!-- CKEditor 5 CDN -->
-<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-
+<!-- 텍스트 에디터 -->
+<link rel="stylesheet" href="{% static 'css/pell.min.css' %}">
+<script src="{% static 'js/pell.min.js' %}"></script>
 <script>
-// CKEditor 초기화 (간단한 설정)
-let editor;
-ClassicEditor
-    .create(document.querySelector('#editor'), {
-        toolbar: [
-            'heading', '|',
-            'bold', 'italic', '|',
-            'bulletedList', 'numberedList', '|',
-            'link', 'blockQuote'
-        ],
-        language: 'ko'
-    })
-    .then(newEditor => {
-        editor = newEditor;
-    })
-    .catch(error => {
-        console.error('Editor error:', error);
-    });
+pell.init({
+    element: document.getElementById('editor'),
+    actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
+    onChange: html => {
+    }
+});
+
+$( "form" ).submit(function( event ) {
+  var input = $("<input>")
+               .attr("type", "hidden")
+               .attr("name", "memo").val($('.pell-content').html());
+  $('form').append(input);
+});
 
 // 노트 작성 섹션 토글
 function toggleCreate() {
@@ -412,17 +407,7 @@ function toggleContent(noteId) {
     }
 }
 
-// 폼 제출 시 에디터 내용 설정
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            if (editor) {
-                document.querySelector('#editor').value = editor.getData();
-            }
-        });
-    }
-});
+// 텍스트 에디터 끝
 </script>
 
 </div> <!-- note-container 끝 -->
