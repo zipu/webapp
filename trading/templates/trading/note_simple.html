@@ -3,32 +3,198 @@
 {% load static %}
 {% block content2 %}
 
+<!-- 최대 너비 제한 컨테이너 -->
+<div class="note-container">
+
 <style>
-.note-card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    padding: 15px;
-    background: white;
+/* 컨테이너 최대 너비 제한 */
+.note-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
 }
-.note-meta {
-    font-size: 0.85rem;
-    color: #6c757d;
-    margin-bottom: 10px;
+
+@media (max-width: 1300px) {
+    .note-container {
+        max-width: 95%;
+    }
 }
-.tag-badge {
-    background-color: #e9ecef;
-    color: #495057;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.7rem;
-    margin-right: 5px;
+
+@media (max-width: 768px) {
+    .note-container {
+        max-width: 100%;
+        padding: 0 10px;
+    }
 }
+/* 기본 스타일 */
 .create-section {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
+}
+
+/* 테이블 스타일 */
+.table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f8f9fa !important;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* 제목 컬럼 스타일 */
+.table td:nth-child(2) {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 노트 행 스타일 */
+.note-row {
+    transition: background-color 0.2s ease;
+}
+
+.note-row:hover {
+    background-color: #f8f9fa;
+}
+
+.note-title {
+    transition: color 0.2s ease;
+}
+
+.note-title:hover {
+    color: #0d6efd;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.toggle-icon.rotated {
+    transform: rotate(180deg);
+}
+
+/* 태그 스타일 */
+.tag-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+/* 내용 행 스타일 */
+.content-row {
+    background-color: #f8f9fa;
+}
+
+.note-content-wrapper {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    margin: 10px;
+    border-left: 4px solid #0d6efd;
+}
+
+.note-content {
+    line-height: 1.6;
+    color: #333;
+}
+
+.note-content h1, .note-content h2, .note-content h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.note-content p {
+    margin-bottom: 1rem;
+}
+
+/* 파일 목록 스타일 */
+.file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.file-item {
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+}
+
+.file-item a {
+    color: #495057;
+    text-decoration: none;
+}
+
+.file-item a:hover {
+    color: #0d6efd;
+}
+
+/* 버튼 그룹 스타일 */
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .table th, .table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.85rem;
+    }
+    
+    .tag-badge {
+        font-size: 0.7rem;
+        padding: 1px 6px;
+    }
+    
+    .note-content-wrapper {
+        padding: 15px;
+        margin: 5px;
+    }
+}
+
+/* 페이지네이션 스타일 개선 */
+.pagination {
+    margin-top: 2rem;
+}
+
+.page-link {
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.page-link:hover {
+    color: #0d6efd;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
 }
 </style>
 
@@ -69,54 +235,100 @@
 
 <!-- 노트 목록 -->
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>📋 노트 목록</h4>
+    <h4>📋 노트 목록 <small class="text-muted">({{ notes|length }}개)</small></h4>
     <button class="btn btn-success" onclick="toggleCreate()">
         ➕ 새 노트 작성
     </button>
 </div>
 
-{% for note in notes %}
-<div class="note-card">
-    <div class="note-meta">
-        📅 {{ note.date|date:"Y-m-d H:i" }}
-        {% if note.tags.all %}
-        | 🏷️ {% for tag in note.tags.all %}<span class="tag-badge">{{ tag.name }}</span>{% endfor %}
-        {% endif %}
-    </div>
-    
-    <h6>{{ note.title }}</h6>
-    
-    <div id="content-{{ note.id }}" style="display:none;">
-        <div class="mt-2 p-2 border-top">
-            {{ note.memo|safe }}
-        </div>
-        
-        {% if note.files.all %}
-        <div class="mt-2">
-            <strong>📎 첨부파일:</strong>
-            {% for file in note.files.all %}
-            <div><a href="{{ file.file.url }}" download>📄 {{ file.name }}</a></div>
+{% if notes %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th width="12%">📅 날짜</th>
+                <th width="40%">📝 제목</th>
+                <th width="25%">🏷️ 태그</th>
+                <th width="13%">📎 파일</th>
+                <th width="10%">작업</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for note in notes %}
+            <tr class="note-row" data-note-id="{{ note.id }}">
+                <td class="text-muted">
+                    <small>{{ note.date|date:"m-d H:i" }}</small>
+                </td>
+                <td>
+                    <div class="note-title" onclick="toggleContent({{ note.id }})" style="cursor: pointer;" title="{{ note.title }}">
+                        <strong>{{ note.title }}</strong>
+                        <i class="fas fa-chevron-down ms-1 toggle-icon" id="icon-{{ note.id }}"></i>
+                    </div>
+                </td>
+                <td>
+                    {% if note.tags.all %}
+                        {% for tag in note.tags.all %}
+                        <span class="tag-badge">{{ tag.name }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <small class="text-muted">-</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if note.files.all %}
+                        <span class="badge bg-info">{{ note.files.all|length }}개</span>
+                    {% else %}
+                        <small class="text-muted">-</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary btn-sm" onclick="toggleContent({{ note.id }})" title="내용 보기">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="?id={{ note.id }}" class="btn btn-outline-danger btn-sm" 
+                           onclick="return confirm('정말 삭제하시겠습니까?')" title="삭제">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <!-- 노트 내용 행 (토글) -->
+            <tr id="content-row-{{ note.id }}" class="content-row" style="display:none;">
+                <td colspan="5">
+                    <div class="note-content-wrapper">
+                        <div class="note-content">
+                            {{ note.memo|safe }}
+                        </div>
+                        
+                        {% if note.files.all %}
+                        <div class="mt-3 pt-3 border-top">
+                            <h6>📎 첨부파일</h6>
+                            <div class="file-list">
+                                {% for file in note.files.all %}
+                                <div class="file-item">
+                                    <a href="{{ file.file.url }}" download class="text-decoration-none">
+                                        <i class="fas fa-download"></i> {{ file.name }}
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
-        </div>
-        {% endif %}
-    </div>
-    
-    <div class="mt-2">
-        <button class="btn btn-sm btn-outline-primary" onclick="toggleContent({{ note.id }})">
-            👁️ 내용 보기
-        </button>
-        <a href="?id={{ note.id }}" class="btn btn-sm btn-outline-danger" 
-           onclick="return confirm('정말 삭제하시겠습니까?')">
-            🗑️ 삭제
-        </a>
-    </div>
+        </tbody>
+    </table>
 </div>
-{% empty %}
+{% else %}
 <div class="text-center py-5">
+    <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
     <h5 class="text-muted">📝 아직 노트가 없습니다</h5>
     <p class="text-muted">첫 번째 노트를 작성해보세요!</p>
 </div>
-{% endfor %}
+{% endif %}
 
 <!-- 페이지네이션 -->
 {% if is_paginated %}
@@ -186,13 +398,17 @@ function toggleCreate() {
     }
 }
 
-// 노트 내용 토글
+// 노트 내용 토글 (개선된 버전)
 function toggleContent(noteId) {
-    const content = document.getElementById('content-' + noteId);
-    if (content.style.display === 'none') {
-        content.style.display = 'block';
+    const contentRow = document.getElementById('content-row-' + noteId);
+    const icon = document.getElementById('icon-' + noteId);
+    
+    if (contentRow.style.display === 'none') {
+        contentRow.style.display = 'table-row';
+        icon.classList.add('rotated');
     } else {
-        content.style.display = 'none';
+        contentRow.style.display = 'none';
+        icon.classList.remove('rotated');
     }
 }
 
@@ -208,4 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+</div> <!-- note-container 끝 -->
 {% endblock script %}

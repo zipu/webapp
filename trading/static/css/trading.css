@@ -31,3 +31,161 @@ thead {
   text-align:left;
 }
 
+/* CSS Grid layouts for trade detail and edit views */
+.trade-detail-container {
+    padding: 15px;
+    background: #f8f9fa;
+    margin: 5px 0;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.detail-item label {
+    font-weight: bold;
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.detail-item span {
+    color: #495057;
+    font-size: 0.9em;
+}
+
+.reason-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.reason-entry, .reason-exit {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.reason-entry h6, .reason-exit h6 {
+    margin-bottom: 10px;
+    color: #495057;
+    font-weight: bold;
+}
+
+.reason-tags {
+    margin-bottom: 10px;
+}
+
+.reason-tag {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-right: 5px;
+    margin-bottom: 3px;
+}
+
+.reason-content {
+    color: #495057;
+    line-height: 1.4;
+    font-size: 0.9em;
+}
+
+.action-section {
+    text-align: center;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Edit view specific styles */
+.trade-edit-container {
+    padding: 15px;
+    background: #f8f9fa;
+    margin: 5px 0;
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.edit-item {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.edit-item label {
+    font-weight: bold;
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.edit-item input, .edit-item select {
+    font-size: 0.9em;
+}
+
+.edit-item span {
+    color: #495057;
+    font-size: 0.9em;
+    padding: 5px 0;
+}
+
+.reason-edit-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.reason-edit-entry, .reason-edit-exit {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.reason-edit-entry h6, .reason-edit-exit h6 {
+    margin-bottom: 10px;
+    color: #495057;
+    font-weight: bold;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .detail-grid, .edit-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .reason-section, .reason-edit-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .trade-detail-container, .trade-edit-container {
+        padding: 10px;
+        margin: 2px 0;
+    }
+}
+

@@ -122,135 +122,182 @@
       </tr>
       <!-- 매매 디테일 뷰 -->
       <tr id='{{trade.id}}' style='display:none;'> 
-        <td colspan=12 style='padding:0;'>
-          <table class='table table-sm table-bordered' style='mrgin:0;padding:0;'>
-            <tr>
-              <td style='width:12.5%; background-color: lightyellow'> 평균매입가 </td>
-              <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
-              <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
-              <td style='width:12.5%;'> {{ trade.stop_price.normalize }} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 타임프레임 </td>
-              <td style='width:12.5%;'> {{ trade.timeframe }} </td>
-            </tr>
-            <tr>
-              <td style='background-color: lightyellow'> 멘탈 </td>
-              <td>  {{trade.mental |default_if_none:""}} </td>
-              <td style='background-color: lightyellow'> 진입전략 </td>
-              <td > {{ trade.entry_strategy.name }} </td>
-              <td style='background-color: lightyellow;'> 청산전략 </td>
-              <td> {{trade.exit_strategy.name}} </td>
-              <td style='background-color: lightyellow;'> 수수료 </td>
-              <td> {{ trade.commission.normalize }} </td>
-            </tr>
-            <tr>
-              <td colspan=4 style="background-color: lightyellow;"> 진입 이유 </td>
-              <td colspan=4 style="background-color: lightyellow;"> 청산 이유 </td>
-            </tr>
-            <tr>
-              <td colspan=4> 
-                {% for tag in trade.entry_tags.all %}
-                <span style='background-color: lightgrey;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
-                {% endfor %}
-              </td>
-              <td colspan=4 style="height:20px;"> 
-                {% for tag in trade.exit_tags.all %}
-                <span style='background-color: lightgrey;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
-                {% endfor %}
-              </td>
-            </tr>
-            <tr>
-              <td colspan=4> 
-                <span>
+        <td colspan=14 style='padding:0;'>
+          <div class="trade-detail-container">
+            <!-- 기본 정보 그리드 -->
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>평균매입가</label>
+                <span>{{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
+              </div>
+              <div class="detail-item">
+                <label>평균청산가</label>
+                <span>{{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
+              </div>
+              <div class="detail-item">
+                <label>손절가</label>
+                <span>{{ trade.stop_price.normalize }}</span>
+              </div>
+              <div class="detail-item">
+                <label>타임프레임</label>
+                <span>{{ trade.timeframe }}</span>
+              </div>
+              <div class="detail-item">
+                <label>멘탈</label>
+                <span>{{trade.mental |default_if_none:"-"}}</span>
+              </div>
+              <div class="detail-item">
+                <label>진입전략</label>
+                <span>{{ trade.entry_strategy.name }}</span>
+              </div>
+              <div class="detail-item">
+                <label>청산전략</label>
+                <span>{{trade.exit_strategy.name}}</span>
+              </div>
+              <div class="detail-item">
+                <label>수수료</label>
+                <span>{{ trade.commission.normalize }}</span>
+              </div>
+              <div class="detail-item">
+                <label>지속시간</label>
+                <span>{{ trade.duration|default:"-" }}</span>
+              </div>
+              <div class="detail-item">
+                <label>상태</label>
+                <span>{% if trade.is_open %}진행중{% else %}완료{% endif %}</span>
+              </div>
+            </div>
+            
+            <!-- 진입/청산 이유 섹션 -->
+            <div class="reason-section">
+              <div class="reason-entry">
+                <h6>진입 이유</h6>
+                <div class="reason-tags">
+                  {% for tag in trade.entry_tags.all %}
+                  <span class="reason-tag">{{tag.name}}</span>
+                  {% endfor %}
+                </div>
+                <div class="reason-content">
                   {{ trade.entry_reason |linebreaks }}
-                </span>
-              </td>
-              <td colspan=4> 
-                <span>
+                </div>
+              </div>
+              <div class="reason-exit">
+                <h6>청산 이유</h6>
+                <div class="reason-tags">
+                  {% for tag in trade.exit_tags.all %}
+                  <span class="reason-tag">{{tag.name}}</span>
+                  {% endfor %}
+                </div>
+                <div class="reason-content">
                   {{ trade.exit_reason |linebreaks}}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td colspan=13> <input type="button" value="수정" onclick="ShowUpdateDetal({{trade.id}});"> </td>
-            </tr>
-        </table>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 수정 버튼 -->
+            <div class="action-section">
+              <button type="button" class="btn btn-primary btn-sm" onclick="ShowUpdateDetal({{trade.id}});">
+                수정
+              </button>
+            </div>
+          </div>
       </td>
       </tr>
       <!-- 매매 디테일 업데이트 뷰 -->
       <tr id='{{trade.id}}-mod' style='display:none;'> 
-        <td colspan=12 style='padding:0;'>
+        <td colspan=14 style='padding:0;'>
           <form action="{% url 'futurestrade' page=1 %}" method='post'>
            {% csrf_token %}
            <input type='hidden' value='{{trade.id}}' name='id'></input>
-          <table class='table table-sm table-bordered' style='mrgin:0;padding:0;'>
-            <tr>
-              <td style='width:12.5%; background-color: lightyellow'> 평균매입가 </td>
-              <td style='width:12.5%'>  {{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 평균청산가 </td>
-              <td style='width:12.5%'>  {{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}} </td>
-              <td style='width:12.5%; background-color: lightyellow'> 손절가 </td>
-              <td> <input type="float" value='{{trade.stop_price.normalize}}' name='stopprice'> </input> </td>
-              <td style='width:12.5%; background-color: lightyellow'> 타임프레임 </td>
-              <td style='width:12.5%;'> {{ trade.timeframe }} </td>
-            </tr>
-            <tr>
-              <td style='width:10%;background-color: lightyellow'> 멘탈 </td>
-              <td style='width:10%'>  
-                  <select placeholder="멘탈" id="mental" name="mental">
-                  <option value=''>    </option>
-                  <option value='Good' {% if trade.mental == 'Good' %} selected {% endif %}> Good </option>
-                  <option value='Normal' {% if trade.mental == 'Normal' %} selected {% endif %}> Normal </option>
-                  <option value='Bad' {% if trade.mental == 'Bad' %} selected {% endif %}> Bad </option>
-                  </select>
-              </td>
-              <td style='width:10%;background-color: lightyellow'> 진입전략 </td>
-              <td style='width:10%'>  
-                  <select placeholder="진입전략" name="entry_strategy">
-                  <option value=''> </option>
-                  {% for strategy in entry_strategies%}
-                  <option value={{strategy.id}} {% if strategy.id == trade.entry_strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
-                  {% endfor %}
-                  </select>
-              </td>
-              <td style='background-color: lightyellow;'> 청산전략 </td>
-              <td>
-                <select placeholder="청산전략" name="exit_strategy">
-                  <option value=''> </option>
-                  {% for strategy in exit_strategies%}
-                  <option value={{strategy.id}} {% if strategy.id == trade.exit_strategy.id %} selected {% endif %}> {{ strategy.name }} </option>
-                  {% endfor %}
-                  </select>
-              </td>
-              <td style='background-color: lightyellow;'> 수수료 </td>
-              <td> {{ trade.commission.normalize }} </td>
-            </tr>
-            <tr>
-              <td colspan=4 style="background-color: lightyellow"> 진입 이유 </td>
-              <td colspan=4 style="background-color: lightyellow"> 청산 이유 </td>
-            </tr>
-            <tr>
-              <td colspan=4>
-                <input type="text" class="entrytags" name="entrytags" 
-                  value="{% for tag in trade.entry_tags.all %}{{tag.name}};{% endfor %}" style='width:80%'>
-              </td>
-              <td colspan=4> 
-                <input type="text" class="exittags" name="exittags" 
-                  value="{% for tag in trade.exit_tags.all %}{{tag.name}};{% endfor %}" style='width:80%'>
-              </td>
-            </tr>
-            <tr>
-              <td colspan=4> 
-                <textarea id="entryreason" name="entryreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.entry_reason }}</textarea>
-              </td>
-              <td colspan=4><textarea id="exitreason" name="exitreason" placeholder="진입 이유" rows="5" style='width:80%'>{{trade.exit_reason}}</textarea>
-              </td>
-            </tr>
-            <tr>
-              <td colspan=12> <input type="submit" value="제출"> </td>
-            </tr>
-          </table>
+           
+           <div class="trade-edit-container">
+             <!-- 수정 가능한 기본 정보 그리드 -->
+             <div class="edit-grid">
+               <div class="edit-item">
+                 <label>평균매입가</label>
+                 <span>{{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
+               </div>
+               <div class="edit-item">
+                 <label>평균청산가</label>
+                 <span>{{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
+               </div>
+               <div class="edit-item">
+                 <label>손절가</label>
+                 <input type="number" step="any" value='{{trade.stop_price.normalize}}' name='stopprice' class="form-control form-control-sm">
+               </div>
+               <div class="edit-item">
+                 <label>타임프레임</label>
+                 <span>{{ trade.timeframe }}</span>
+               </div>
+               <div class="edit-item">
+                 <label>멘탈</label>
+                 <select name="mental" class="form-select form-select-sm">
+                   <option value=''>선택</option>
+                   <option value='Good' {% if trade.mental == 'Good' %} selected {% endif %}>Good</option>
+                   <option value='Normal' {% if trade.mental == 'Normal' %} selected {% endif %}>Normal</option>
+                   <option value='Bad' {% if trade.mental == 'Bad' %} selected {% endif %}>Bad</option>
+                 </select>
+               </div>
+               <div class="edit-item">
+                 <label>진입전략</label>
+                 <select name="entry_strategy" class="form-select form-select-sm">
+                   <option value=''>선택</option>
+                   {% for strategy in entry_strategies%}
+                   <option value={{strategy.id}} {% if strategy.id == trade.entry_strategy.id %} selected {% endif %}>{{ strategy.name }}</option>
+                   {% endfor %}
+                 </select>
+               </div>
+               <div class="edit-item">
+                 <label>청산전략</label>
+                 <select name="exit_strategy" class="form-select form-select-sm">
+                   <option value=''>선택</option>
+                   {% for strategy in exit_strategies%}
+                   <option value={{strategy.id}} {% if strategy.id == trade.exit_strategy.id %} selected {% endif %}>{{ strategy.name }}</option>
+                   {% endfor %}
+                 </select>
+               </div>
+               <div class="edit-item">
+                 <label>수수료</label>
+                 <span>{{ trade.commission.normalize }}</span>
+               </div>
+             </div>
+             
+             <!-- 진입/청산 이유 편집 섹션 -->
+             <div class="reason-edit-section">
+               <div class="reason-edit-entry">
+                 <h6>진입 이유</h6>
+                 <div class="mb-2">
+                   <label class="form-label">태그</label>
+                   <input type="text" class="form-control form-control-sm" name="entrytags" 
+                     value="{% for tag in trade.entry_tags.all %}{{tag.name}};{% endfor %}" 
+                     placeholder="태그1;태그2;태그3">
+                 </div>
+                 <div>
+                   <label class="form-label">이유</label>
+                   <textarea name="entryreason" placeholder="진입 이유" rows="4" class="form-control form-control-sm">{{trade.entry_reason }}</textarea>
+                 </div>
+               </div>
+               <div class="reason-edit-exit">
+                 <h6>청산 이유</h6>
+                 <div class="mb-2">
+                   <label class="form-label">태그</label>
+                   <input type="text" class="form-control form-control-sm" name="exittags" 
+                     value="{% for tag in trade.exit_tags.all %}{{tag.name}};{% endfor %}" 
+                     placeholder="태그1;태그2;태그3">
+                 </div>
+                 <div>
+                   <label class="form-label">이유</label>
+                   <textarea name="exitreason" placeholder="청산 이유" rows="4" class="form-control form-control-sm">{{trade.exit_reason}}</textarea>
+                 </div>
+               </div>
+             </div>
+             
+             <!-- 액션 버튼 -->
+             <div class="action-section">
+               <button type="submit" class="btn btn-success btn-sm">저장</button>
+               <button type="button" class="btn btn-secondary btn-sm" onclick="ShowDetail({{trade.id}});">취소</button>
+             </div>
+           </div>
         </form>
         </td>
       </tr>
