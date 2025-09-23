@@ -3,176 +3,451 @@
 {% load static %}
 {% block content2 %}
 
-</br>
-<div>
-    <input type="button" value="&#x2b;" onclick="ShowNewMemo();"> 
-    <form action="{% url 'note' page='1' %}" method="post" id="newmemo" style="display:none;" enctype="multipart/form-data">
-    </br>
-     {% csrf_token %}  
-      <table class="table table-sm table-bordered" style="font-size:small">
-      <tr>
-        <td style='width:15%'> 제목 </td>
-        <td> <input type="text" name="title" style="width:90%;"> </input></td>
-      </tr>
-      <tr>
-        <td> 태그 </td>
-        <td> <input type="text" name="tags" style="width:90%;"></input> </td>
-      </tr>
-      <tr>
-        <td> 내용 </td>
-        <td style="text-align:left !important;"> <div id="editor" class="pell"></div> </td>
-        <!-- <td> <textarea name="memo" rows="20" style='width:90%'></textarea> </td> -->
-      </tr>
-      <tr>
-        <td> 첨부파일 </td>
-        <td style="float:left;"> 
-          <input type="file" id="file" name="file" multiple>
-        </td>
-      </tr>
-      <tr>
-        <td colspan=2> <input type="submit" value="생성">  </td>
-      </tr>
-      
-      </table>
+<style>
+    .note-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        transition: box-shadow 0.3s;
+    }
+    .note-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .note-card.pinned {
+        border-left: 4px solid #007bff;
+        background-color: #f8f9fa;
+    }
+    .category-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        color: white;
+        font-weight: bold;
+    }
+    .tag-badge {
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        margin-right: 3px;
+        display: inline-block;
+        margin-bottom: 2px;
+    }
+    .note-summary {
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    .note-meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .trading-info {
+        background-color: #e3f2fd;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 5px;
+        font-size: 0.85rem;
+    }
+    .profit { color: #dc3545; }
+    .loss { color: #007bff; }
+    .search-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .create-note-section {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<!-- 검색 및 필터 섹션 -->
+<div class="search-section">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <input type="text" class="form-control form-control-sm" name="search" 
+                   placeholder="제목, 내용에서 검색..." value="{{ search_term }}">
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-select form-select-sm">
+                <option value="">전체 카테고리</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="tag" class="form-select form-select-sm">
+                <option value="">전체 태그</option>
+                {% for tag in all_tags %}
+                <option value="{{ tag.name }}" {% if selected_tag == tag.name %}selected{% endif %}>
+                    {{ tag.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">검색</button>
+        </div>
     </form>
 </div>
-</br>
- 
 
-  <table class="table table-sm table-bordered" style="font-size:small">
-      <tr class="table table-secondary">
-        <td scope="col" width='5%;'>#</td>
-        <td scope="col" width='10%'>날짜</td>
-        <td scope="col" width='45%'>제목</td>
-        <td scope="col" width='40%'>태그</td>
-      </tr>
-      {% for note in notes %}
-      <tr class='note' onclick="ShowMemo({{note.id}})">
-          <td>{{note.id}} </td>
-          <td>{{note.date | date:"Y-m-d"}} </td>
-          <td>{{note.title}} </td>
-          <td>
-            {% for tag in note.tags.all %}
-            <span style='background-color:#FBEEE6;;margin:3px;padding:2px;border-radius:5px; font-weight: bold;'>{{tag.name}}</span>
-            {% endfor %}
-          </td>
-      </tr>
-      <tr class='{{ note.id }}' style='display:none;'>
-          <td colspan=4 class="memo" style="text-align:left !important;padding-left:5%;padding-top:10px;"> {{note.memo |safe}} </td>
-      </tr>
-      <tr class='{{note.id }}' style='display:none;'>
-        <td colspan=2> 첨부파일 </td> 
-        <td colspan=2> 
-          {% for file in note.files.all %} 
-            <span><a href="{{MEDIA_URL}}{{file.file}}" download> {{file.name}}</a></span>
-          {% endfor %}
-        </td>
-      </tr>
-      <form action="{% url 'note' page=1 %}" method='get'>
-        <input type='hidden' value='{{note.id}}' name='id'></input>
-      <tr class='{{ note.id }}' style='display:none;'>
-        <td colspan=4> <input type='submit' value='삭제'></input> </td>
-      </tr>
-      </form>
-      {% endfor %}
-  </table>
+<!-- 노트 작성 섹션 -->
+<div class="create-note-section" id="createNoteSection" style="display:none;">
+    <h5>새 노트 작성</h5>
+    <form action="{% url 'note' page='1' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <label class="form-label">제목 *</label>
+                <input type="text" name="title" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">카테고리</label>
+                <select name="category" class="form-select">
+                    <option value="">선택 안함</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">내용</label>
+            <textarea name="content" id="editor" rows="8" class="form-control"></textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">요약</label>
+            <input type="text" name="summary" class="form-control" placeholder="선택사항 - 노트의 간단한 요약">
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">태그</label>
+                <input type="text" name="tags" class="form-control" placeholder="태그1;태그2;태그3">
+                <small class="text-muted">세미콜론(;)으로 구분</small>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">공개 설정</label>
+                <select name="privacy" class="form-select">
+                    <option value="private">비공개</option>
+                    <option value="public">공개</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 매매 관련 정보 -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">매매 관련 정보 (선택사항)</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">매매일자</label>
+                        <input type="date" name="trading_date" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">상품명</label>
+                        <input type="text" name="instrument_name" class="form-control" placeholder="예: ES, NQ, YM">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">손익</label>
+                        <input type="number" name="profit_loss" step="0.01" class="form-control" placeholder="양수: 수익, 음수: 손실">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">이미지 첨부</label>
+                <input type="file" name="images" class="form-control" multiple accept="image/*">
+                <input type="text" name="image_caption" class="form-control mt-2" placeholder="이미지 설명 (선택사항)">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">파일 첨부</label>
+                <input type="file" name="files" class="form-control" multiple>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <div class="form-check">
+                <input type="checkbox" name="is_pinned" class="form-check-input" id="isPinned">
+                <label class="form-check-label" for="isPinned">상단 고정</label>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">저장</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleCreateNote()">취소</button>
+        </div>
+    </form>
+</div>
 
-  {% if is_paginated %}
-  <nav aria-label="Page navigator">
-    <ul class="pagination pagination-sm justify-content-center">
-      <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
-        <a class="page-link" href="{% url 'futurestrade' page=1 %}" aria-label="First">
-          <span aria-hidden="true">&laquo;</span>
-        </a>
-      </li>
-      <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
-        <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}" aria-label="Previous">
-          <span aria-hidden="true">&lt;</span>
-        </a>
-      </li>
-      {% for page in page_obj.rng %}
-        {% if page_obj.page == page %}
-          <li class="page-item active">
-            <a class="page-link" href="">{{page}}</a>
-          </li>
-        {% else %}
-          <li class="page-item">
-            <a class="page-link" href="{% url 'futurestrade' page=page %}">{{page}}</a>
-          </li>
+<!-- 노트 목록 -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>노트 목록 <small class="text-muted">(총 {{ total_notes }}개)</small></h4>
+    <button class="btn btn-success btn-sm" onclick="toggleCreateNote()">
+        <i class="fas fa-plus"></i> 새 노트 작성
+    </button>
+</div>
+
+{% for note in notes %}
+<div class="note-card {% if note.is_pinned %}pinned{% endif %}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+                <h6 class="card-title mb-1">
+                    {% if note.is_pinned %}<i class="fas fa-thumbtack text-primary"></i>{% endif %}
+                    {{ note.title }}
+                </h6>
+                <div class="note-meta mb-2">
+                    <small>
+                        <i class="fas fa-calendar"></i> {{ note.date|date:"Y-m-d H:i" }}
+                        {% if note.updated_date and note.updated_date != note.date %}
+                            <i class="fas fa-edit ml-2"></i> {{ note.updated_date|date:"Y-m-d H:i" }}
+                        {% endif %}
+                        <i class="fas fa-eye ml-2"></i> {{ note.view_count }}회
+                    </small>
+                </div>
+            </div>
+            <div class="text-end">
+                {% if note.category %}
+                <span class="category-badge" style="background-color: {{ note.category.color }};">
+                    {{ note.category.name }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if note.get_summary %}
+        <p class="note-summary mb-2">{{ note.get_summary }}</p>
         {% endif %}
-      {% endfor %}
-      <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
-        <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}" aria-label="Previous">
-          <span aria-hidden="true">&gt;</span>
-        </a>
-      </li>
-      <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
-        <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </a>
-      </li>
+        
+        {% if note.tags.all %}
+        <div class="mb-2">
+            {% for tag in note.tags.all %}
+            <span class="tag-badge">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if note.trading_date or note.instrument_name or note.profit_loss %}
+        <div class="trading-info">
+            <strong>매매 정보:</strong>
+            {% if note.trading_date %}{{ note.trading_date|date:"Y-m-d" }}{% endif %}
+            {% if note.instrument_name %}| {{ note.instrument_name }}{% endif %}
+            {% if note.profit_loss %}
+                | <span class="{% if note.profit_loss > 0 %}profit{% else %}loss{% endif %}">
+                    {% if note.profit_loss > 0 %}+{% endif %}{{ note.profit_loss|floatformat:2 }}
+                </span>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+            <div>
+                <button class="btn btn-outline-primary btn-sm" onclick="toggleNoteContent({{ note.id }})">
+                    <i class="fas fa-eye"></i> 내용 보기
+                </button>
+                {% if note.images.all or note.files.all %}
+                <button class="btn btn-outline-info btn-sm" onclick="toggleAttachments({{ note.id }})">
+                    <i class="fas fa-paperclip"></i> 첨부파일
+                </button>
+                {% endif %}
+            </div>
+            <div>
+                <a href="?view_id={{ note.id }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-plus"></i> 조회수
+                </a>
+                <a href="?delete_id={{ note.id }}" class="btn btn-sm btn-outline-danger" 
+                   onclick="return confirm('정말 삭제하시겠습니까?')">
+                    <i class="fas fa-trash"></i> 삭제
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 노트 내용 (토글) -->
+    <div id="content-{{ note.id }}" class="card-footer" style="display:none;">
+        <div class="note-content">
+            {{ note.content|safe }}
+        </div>
+    </div>
+    
+    <!-- 첨부파일 (토글) -->
+    {% if note.images.all or note.files.all %}
+    <div id="attachments-{{ note.id }}" class="card-footer" style="display:none;">
+        {% if note.images.all %}
+        <h6>이미지</h6>
+        <div class="row">
+            {% for image in note.images.all %}
+            <div class="col-md-3 mb-2">
+                <img src="{{ image.image.url }}" class="img-thumbnail" style="max-height: 150px;">
+                {% if image.caption %}<small class="d-block">{{ image.caption }}</small>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if note.files.all %}
+        <h6>파일</h6>
+        <ul class="list-unstyled">
+            {% for file in note.files.all %}
+            <li>
+                <a href="{{ file.file.url }}" download class="text-decoration-none">
+                    <i class="fas fa-download"></i> {{ file.name }} 
+                    <small class="text-muted">({{ file.get_file_size_display }})</small>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% empty %}
+<div class="text-center py-5">
+    <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">노트가 없습니다</h5>
+    <p class="text-muted">첫 번째 노트를 작성해보세요!</p>
+</div>
+{% endfor %}
+
+<!-- 페이지네이션 -->
+{% if is_paginated %}
+<nav aria-label="페이지 네비게이션">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{% url 'note' page=1 %}" aria-label="첫 페이지">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{% url 'note' page=page_obj.previous %}" aria-label="이전">
+                <span aria-hidden="true">&lt;</span>
+            </a>
+        </li>
+        {% for page in page_obj.rng %}
+            {% if page_obj.page == page %}
+                <li class="page-item active">
+                    <a class="page-link" href="#">{{ page }}</a>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'note' page=page %}">{{ page }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+            <a class="page-link" href="{% url 'note' page=page_obj.next %}" aria-label="다음">
+                <span aria-hidden="true">&gt;</span>
+            </a>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+            <a class="page-link" href="{% url 'note' page=page_obj.num_page %}" aria-label="마지막">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
     </ul>
-  </nav>
+</nav>
 {% endif %}
 
-  
 {% endblock content2 %}
 
 {% block script %}
+<!-- CKEditor CDN -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<link rel="stylesheet" href="{% static 'css/trading.css' %}">
-
-<!-- 텍스트 에디터 -->
-<link rel="stylesheet" href="{% static 'css/pell.min.css' %}">
-<script src="{% static 'js/pell.min.js' %}"></script>
 <script>
-pell.init({
-    element: document.getElementById('editor'),
-    actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
-    onChange: html => {
+// CKEditor 초기화
+let editor;
+ClassicEditor
+    .create(document.querySelector('#editor'), {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', '|',
+                'bulletedList', 'numberedList', '|',
+                'outdent', 'indent', '|',
+                'imageUpload', 'link', 'blockQuote', '|',
+                'insertTable', '|',
+                'undo', 'redo'
+            ]
+        },
+        language: 'ko',
+        image: {
+            toolbar: [
+                'imageTextAlternative',
+                'imageStyle:full',
+                'imageStyle:side'
+            ]
+        },
+        table: {
+            contentToolbar: [
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells'
+            ]
+        }
+    })
+    .then(newEditor => {
+        editor = newEditor;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+// 노트 작성 섹션 토글
+function toggleCreateNote() {
+    const section = document.getElementById('createNoteSection');
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+// 노트 내용 토글
+function toggleNoteContent(noteId) {
+    const content = document.getElementById('content-' + noteId);
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+    } else {
+        content.style.display = 'none';
+    }
+}
+
+// 첨부파일 토글
+function toggleAttachments(noteId) {
+    const attachments = document.getElementById('attachments-' + noteId);
+    if (attachments.style.display === 'none') {
+        attachments.style.display = 'block';
+    } else {
+        attachments.style.display = 'none';
+    }
+}
+
+// 폼 제출 시 CKEditor 내용을 textarea에 설정
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (editor) {
+        document.querySelector('#editor').value = editor.getData();
     }
 });
-
-$( "#newmemo" ).submit(function( event ) {
-  var input = $("<input>")
-               .attr("type", "hidden")
-               .attr("name", "memo").val($('.pell-content').html());
-  $('#newmemo').append(input);
-});
-
-
-// 에디터 숨기기
-var ShowEditor = function(){
-  if($('#editor').css('display') == 'none'){
-    $('#editor').css('display', 'block');
- } else {
-   $('#editor').css('display', 'none'); 
- }
-};
 </script>
-<!-- 텍스트 에디터 끝-->
-
-<script>
-// 매매내역 디테일 드롭다운 보이기
-var ShowMemo = function(id){
-  if($('.'+id).css('display') == 'none'){
-     $('.'+id).css('display', 'table-row');
-  } else {
-    $('.'+id).css('display', 'none'); 
-  }
-};
-
-var ShowNewMemo = function(){
-  if($('#newmemo').css('display') == 'none'){
-    $('#newmemo').css('display', 'block');
- } else {
-   $('#newmemo').css('display', 'none'); 
- }
-
-};
-
-
-
-
-</script>
-{% endblock script%}
+{% endblock script %}

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.core.serializers import serialize
 
 
-from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper,Func
+from django.db.models import Sum, Count, Avg, StdDev, F, FloatField, ExpressionWrapper,Func, Q
 from django.db.models import IntegerField
 from django.db.models.functions import Cast, TruncDate
 from trading.models import Asset
@@ -555,7 +555,7 @@ class CalculatorView(TemplateView):
 
 
 class NoteView(TemplateView):
-    template_name = "trading/note.html"
+    template_name = "trading/note_simple.html"
 
     def get(self, request, *args, **kwargs):
         # 노트 삭제
@@ -567,7 +567,7 @@ class NoteView(TemplateView):
         context['active'] = 'note'
         
         notes = Note.objects.order_by('-date')
-        paginate_by = 20 # 페이지당 30개
+        paginate_by = 20 # 페이지당 20개
         cnt = notes.count()
         num_pages = int(cnt/paginate_by)+1
         page = kwargs['page']
