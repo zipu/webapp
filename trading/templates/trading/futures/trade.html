@@ -136,11 +136,11 @@
               </div>
               <div class="detail-item">
                 <label>손절가</label>
-                <span>{{ trade.stop_price.normalize }}</span>
+                <span>{{ trade.stop_price.normalize |default_if_none:"-" }}</span>
               </div>
               <div class="detail-item">
                 <label>타임프레임</label>
-                <span>{{ trade.timeframe }}</span>
+                <span>{{ trade.timeframe |default_if_none:"-" }}</span>
               </div>
               <div class="detail-item">
                 <label>멘탈</label>
@@ -148,11 +148,11 @@
               </div>
               <div class="detail-item">
                 <label>진입전략</label>
-                <span>{{ trade.entry_strategy.name }}</span>
+                <span>{{ trade.entry_strategy.name |default_if_none:"-" }}</span>
               </div>
               <div class="detail-item">
                 <label>청산전략</label>
-                <span>{{trade.exit_strategy.name}}</span>
+                <span>{{trade.exit_strategy.name |default_if_none:"-"}}</span>
               </div>
               <div class="detail-item">
                 <label>수수료</label>
@@ -178,7 +178,7 @@
                   {% endfor %}
                 </div>
                 <div class="reason-content">
-                  {{ trade.entry_reason |safe }}
+                  {{ trade.entry_reason |default_if_none:"" |safe }}
                 </div>
               </div>
               <div class="reason-exit">
@@ -189,7 +189,7 @@
                   {% endfor %}
                 </div>
                 <div class="reason-content">
-                  {{ trade.exit_reason |safe }}
+                  {{ trade.exit_reason |default_if_none:"" |safe }}
                 </div>
               </div>
             </div>
