@@ -1,0 +1,27 @@
+{
+  "name": "Echo Mind",
+  "short_name": "EchoMind",
+  "description": "Track your activities and lapses with Echo Mind",
+  "start_url": "/echomind/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#007bff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/echomind/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/echomind/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
