@@ -1,0 +1,234 @@
+{% extends "echomind/base.html" %}
+
+{% block title %}Echo Mind - Lapse Log{% endblock %}
+
+{% block extra_style %}
+.type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.type-btn {
+    padding: 20px 10px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.type-btn:hover {
+    background: #f0f0f0;
+}
+.type-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.category-btn {
+    padding: 18px 10px;
+    font-size: 15px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.category-btn:hover {
+    background: #f0f0f0;
+}
+.category-btn.active {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+.current-time {
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 20px;
+}
+.time-label {
+    font-size: 12px;
+    color: #6c757d;
+    display: block;
+    margin-bottom: 5px;
+}
+.step-section {
+    margin-bottom: 25px;
+}
+.step-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 8px;
+    display: block;
+}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <!-- Current Time Display -->
+        <div class="current-time">
+            <span class="time-label">Recording at</span>
+            <span id="currentTime"></span>
+        </div>
+
+        <form id="lapseForm">
+            <!-- Step 1: Lapse Type Selection -->
+            <div class="step-section">
+                <label class="font-weight-bold">Step 1: Lapse Type *</label>
+                <span class="step-label">What kind of lapse is this?</span>
+                <div class="type-grid">
+                    <button type="button" class="type-btn" data-type="passive lapse">
+                        Passive Lapse
+                    </button>
+                    <button type="button" class="type-btn" data-type="narrative drift">
+                        Narrative Drift
+                    </button>
+                    <button type="button" class="type-btn" data-type="intentional lapse">
+                        Intentional Lapse
+                    </button>
+                    <button type="button" class="type-btn" data-type="affective lapse">
+                        Affective Lapse
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Category Selection -->
+            <div class="step-section">
+                <label class="font-weight-bold">Step 2: Category (optional)</label>
+                <span class="step-label">What were you doing?</span>
+                <div class="category-grid">
+                    {% for category in lapse_categories %}
+                    <button type="button" class="category-btn" data-category-id="{{ category.id }}">
+                        {{ category.name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Duration (optional) -->
+            <div class="form-group">
+                <label for="duration" class="font-weight-bold">Duration (minutes, optional)</label>
+                <input type="number" class="form-control" id="duration" placeholder="How long did it last?" min="0" step="1">
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description" class="font-weight-bold">Notes (optional)</label>
+                <textarea class="form-control" id="description" rows="2" placeholder="Quick notes..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-submit">Record Lapse</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+let selectedLapseType = null;
+let selectedCategoryId = null;
+
+// Update current time display
+function updateCurrentTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    document.getElementById('currentTime').textContent = timeString;
+}
+
+// Update time every second
+document.addEventListener('DOMContentLoaded', function() {
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 1000);
+});
+
+// Lapse type button selection
+document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedLapseType = this.dataset.type;
+    });
+});
+
+// Category button selection
+document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedCategoryId = this.dataset.categoryId;
+    });
+});
+
+// Form submission
+document.getElementById('lapseForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!selectedLapseType) {
+        showFeedback('Please select a lapse type', 'error');
+        return;
+    }
+
+    const duration = document.getElementById('duration').value;
+    const description = document.getElementById('description').value;
+
+    const data = {
+        lapse_type: selectedLapseType,
+        category_id: selectedCategoryId,
+        duration_in_minute: duration ? parseInt(duration) : null,
+        description: description
+    };
+
+    try {
+        const response = await fetch('/echomind/api/lapse/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showFeedback('Lapse recorded!', 'success');
+            resetForm();
+        } else {
+            showFeedback('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showFeedback('Network error', 'error');
+    }
+});
+
+function resetForm() {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+    selectedLapseType = null;
+    selectedCategoryId = null;
+    document.getElementById('duration').value = '';
+    document.getElementById('description').value = '';
+}
+{% endblock %}

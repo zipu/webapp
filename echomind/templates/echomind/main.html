@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Echo Mind - Quick Log</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 15px;
+            background: #f5f5f5;
+            font-size: 16px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .category-btn {
+            padding: 15px 10px;
+            font-size: 15px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .category-btn:hover {
+            background: #f0f0f0;
+        }
+        .category-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .form-control {
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .tag-checkbox {
+            display: inline-block;
+            margin: 5px;
+        }
+        .tag-checkbox label {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+        }
+        .tag-checkbox input:checked + label {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .tag-checkbox input {
+            display: none;
+        }
+        .feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .feedback.success {
+            background: #28a745;
+            color: white;
+        }
+        .feedback.error {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4">Activity Log</h2>
+
+        <div class="card">
+            <div class="card-body">
+                <form id="activityForm">
+                    <!-- Category Selection -->
+                    <label class="font-weight-bold">Category *</label>
+                    <div class="category-grid">
+                        {% for category in categories %}
+                        <button type="button" class="category-btn" data-category-id="{{ category.id }}">
+                            {{ category.name }}
+                        </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Time Inputs -->
+                    <div class="form-group">
+                        <label for="startTime" class="font-weight-bold">Start Time</label>
+                        <input type="datetime-local" class="form-control" id="startTime" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endTime" class="font-weight-bold">End Time</label>
+                        <input type="datetime-local" class="form-control" id="endTime" required>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description" class="font-weight-bold">Description (optional)</label>
+                        <textarea class="form-control" id="description" rows="2" placeholder="Add notes..."></textarea>
+                    </div>
+
+                    <!-- Status Tags -->
+                    <div class="form-group">
+                        <label class="font-weight-bold">Tags (optional)</label>
+                        <div id="statusTags">
+                            {% for tag in status_tags %}
+                            <div class="tag-checkbox">
+                                <input type="checkbox" id="tag{{ tag.id }}" value="{{ tag.id }}">
+                                <label for="tag{{ tag.id }}">{{ tag.name }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit">Log Activity</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Message -->
+    <div class="feedback" id="feedback"></div>
+
+    <script>
+        let selectedCategoryId = null;
+
+        // Load default times on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDefaultTimes();
+        });
+
+        // Category button selection
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedCategoryId = this.dataset.categoryId;
+            });
+        });
+
+        // Form submission
+        document.getElementById('activityForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!selectedCategoryId) {
+                showFeedback('Please select a category', 'error');
+                return;
+            }
+
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const description = document.getElementById('description').value;
+
+            const selectedTags = Array.from(document.querySelectorAll('#statusTags input:checked'))
+                .map(checkbox => checkbox.value);
+
+            const data = {
+                category_id: selectedCategoryId,
+                start_time: startTime,
+                end_time: endTime,
+                description: description,
+                status_tags: selectedTags
+            };
+
+            try {
+                const response = await fetch('/echomind/api/activity/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showFeedback(`Activity logged! (${result.duration} min)`, 'success');
+                    resetForm();
+                    loadDefaultTimes();
+                } else {
+                    showFeedback('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showFeedback('Network error', 'error');
+            }
+        });
+
+        async function loadDefaultTimes() {
+            try {
+                const response = await fetch('/echomind/api/default-times/');
+                const data = await response.json();
+
+                document.getElementById('startTime').value = data.start_time;
+                document.getElementById('endTime').value = data.end_time;
+            } catch (error) {
+                console.error('Failed to load default times', error);
+            }
+        }
+
+        function resetForm() {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            selectedCategoryId = null;
+            document.getElementById('description').value = '';
+            document.querySelectorAll('#statusTags input:checked').forEach(cb => cb.checked = false);
+        }
+
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = 'feedback ' + type;
+            feedback.style.display = 'block';
+
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

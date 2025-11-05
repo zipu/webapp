@@ -1,0 +1,63 @@
+{% extends "echomind/base.html" %}
+
+{% block title %}Echo Mind - Home{% endblock %}
+
+{% block extra_style %}
+.main-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 50px;
+}
+.main-btn {
+    padding: 40px 20px;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 15px;
+    text-decoration: none;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s;
+    display: block;
+}
+.main-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    text-decoration: none;
+}
+.btn-lapse {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+.btn-activity {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+.main-btn-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 10px;
+}
+.main-btn-desc {
+    font-size: 14px;
+    font-weight: normal;
+    margin-top: 8px;
+    opacity: 0.9;
+}
+{% endblock %}
+
+{% block content %}
+<div class="main-buttons">
+    <a href="{% url 'lapse_log' %}" class="main-btn btn-lapse">
+        <span class="main-btn-icon">⚡</span>
+        Record Lapse
+        <div class="main-btn-desc">주의력 이탈 기록</div>
+    </a>
+
+    <a href="{% url 'activity_log' %}" class="main-btn btn-activity">
+        <span class="main-btn-icon">📝</span>
+        Log Activity
+        <div class="main-btn-desc">활동 기록</div>
+    </a>
+</div>
+{% endblock %}

@@ -30,6 +30,7 @@ urlpatterns = [
     path('trading/', include('trading.urls')),
     path('aops/', include('aops.urls')),
     path('tilde/', include('tutoring.urls')),
+    path('echomind/', include('echomind.urls')),
     path('ebest/', include('ebest.urls'))
 ]
 

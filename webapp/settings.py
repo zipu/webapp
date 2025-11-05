@@ -124,6 +124,7 @@ INSTALLED_APPS = [
     'tutoring.apps.TutoringConfig', # 과외 
     'trading.apps.TradingConfig', #트레이딩 ,
     'aops.apps.AopsConfig', #수학문제, art of problem solving
+    'echomind.apps.EchomindConfig', #에코마인드
    # 'ebest.apps.EbestConfig', #이베스트
 ]
 
@@ -176,6 +177,7 @@ DATABASE_ROUTERS = [
     'trading.dbRouter.TradingDBRouter',
     'aops.dbRouter.AopsDBRouter',
     'tutoring.dbRouter.TutoringDBRouter',
+    'echomind.dbRouter.EchomindDBRouter',
     'ebest.dbRouter.EbestDBRouter',
 ]
 
@@ -219,6 +221,14 @@ DATABASES = {
         'HOST': get_secret('DB_HOST'),
         'PORT': PORT,
         'NAME': 'tutoring',
+        'USER': get_secret('DB_USERNAME'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
+    },
+    'echomind' : {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': get_secret('DB_HOST'),
+        'PORT': PORT,
+        'NAME': 'echomind',
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
     },
