@@ -27,12 +27,15 @@
     color: white;
     border-color: #007bff;
 }
-input[type="datetime-local"] {
-    width: 100%;
-    padding: 12px;
+input[type="datetime-local"].form-control {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100% !important;
+    padding: 12px !important;
     line-height: 1.5;
     height: auto;
-    display: block;
+    min-height: 48px;
     box-sizing: border-box;
 }
 .tag-checkbox {
