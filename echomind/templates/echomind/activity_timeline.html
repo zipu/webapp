@@ -1,0 +1,626 @@
+{% extends "echomind/base.html" %}
+
+{% block title %}Activity Timeline{% endblock %}
+
+{% block extra_style %}
+/* Date Navigation */
+.date-nav {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.date-nav-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.date-nav-btn:active {
+    transform: scale(0.95);
+    background: #0056b3;
+}
+
+.date-display {
+    flex: 1;
+    text-align: center;
+    margin: 0 10px;
+}
+
+.date-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.date-picker-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.today-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.today-btn:active {
+    background: #1e7e34;
+}
+
+/* Timeline Container */
+.timeline-container {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    position: relative;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    min-height: 1440px; /* 24 hours * 60px per hour */
+    border-left: 3px solid #e0e0e0;
+    margin-left: 50px;
+}
+
+/* Hour markers */
+.hour-marker {
+    position: absolute;
+    left: -55px;
+    width: 50px;
+    text-align: right;
+    font-size: 12px;
+    color: #999;
+    font-weight: bold;
+}
+
+.hour-line {
+    position: absolute;
+    left: -3px;
+    right: 0;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+/* Activity block */
+.activity-block {
+    position: absolute;
+    left: 5px;
+    right: 10px;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    border-left: 4px solid;
+}
+
+.activity-block:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.activity-category {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-time {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.activity-duration {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* Category colors */
+.category-color-1 { background: #e3f2fd; border-color: #2196f3; color: #1565c0; }
+.category-color-2 { background: #f3e5f5; border-color: #9c27b0; color: #6a1b9a; }
+.category-color-3 { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+.category-color-4 { background: #fff3e0; border-color: #ff9800; color: #e65100; }
+.category-color-5 { background: #fce4ec; border-color: #e91e63; color: #ad1457; }
+.category-color-6 { background: #e0f2f1; border-color: #009688; color: #00695c; }
+.category-color-7 { background: #fff9c4; border-color: #fbc02d; color: #f57f17; }
+.category-color-8 { background: #ede7f6; border-color: #673ab7; color: #4527a0; }
+
+/* Lapse indicator */
+.lapse-indicator {
+    position: absolute;
+    left: -20px;
+    width: 20px;
+    height: 20px;
+    background: #dc3545;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    z-index: 10;
+    border: 2px solid white;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    padding: 20px;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.modal-body {
+    font-size: 14px;
+}
+
+.modal-section {
+    margin-bottom: 15px;
+}
+
+.modal-label {
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.modal-value {
+    color: #333;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.tag {
+    background: #e9ecef;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    color: #495057;
+}
+
+.lapse-list {
+    margin-top: 10px;
+}
+
+.lapse-item {
+    background: #fff3cd;
+    border-left: 3px solid #dc3545;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.lapse-header {
+    font-weight: bold;
+    color: #dc3545;
+    margin-bottom: 3px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<!-- Date Navigation -->
+<div class="date-nav">
+    <button class="date-nav-btn" id="prevDayBtn">←</button>
+    <div class="date-display">
+        <div class="date-text" id="currentDate"></div>
+        <input type="date" id="datePicker" class="date-picker-input">
+    </div>
+    <button class="date-nav-btn" id="nextDayBtn">→</button>
+    <button class="today-btn" id="todayBtn">오늘</button>
+</div>
+
+<!-- Timeline Container -->
+<div class="timeline-container">
+    <div id="loadingIndicator" class="loading">
+        Loading...
+    </div>
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📭</div>
+        <div>이 날짜에 기록된 활동이 없습니다</div>
+    </div>
+    <div class="timeline" id="timeline" style="display: none;">
+        <!-- Hour markers will be generated by JavaScript -->
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="activityModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle"></div>
+            <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+let currentDate = new Date();
+let categoryColorMap = {};
+let colorIndex = 1;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    generateHourMarkers();
+    updateDateDisplay();
+    loadActivities();
+
+    // Event listeners
+    document.getElementById('prevDayBtn').addEventListener('click', () => changeDate(-1));
+    document.getElementById('nextDayBtn').addEventListener('click', () => changeDate(1));
+    document.getElementById('todayBtn').addEventListener('click', goToToday);
+    document.getElementById('currentDate').addEventListener('click', openDatePicker);
+    document.getElementById('datePicker').addEventListener('change', onDatePickerChange);
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('activityModal').addEventListener('click', (e) => {
+        if (e.target.id === 'activityModal') closeModal();
+    });
+
+    // Touch swipe support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) { // Minimum swipe distance
+            if (diff > 0) {
+                // Swipe left - next day
+                changeDate(1);
+            } else {
+                // Swipe right - previous day
+                changeDate(-1);
+            }
+        }
+    }
+});
+
+function generateHourMarkers() {
+    const timeline = document.getElementById('timeline');
+    for (let hour = 0; hour < 24; hour++) {
+        const y = hour * 60; // 60px per hour
+
+        // Hour label
+        const marker = document.createElement('div');
+        marker.className = 'hour-marker';
+        marker.style.top = y + 'px';
+        marker.textContent = hour.toString().padStart(2, '0') + ':00';
+        timeline.appendChild(marker);
+
+        // Hour line
+        const line = document.createElement('div');
+        line.className = 'hour-line';
+        line.style.top = y + 'px';
+        timeline.appendChild(line);
+    }
+}
+
+function updateDateDisplay() {
+    const dateStr = currentDate.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short'
+    });
+    document.getElementById('currentDate').textContent = dateStr;
+
+    // Update date picker value
+    const isoDate = currentDate.toISOString().split('T')[0];
+    document.getElementById('datePicker').value = isoDate;
+}
+
+function changeDate(days) {
+    currentDate.setDate(currentDate.getDate() + days);
+    updateDateDisplay();
+    loadActivities();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    updateDateDisplay();
+    loadActivities();
+}
+
+function openDatePicker() {
+    document.getElementById('datePicker').showPicker();
+}
+
+function onDatePickerChange(e) {
+    currentDate = new Date(e.target.value + 'T00:00:00');
+    updateDateDisplay();
+    loadActivities();
+}
+
+function loadActivities() {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const timeline = document.getElementById('timeline');
+    const loading = document.getElementById('loadingIndicator');
+    const emptyState = document.getElementById('emptyState');
+
+    // Clear previous activities
+    const blocks = timeline.querySelectorAll('.activity-block, .lapse-indicator');
+    blocks.forEach(block => block.remove());
+
+    // Show loading
+    timeline.style.display = 'none';
+    emptyState.style.display = 'none';
+    loading.style.display = 'block';
+
+    fetch(`/echomind/api/activities/by-date/?date=${dateStr}`)
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+
+            if (data.success && data.activities.length > 0) {
+                timeline.style.display = 'block';
+                renderActivities(data.activities);
+            } else {
+                emptyState.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            console.error('Error loading activities:', error);
+            showFeedback('Failed to load activities', 'error');
+        });
+}
+
+function renderActivities(activities) {
+    const timeline = document.getElementById('timeline');
+
+    activities.forEach(activity => {
+        const startTime = new Date(activity.start_time);
+        const endTime = new Date(activity.end_time);
+
+        // Calculate position and height
+        const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+        const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+        const durationMinutes = endMinutes - startMinutes;
+
+        const top = startMinutes; // 1px per minute
+        const height = Math.max(durationMinutes, 30); // Minimum 30px for tap target
+
+        // Get color for category
+        const categoryColor = getCategoryColor(activity.category);
+
+        // Create activity block
+        const block = document.createElement('div');
+        block.className = `activity-block category-color-${categoryColor}`;
+        block.style.top = top + 'px';
+        block.style.height = height + 'px';
+
+        // Content
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'activity-category';
+        categoryDiv.textContent = activity.category;
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'activity-time';
+        timeDiv.textContent = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+
+        if (height > 45) {
+            const durationDiv = document.createElement('div');
+            durationDiv.className = 'activity-duration';
+            durationDiv.textContent = `${activity.duration}분`;
+            block.appendChild(categoryDiv);
+            block.appendChild(timeDiv);
+            block.appendChild(durationDiv);
+        } else if (height > 30) {
+            block.appendChild(categoryDiv);
+            block.appendChild(timeDiv);
+        } else {
+            block.appendChild(categoryDiv);
+        }
+
+        // Click handler
+        block.addEventListener('click', () => showActivityDetails(activity));
+
+        timeline.appendChild(block);
+
+        // Render lapses
+        activity.lapses.forEach(lapse => {
+            const lapseTime = lapse.timestamp.split(':');
+            const lapseMinutes = parseInt(lapseTime[0]) * 60 + parseInt(lapseTime[1]);
+
+            const lapseIndicator = document.createElement('div');
+            lapseIndicator.className = 'lapse-indicator';
+            lapseIndicator.style.top = lapseMinutes + 'px';
+            lapseIndicator.textContent = '⚡';
+            lapseIndicator.title = `${lapse.type} - ${lapse.category}`;
+
+            timeline.appendChild(lapseIndicator);
+        });
+    });
+}
+
+function getCategoryColor(category) {
+    if (!categoryColorMap[category]) {
+        categoryColorMap[category] = colorIndex;
+        colorIndex = (colorIndex % 8) + 1;
+    }
+    return categoryColorMap[category];
+}
+
+function formatTime(date) {
+    return date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+}
+
+function showActivityDetails(activity) {
+    const modal = document.getElementById('activityModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    modalTitle.textContent = activity.category;
+
+    let html = `
+        <div class="modal-section">
+            <div class="modal-label">시간</div>
+            <div class="modal-value">${activity.start_time.split(' ')[1]} - ${activity.end_time.split(' ')[1]}</div>
+            <div class="modal-value">${activity.duration}분</div>
+        </div>
+    `;
+
+    if (activity.activity_tags && activity.activity_tags.length > 0) {
+        html += `
+            <div class="modal-section">
+                <div class="modal-label">Activity Tags</div>
+                <div class="tag-list">
+                    ${activity.activity_tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    if (activity.status_tags && activity.status_tags.length > 0) {
+        html += `
+            <div class="modal-section">
+                <div class="modal-label">Status Tags</div>
+                <div class="tag-list">
+                    ${activity.status_tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    if (activity.description) {
+        html += `
+            <div class="modal-section">
+                <div class="modal-label">설명</div>
+                <div class="modal-value">${activity.description}</div>
+            </div>
+        `;
+    }
+
+    if (activity.lapses && activity.lapses.length > 0) {
+        html += `
+            <div class="modal-section">
+                <div class="modal-label">주의력 이탈 (${activity.lapses.length}건)</div>
+                <div class="lapse-list">
+                    ${activity.lapses.map(lapse => `
+                        <div class="lapse-item">
+                            <div class="lapse-header">${lapse.type} - ${lapse.category}</div>
+                            <div>${lapse.timestamp}${lapse.duration ? ` (${lapse.duration}분)` : ''}</div>
+                            ${lapse.description ? `<div>${lapse.description}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    modalBody.innerHTML = html;
+    modal.classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('activityModal').classList.remove('show');
+}
+{% endblock %}

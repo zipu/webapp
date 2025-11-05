@@ -131,3 +131,61 @@ def create_lapse(request):
         print(f"Error in create_lapse: {str(e)}")
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@require_http_methods(["GET"])
+def get_activities_by_date(request):
+    """Get all activities for a specific date"""
+    try:
+        date_str = request.GET.get('date')
+        if not date_str:
+            # Default to today
+            date_obj = datetime.now().date()
+        else:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        # Get all activities that overlap with this date
+        start_of_day = datetime.combine(date_obj, datetime.min.time())
+        end_of_day = datetime.combine(date_obj, datetime.max.time())
+
+        activities = Activity.objects.filter(
+            start_time__lte=end_of_day,
+            end_time__gte=start_of_day
+        ).select_related('category').prefetch_related('activity_tags', 'status_tags')
+
+        activities_data = []
+        for activity in activities:
+            # Get lapses associated with this activity
+            lapses = Attentional_Lapse.objects.filter(activity=activity).select_related('category')
+            lapses_data = [{
+                'id': lapse.id,
+                'type': lapse.get_lapse_type_display(),
+                'category': lapse.category.name if lapse.category else 'Unknown',
+                'timestamp': lapse.timestamp.strftime('%H:%M'),
+                'duration': lapse.duration_in_minute,
+                'description': lapse.description or ''
+            } for lapse in lapses]
+
+            activities_data.append({
+                'id': activity.id,
+                'category': activity.category.name if activity.category else 'Unknown',
+                'start_time': activity.start_time.strftime('%Y-%m-%d %H:%M'),
+                'end_time': activity.end_time.strftime('%Y-%m-%d %H:%M'),
+                'description': activity.description or '',
+                'duration': activity.duration_in_minutes,
+                'activity_tags': [tag.name for tag in activity.activity_tags.all()],
+                'status_tags': [tag.name for tag in activity.status_tags.all()],
+                'lapses': lapses_data
+            })
+
+        return JsonResponse({
+            'success': True,
+            'date': date_obj.strftime('%Y-%m-%d'),
+            'activities': activities_data
+        })
+    except Exception as e:
+        print(f"Error in get_activities_by_date: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+class ActivityTimelineView(TemplateView):
+    template_name = "echomind/activity_timeline.html"
