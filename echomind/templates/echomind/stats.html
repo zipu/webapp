@@ -1,0 +1,367 @@
+{% extends "echomind/base.html" %}
+
+{% block title %}Stats{% endblock %}
+
+{% block extra_style %}
+/* Period Selector */
+.period-selector {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 5px;
+}
+
+.period-btn {
+    flex: 1;
+    padding: 10px;
+    background: #f8f9fa;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #666;
+}
+
+.period-btn:active {
+    transform: scale(0.95);
+}
+
+.period-btn.active {
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.summary-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.summary-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.summary-unit {
+    font-size: 16px;
+    color: #999;
+}
+
+/* Section */
+.stats-section {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+/* Category Bars */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.category-hours {
+    font-size: 13px;
+    color: #666;
+}
+
+.category-bar-container {
+    background: #e0e0e0;
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.category-bar {
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    height: 100%;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    transition: width 0.3s;
+}
+
+.category-percentage {
+    font-size: 11px;
+    color: white;
+    font-weight: bold;
+}
+
+/* Lapse Stats */
+.lapse-stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lapse-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.lapse-type {
+    font-size: 14px;
+    color: #333;
+}
+
+.lapse-count {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Plan Achievement */
+.plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.plan-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.plan-category {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.plan-hours {
+    font-size: 13px;
+    color: #666;
+}
+
+.plan-bar-container {
+    background: #e0e0e0;
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.plan-bar {
+    height: 100%;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    transition: width 0.3s;
+}
+
+.plan-bar.good {
+    background: linear-gradient(90deg, #28a745 0%, #1e7e34 100%);
+}
+
+.plan-bar.over {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+}
+
+.plan-bar.under {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+}
+
+.plan-percentage {
+    font-size: 11px;
+    color: white;
+    font-weight: bold;
+}
+
+.overall-achievement {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.overall-achievement-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 30px;
+    color: #999;
+}
+{% endblock %}
+
+{% block content %}
+<!-- Period Selector -->
+<div class="period-selector">
+    <a href="?period=today" class="period-btn {% if period == 'today' %}active{% endif %}">오늘</a>
+    <a href="?period=week" class="period-btn {% if period == 'week' %}active{% endif %}">이번주</a>
+    <a href="?period=month" class="period-btn {% if period == 'month' %}active{% endif %}">이번달</a>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="summary-label">총 활동 시간</div>
+        <div class="summary-value">{{ total_hours }}<span class="summary-unit">h</span></div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">순수 활동</div>
+        <div class="summary-value">{{ net_hours }}<span class="summary-unit">h</span></div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">Lapse 시간</div>
+        <div class="summary-value">{{ lapse_hours }}<span class="summary-unit">h</span></div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">집중률</div>
+        <div class="summary-value">{{ focus_rate }}<span class="summary-unit">%</span></div>
+    </div>
+</div>
+
+<!-- Category Analysis -->
+<div class="stats-section">
+    <div class="section-title">📈 카테고리별 시간</div>
+    {% if category_data %}
+    <div class="category-list">
+        {% for cat in category_data %}
+        <div class="category-item">
+            <div class="category-header">
+                <span class="category-name">{{ cat.name }}</span>
+                <span class="category-hours">{{ cat.hours }}h ({{ cat.percentage }}%)</span>
+            </div>
+            <div class="category-bar-container">
+                <div class="category-bar" style="width: {{ cat.percentage }}%;">
+                    <span class="category-percentage">{{ cat.percentage }}%</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-message">데이터가 없습니다</div>
+    {% endif %}
+</div>
+
+<!-- Lapse Analysis -->
+<div class="stats-section">
+    <div class="section-title">⚡ 집중력 분석</div>
+    <div class="overall-achievement" style="margin-bottom: 10px;">
+        <div>총 Lapse 횟수: <strong>{{ lapse_count }}회</strong></div>
+        <div>평균 지속 시간: <strong>{{ lapse_avg_duration }}분</strong></div>
+    </div>
+    {% if lapse_stats %}
+    <div class="lapse-stats-grid">
+        {% for lapse in lapse_stats %}
+        <div class="lapse-stat-item">
+            <span class="lapse-type">{{ lapse.type }}</span>
+            <span class="lapse-count">{{ lapse.count }}회 ({{ lapse.percentage }}%)</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-message">Lapse 기록이 없습니다</div>
+    {% endif %}
+</div>
+
+<!-- Plan Achievement -->
+<div class="stats-section">
+    <div class="section-title">🎯 계획 달성률</div>
+    {% if plan_stats %}
+    <div class="overall-achievement">
+        전체 달성률: <span class="overall-achievement-value">{{ overall_achievement }}%</span>
+    </div>
+    <div class="plan-list">
+        {% for plan in plan_stats %}
+        <div class="plan-item">
+            <div class="plan-header">
+                <span class="plan-category">{{ plan.category }}</span>
+                <span class="plan-hours">{{ plan.actual }}h / {{ plan.planned }}h</span>
+            </div>
+            <div class="plan-bar-container">
+                {% if plan.achievement >= 90 %}
+                <div class="plan-bar good" style="width: {{ plan.achievement|floatformat:0 }}%;">
+                {% elif plan.achievement >= 70 %}
+                <div class="plan-bar over" style="width: {{ plan.achievement|floatformat:0 }}%;">
+                {% else %}
+                <div class="plan-bar under" style="width: {{ plan.achievement|floatformat:0 }}%;">
+                {% endif %}
+                    <span class="plan-percentage">{{ plan.achievement }}%</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-message">계획이 없습니다</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_script %}
+// No JavaScript needed for now
+{% endblock %}

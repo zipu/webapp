@@ -4,7 +4,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.db.models import Sum, Count
 import json
 import traceback
 from .models import Activity, Activity_Category, Activity_Tag, Status_Tag, Attentional_Lapse, Lapse_Category, Plan
@@ -314,3 +315,139 @@ def delete_plan(request):
         print(f"Error in delete_plan: {str(e)}")
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+class StatsView(TemplateView):
+    template_name = "echomind/stats.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get period from query params (default: week)
+        period = self.request.GET.get('period', 'week')
+
+        # Calculate date range
+        now = datetime.now()
+        if period == 'today':
+            start_date = datetime.combine(now.date(), datetime.min.time())
+            end_date = datetime.combine(now.date(), datetime.max.time())
+            period_label = "오늘"
+        elif period == 'week':
+            start_date = datetime.combine(now.date() - timedelta(days=now.weekday()), datetime.min.time())
+            end_date = datetime.combine(now.date(), datetime.max.time())
+            period_label = "이번주"
+        elif period == 'month':
+            start_date = datetime.combine(now.replace(day=1).date(), datetime.min.time())
+            end_date = datetime.combine(now.date(), datetime.max.time())
+            period_label = "이번달"
+        else:
+            start_date = datetime.combine(now.date() - timedelta(days=7), datetime.min.time())
+            end_date = datetime.combine(now.date(), datetime.max.time())
+            period_label = "이번주"
+
+        # Get activities in range
+        activities = Activity.objects.filter(
+            start_time__gte=start_date,
+            end_time__lte=end_date
+        ).select_related('category')
+
+        # Calculate main metrics
+        total_minutes = sum([a.duration_in_minutes or 0 for a in activities])
+        net_minutes = sum([a.get_net_duration() for a in activities])
+
+        # Get lapses in range
+        lapses = Attentional_Lapse.objects.filter(
+            timestamp__gte=start_date,
+            timestamp__lte=end_date
+        )
+        lapse_minutes = sum([l.duration_in_minute or 0 for l in lapses])
+
+        # Calculate focus rate
+        focus_rate = round((net_minutes / total_minutes * 100) if total_minutes > 0 else 0, 1)
+
+        # Category analysis
+        category_stats = {}
+        for activity in activities:
+            cat_name = activity.category.name if activity.category else 'Unknown'
+            net_duration = activity.get_net_duration()
+
+            if cat_name in category_stats:
+                category_stats[cat_name] += net_duration
+            else:
+                category_stats[cat_name] = net_duration
+
+        # Sort by time (descending)
+        category_stats = dict(sorted(category_stats.items(), key=lambda x: x[1], reverse=True))
+
+        # Calculate percentages for categories
+        category_data = []
+        for cat_name, minutes in category_stats.items():
+            hours = round(minutes / 60, 1)
+            percentage = round((minutes / net_minutes * 100) if net_minutes > 0 else 0, 1)
+            category_data.append({
+                'name': cat_name,
+                'hours': hours,
+                'percentage': percentage
+            })
+
+        # Lapse analysis
+        lapse_type_counts = lapses.values('lapse_type').annotate(count=Count('id'))
+        lapse_stats = []
+        total_lapses = lapses.count()
+        for item in lapse_type_counts:
+            lapse_stats.append({
+                'type': dict(Attentional_Lapse.LAPSE_TYPES).get(item['lapse_type'], item['lapse_type']),
+                'count': item['count'],
+                'percentage': round((item['count'] / total_lapses * 100) if total_lapses > 0 else 0, 1)
+            })
+
+        # Plan achievement rate
+        plans = Plan.objects.filter(
+            date__gte=start_date.date(),
+            date__lte=end_date.date()
+        ).select_related('category')
+
+        plan_stats = []
+        total_planned_hours = 0
+        total_actual_hours = 0
+
+        for plan in plans:
+            # Get actual activities for this plan's category and date
+            plan_activities = Activity.objects.filter(
+                category=plan.category,
+                start_time__date=plan.date
+            )
+
+            actual_minutes = sum([a.get_net_duration() for a in plan_activities])
+            actual_hours = actual_minutes / 60
+            planned_hours = float(plan.estimated_hours)
+
+            total_planned_hours += planned_hours
+            total_actual_hours += actual_hours
+
+            achievement = round((actual_hours / planned_hours * 100) if planned_hours > 0 else 0, 1)
+
+            plan_stats.append({
+                'category': plan.category.name,
+                'planned': planned_hours,
+                'actual': round(actual_hours, 1),
+                'achievement': achievement
+            })
+
+        overall_achievement = round((total_actual_hours / total_planned_hours * 100) if total_planned_hours > 0 else 0, 1)
+
+        context.update({
+            'period': period,
+            'period_label': period_label,
+            'total_hours': round(total_minutes / 60, 1),
+            'net_hours': round(net_minutes / 60, 1),
+            'lapse_hours': round(lapse_minutes / 60, 1),
+            'focus_rate': focus_rate,
+            'category_data': category_data,
+            'lapse_count': total_lapses,
+            'lapse_avg_duration': round(lapse_minutes / total_lapses) if total_lapses > 0 else 0,
+            'lapse_stats': lapse_stats,
+            'plan_stats': plan_stats,
+            'overall_achievement': overall_achievement,
+        })
+
+        return context

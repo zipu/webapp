@@ -176,6 +176,10 @@
             <span class="nav-item-icon">📅</span>
             Plan
         </a>
+        <a href="{% url 'stats' %}" class="nav-item {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
+            <span class="nav-item-icon">📈</span>
+            Stats
+        </a>
     </nav>
 
     <!-- Feedback Message -->
