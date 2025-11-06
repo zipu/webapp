@@ -164,21 +164,17 @@
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="{% url 'echomind_home' %}" class="nav-item {% if request.resolver_match.url_name == 'echomind_home' %}active{% endif %}">
-            <span class="nav-item-icon">🏠</span>
-            Home
+        <a href="{% url 'echomind_home' %}" class="nav-item {% if request.resolver_match.url_name == 'echomind_home' or request.resolver_match.url_name == 'lapse_log' or request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
+            <span class="nav-item-icon">📝</span>
+            Log
         </a>
         <a href="{% url 'activity_timeline' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_timeline' %}active{% endif %}">
             <span class="nav-item-icon">📊</span>
             Timeline
         </a>
-        <a href="{% url 'lapse_log' %}" class="nav-item {% if request.resolver_match.url_name == 'lapse_log' %}active{% endif %}">
-            <span class="nav-item-icon">⚡</span>
-            Lapse
-        </a>
-        <a href="{% url 'activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
-            <span class="nav-item-icon">📝</span>
-            Activity
+        <a href="{% url 'plan' %}" class="nav-item {% if request.resolver_match.url_name == 'plan' %}active{% endif %}">
+            <span class="nav-item-icon">📅</span>
+            Plan
         </a>
     </nav>
 

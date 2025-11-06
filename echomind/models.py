@@ -36,7 +36,23 @@ class Activity(models.Model):
             delta = self.end_time - self.start_time
             self.duration_in_minutes = round(delta.total_seconds() / 60, 1)
         super().save(*args, **kwargs)
-    
+
+    def get_net_duration(self):
+        """Get actual activity duration excluding lapses"""
+        if not self.duration_in_minutes:
+            return 0
+
+        # Sum up all lapse durations for this activity
+        from django.db.models import Sum
+        lapse_total = self.attentional_lapse_set.filter(
+            duration_in_minute__isnull=False
+        ).aggregate(
+            total=Sum('duration_in_minute')
+        )['total'] or 0
+
+        # Return net duration (total - lapses)
+        net = self.duration_in_minutes - lapse_total
+        return max(net, 0)  # Ensure non-negative
 
     def __str__(self):
         return f"{self.category.name if self.category else 'Unknown'} ({self.start_time.strftime('%Y-%m-%d %H:%M')})"
@@ -64,8 +80,30 @@ class Attentional_Lapse(models.Model):
 
 
 class Lapse_Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
+    lapse_type = models.CharField(max_length=20, choices=[
+        ('passive lapse', 'Passive Lapse'),
+        ('narrative drift', 'Narrative Drift'),
+        ('intentional lapse', 'Intentional Lapse'),
+        ('affective lapse', 'Affective Lapse'),
+    ], default='passive lapse')
     description = models.TextField(blank=True, null=True)
 
+    class Meta:
+        ordering = ['lapse_type', 'name']
+
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_lapse_type_display()})"
+
+class Plan(models.Model):
+    date = models.DateField()
+    category = models.ForeignKey(Activity_Category, on_delete=models.CASCADE)
+    estimated_hours = models.DecimalField(max_digits=4, decimal_places=1, help_text="Estimated time in hours")
+    note = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date', 'category']
+
+    def __str__(self):
+        return f"{self.date} - {self.category.name} ({self.estimated_hours}h)"

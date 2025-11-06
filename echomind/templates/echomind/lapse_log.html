@@ -112,9 +112,18 @@
             <div class="step-section">
                 <label class="font-weight-bold">Step 2: Category (optional)</label>
                 <span class="step-label">What were you doing?</span>
-                <div class="category-grid">
+
+                <!-- Placeholder -->
+                <div id="categoryPlaceholder" class="text-muted text-center" style="padding: 30px; background: #f8f9fa; border-radius: 8px;">
+                    ☝️ 먼저 Lapse Type을 선택하세요
+                </div>
+
+                <!-- Category Grid (초기 숨김) -->
+                <div class="category-grid" id="categoryGrid" style="display: none;">
                     {% for category in lapse_categories %}
-                    <button type="button" class="category-btn" data-category-id="{{ category.id }}">
+                    <button type="button" class="category-btn"
+                            data-category-id="{{ category.id }}"
+                            data-lapse-type="{{ category.lapse_type }}">
                         {{ category.name }}
                     </button>
                     {% endfor %}
@@ -170,8 +179,43 @@ document.querySelectorAll('.type-btn').forEach(btn => {
         document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         selectedLapseType = this.dataset.type;
+
+        // Filter categories by selected type
+        filterCategories(selectedLapseType);
     });
 });
+
+function filterCategories(selectedType) {
+    const categoryGrid = document.getElementById('categoryGrid');
+    const placeholder = document.getElementById('categoryPlaceholder');
+    let visibleCount = 0;
+
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        const categoryType = btn.dataset.lapseType;
+
+        if (categoryType === selectedType) {
+            btn.style.display = 'block';
+            visibleCount++;
+        } else {
+            btn.style.display = 'none';
+            // 숨겨진 category가 선택되어 있으면 선택 해제
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                selectedCategoryId = null;
+            }
+        }
+    });
+
+    // Category grid 표시/숨김
+    if (visibleCount > 0) {
+        placeholder.style.display = 'none';
+        categoryGrid.style.display = 'grid';
+    } else {
+        categoryGrid.style.display = 'none';
+        placeholder.textContent = '이 Type에 등록된 Category가 없습니다';
+        placeholder.style.display = 'block';
+    }
+}
 
 // Category button selection
 document.querySelectorAll('.category-btn').forEach(btn => {
@@ -230,5 +274,10 @@ function resetForm() {
     selectedCategoryId = null;
     document.getElementById('duration').value = '';
     document.getElementById('description').value = '';
+
+    // Category 영역 초기화
+    document.getElementById('categoryGrid').style.display = 'none';
+    document.getElementById('categoryPlaceholder').textContent = '☝️ 먼저 Lapse Type을 선택하세요';
+    document.getElementById('categoryPlaceholder').style.display = 'block';
 }
 {% endblock %}

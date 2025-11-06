@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Activity_Category, Status_Tag, Activity_Tag, Activity, Attentional_Lapse, Lapse_Category
+from .models import Activity_Category, Status_Tag, Activity_Tag, Activity, Attentional_Lapse, Lapse_Category, Plan
 
 # Register your models here.
 
@@ -28,8 +28,14 @@ class ActivityAdmin(admin.ModelAdmin):
 
 @admin.register(Lapse_Category)
 class LapseCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description']
+    list_display = ['name', 'get_lapse_type_display', 'description']
+    list_filter = ['lapse_type']
     search_fields = ['name']
+    ordering = ['lapse_type', 'name']
+
+    def get_lapse_type_display(self, obj):
+        return obj.get_lapse_type_display()
+    get_lapse_type_display.short_description = 'Lapse Type'
 
 @admin.register(Attentional_Lapse)
 class AttentionalLapseAdmin(admin.ModelAdmin):
@@ -37,3 +43,11 @@ class AttentionalLapseAdmin(admin.ModelAdmin):
     list_filter = ['lapse_type', 'category', 'timestamp']
     search_fields = ['description']
     date_hierarchy = 'timestamp'
+
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ['date', 'category', 'estimated_hours', 'note']
+    list_filter = ['date', 'category']
+    search_fields = ['note']
+    date_hierarchy = 'date'
+    ordering = ['-date']

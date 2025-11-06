@@ -767,7 +767,7 @@ function createActivityBlock(container, activity, top, height, categoryColor) {
     if (height > 45) {
         const durationDiv = document.createElement('div');
         durationDiv.className = 'activity-duration';
-        durationDiv.textContent = `${activity.duration}분`;
+        durationDiv.textContent = `${activity.net_duration}분`;
         block.appendChild(categoryDiv);
         block.appendChild(timeDiv);
         block.appendChild(durationDiv);
@@ -809,7 +809,7 @@ function renderActivityList(activities) {
 
         const duration = document.createElement('div');
         duration.className = 'activity-card-duration';
-        duration.textContent = `${activity.duration}분`;
+        duration.textContent = `${activity.net_duration}분`;
 
         header.appendChild(category);
         header.appendChild(duration);
@@ -888,11 +888,19 @@ function showActivityDetails(activity) {
 
     modalTitle.textContent = activity.category;
 
+    let durationText = `순수 활동: ${activity.net_duration}분`;
+    if (activity.lapses && activity.lapses.length > 0) {
+        const lapseDuration = activity.lapses.reduce((sum, lapse) => sum + (lapse.duration || 0), 0);
+        if (lapseDuration > 0) {
+            durationText += ` (총 ${activity.duration}분 - 이탈 ${lapseDuration}분)`;
+        }
+    }
+
     let html = `
         <div class="modal-section">
             <div class="modal-label">시간</div>
             <div class="modal-value">${activity.start_time.split(' ')[1]} - ${activity.end_time.split(' ')[1]}</div>
-            <div class="modal-value">${activity.duration}분</div>
+            <div class="modal-value">${durationText}</div>
         </div>
     `;
 

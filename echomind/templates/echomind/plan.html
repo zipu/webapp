@@ -1,0 +1,607 @@
+{% extends "echomind/base.html" %}
+
+{% block title %}Plan{% endblock %}
+
+{% block extra_style %}
+/* Date Navigation */
+.date-nav {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.date-nav-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.date-nav-btn:active {
+    transform: scale(0.95);
+    background: #0056b3;
+}
+
+.date-display {
+    flex: 1;
+    text-align: center;
+    margin: 0 10px;
+}
+
+.date-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.date-picker-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.today-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.today-btn:active {
+    background: #1e7e34;
+}
+
+/* Plans Container */
+.plans-container {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.plans-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.plan-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid;
+    position: relative;
+}
+
+/* Category colors - same as timeline */
+.plan-color-1 { border-color: #2196f3; }
+.plan-color-2 { border-color: #9c27b0; }
+.plan-color-3 { border-color: #4caf50; }
+.plan-color-4 { border-color: #ff9800; }
+.plan-color-5 { border-color: #e91e63; }
+.plan-color-6 { border-color: #009688; }
+.plan-color-7 { border-color: #fbc02d; }
+.plan-color-8 { border-color: #673ab7; }
+
+.plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.plan-category {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+}
+
+.plan-delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.plan-delete-btn:active {
+    background: #c82333;
+}
+
+.plan-hours {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.plan-estimated {
+    color: #666;
+}
+
+.plan-actual {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.plan-difference {
+    font-weight: bold;
+}
+
+.plan-difference.positive {
+    color: #28a745;
+}
+
+.plan-difference.negative {
+    color: #dc3545;
+}
+
+.plan-note {
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+/* Add Plan Button */
+.add-plan-btn {
+    width: 100%;
+    padding: 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-plan-btn:active {
+    background: #0056b3;
+}
+
+/* Add Plan Form */
+.add-plan-form {
+    display: none;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.add-plan-form.show {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-submit {
+    flex: 1;
+    padding: 0;
+    margin: 0;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+.btn-submit:active {
+    background: #1e7e34;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 0;
+    margin: 0;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+.btn-cancel:active {
+    background: #5a6268;
+}
+{% endblock %}
+
+{% block content %}
+<!-- Date Navigation -->
+<div class="date-nav">
+    <button class="date-nav-btn" id="prevDayBtn">←</button>
+    <div class="date-display">
+        <div class="date-text" id="currentDate"></div>
+        <input type="date" id="datePicker" class="date-picker-input">
+    </div>
+    <button class="date-nav-btn" id="nextDayBtn">→</button>
+    <button class="today-btn" id="todayBtn">오늘</button>
+</div>
+
+<!-- Plans Container -->
+<div class="plans-container">
+    <div id="loadingIndicator" class="loading">
+        Loading...
+    </div>
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📋</div>
+        <div>이 날짜에 계획이 없습니다</div>
+    </div>
+    <div id="plansContent" style="display: none;">
+        <div class="plans-list" id="plansList"></div>
+
+        <!-- Add Plan Button -->
+        <button class="add-plan-btn" id="addPlanBtn">+ Add Plan</button>
+
+        <!-- Add Plan Form -->
+        <div class="add-plan-form" id="addPlanForm">
+            <div class="form-group">
+                <label for="categorySelect">Category *</label>
+                <select class="form-control" id="categorySelect">
+                    <option value="">Select category</option>
+                    {% for category in activity_categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="estimatedHours">Estimated Hours *</label>
+                <input type="number" class="form-control" id="estimatedHours"
+                       placeholder="예: 2.5" step="0.1" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="planNote">Note (optional)</label>
+                <textarea class="form-control" id="planNote" rows="3"
+                          placeholder="메모나 상세 내용..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-submit" id="submitPlanBtn">Save</button>
+                <button class="btn-cancel" id="cancelPlanBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+let currentDate = new Date();
+let categoryColorMap = {};
+let colorIndex = 1;
+
+// Helper function to format date as YYYY-MM-DD in local timezone
+function formatDateLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Get consistent color for category (same as timeline)
+function getCategoryColor(category) {
+    if (!categoryColorMap[category]) {
+        categoryColorMap[category] = colorIndex;
+        colorIndex = (colorIndex % 8) + 1;
+    }
+    return categoryColorMap[category];
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateDateDisplay();
+    loadPlans();
+
+    // Event listeners
+    document.getElementById('prevDayBtn').addEventListener('click', () => changeDate(-1));
+    document.getElementById('nextDayBtn').addEventListener('click', () => changeDate(1));
+    document.getElementById('todayBtn').addEventListener('click', goToToday);
+    document.getElementById('currentDate').addEventListener('click', openDatePicker);
+    document.getElementById('datePicker').addEventListener('change', onDatePickerChange);
+    document.getElementById('addPlanBtn').addEventListener('click', showAddPlanForm);
+    document.getElementById('cancelPlanBtn').addEventListener('click', hideAddPlanForm);
+    document.getElementById('submitPlanBtn').addEventListener('click', submitPlan);
+});
+
+function updateDateDisplay() {
+    const dateStr = currentDate.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short'
+    });
+    document.getElementById('currentDate').textContent = dateStr;
+    document.getElementById('datePicker').value = formatDateLocal(currentDate);
+}
+
+function changeDate(days) {
+    currentDate.setDate(currentDate.getDate() + days);
+    updateDateDisplay();
+    loadPlans();
+    hideAddPlanForm();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    updateDateDisplay();
+    loadPlans();
+    hideAddPlanForm();
+}
+
+function openDatePicker() {
+    document.getElementById('datePicker').showPicker();
+}
+
+function onDatePickerChange(e) {
+    const parts = e.target.value.split('-');
+    currentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    updateDateDisplay();
+    loadPlans();
+    hideAddPlanForm();
+}
+
+function loadPlans() {
+    const dateStr = formatDateLocal(currentDate);
+    const loading = document.getElementById('loadingIndicator');
+    const emptyState = document.getElementById('emptyState');
+    const plansContent = document.getElementById('plansContent');
+
+    loading.style.display = 'block';
+    emptyState.style.display = 'none';
+    plansContent.style.display = 'none';
+
+    fetch(`/echomind/api/plans/by-date/?date=${dateStr}`)
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            plansContent.style.display = 'block';
+
+            if (data.success && data.plans.length > 0) {
+                emptyState.style.display = 'none';
+                renderPlans(data.plans);
+            } else {
+                emptyState.style.display = 'block';
+                // Clear plans list
+                document.getElementById('plansList').innerHTML = '';
+            }
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            console.error('Error loading plans:', error);
+            showFeedback('Failed to load plans', 'error');
+        });
+}
+
+function renderPlans(plans) {
+    const plansList = document.getElementById('plansList');
+    plansList.innerHTML = '';
+
+    plans.forEach(plan => {
+        const categoryColor = getCategoryColor(plan.category);
+
+        const card = document.createElement('div');
+        card.className = `plan-card plan-color-${categoryColor}`;
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'plan-header';
+
+        const category = document.createElement('div');
+        category.className = 'plan-category';
+        category.textContent = plan.category;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'plan-delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => deletePlan(plan.id));
+
+        header.appendChild(category);
+        header.appendChild(deleteBtn);
+
+        // Hours info
+        const hours = document.createElement('div');
+        hours.className = 'plan-hours';
+
+        const estimated = document.createElement('div');
+        estimated.className = 'plan-estimated';
+        estimated.textContent = `예상: ${plan.estimated_hours}h`;
+
+        const actual = document.createElement('div');
+        actual.className = 'plan-actual';
+        actual.textContent = `실제: ${plan.actual_hours}h`;
+
+        const difference = document.createElement('div');
+        difference.className = 'plan-difference';
+        const diff = plan.difference;
+        if (diff > 0) {
+            difference.classList.add('positive');
+            difference.textContent = `+${diff}h`;
+        } else if (diff < 0) {
+            difference.classList.add('negative');
+            difference.textContent = `${diff}h`;
+        } else {
+            difference.textContent = '±0h';
+        }
+
+        hours.appendChild(estimated);
+        hours.appendChild(actual);
+        hours.appendChild(difference);
+
+        card.appendChild(header);
+        card.appendChild(hours);
+
+        // Note
+        if (plan.note) {
+            const note = document.createElement('div');
+            note.className = 'plan-note';
+            note.textContent = plan.note;
+            card.appendChild(note);
+        }
+
+        plansList.appendChild(card);
+    });
+}
+
+function showAddPlanForm() {
+    document.getElementById('addPlanForm').classList.add('show');
+    document.getElementById('addPlanBtn').style.display = 'none';
+}
+
+function hideAddPlanForm() {
+    document.getElementById('addPlanForm').classList.remove('show');
+    document.getElementById('addPlanBtn').style.display = 'block';
+    // Clear form
+    document.getElementById('categorySelect').value = '';
+    document.getElementById('estimatedHours').value = '';
+    document.getElementById('planNote').value = '';
+}
+
+async function submitPlan() {
+    const categoryId = document.getElementById('categorySelect').value;
+    const estimatedHours = document.getElementById('estimatedHours').value;
+    const note = document.getElementById('planNote').value;
+
+    if (!categoryId || !estimatedHours) {
+        showFeedback('Category and estimated hours are required', 'error');
+        return;
+    }
+
+    const data = {
+        date: formatDateLocal(currentDate),
+        category_id: categoryId,
+        estimated_hours: parseFloat(estimatedHours),
+        note: note
+    };
+
+    try {
+        const response = await fetch('/echomind/api/plan/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showFeedback('Plan created!', 'success');
+            hideAddPlanForm();
+            loadPlans();
+        } else {
+            showFeedback('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showFeedback('Network error', 'error');
+    }
+}
+
+async function deletePlan(planId) {
+    if (!confirm('Delete this plan?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/echomind/api/plan/delete/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ plan_id: planId })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showFeedback('Plan deleted', 'success');
+            loadPlans();
+        } else {
+            showFeedback('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showFeedback('Network error', 'error');
+    }
+}
+{% endblock %}
