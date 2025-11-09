@@ -41,6 +41,9 @@
     font-weight: bold;
     font-size: 16px;
     color: #333;
+    text-align: center;
+    display: block;
+    margin-top: 8px;
 }
 
 /* Comparison Container */
@@ -243,6 +246,128 @@
     font-size: 15px;
     color: #333;
 }
+
+/* Todo Section */
+.todo-section {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.todo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.todo-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.add-todo-btn {
+    background: linear-gradient(135deg, #BAFFC9 0%, #BAE1FF 100%);
+    color: #333;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-todo-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.todo-item:hover {
+    background: #f8f9fa;
+}
+
+.todo-item.completed {
+    opacity: 0.6;
+}
+
+.todo-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.todo-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.todo-category-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #333;
+    width: fit-content;
+    flex-shrink: 0;
+}
+
+.todo-text {
+    font-size: 14px;
+    color: #333;
+    word-wrap: break-word;
+    flex: 1;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.todo-delete-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 5px;
+    transition: opacity 0.2s;
+}
+
+.todo-item:hover .todo-delete-btn {
+    opacity: 1;
+}
+
+.empty-todos {
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    padding: 15px 0;
+}
 {% endblock %}
 
 {% block content %}
@@ -250,8 +375,20 @@
 <div class="date-nav">
     <div class="date-nav-buttons">
         <button onclick="changeDate(-1)">← 전날</button>
-        <span class="date-label" id="dateLabel">Loading...</span>
+        <button onclick="goToToday()" style="background: linear-gradient(135deg, #FFD9BA 0%, #FFFFBA 100%);">오늘</button>
         <button onclick="changeDate(1)">다음날 →</button>
+    </div>
+    <span class="date-label" id="dateLabel">Loading...</span>
+</div>
+
+<!-- Todo Section -->
+<div class="todo-section">
+    <div class="todo-header">
+        <div class="todo-title">할 일</div>
+        <button class="add-todo-btn" onclick="openAddTodoModal()">+ 추가</button>
+    </div>
+    <div class="todo-list" id="todoList">
+        <div class="empty-todos">할 일이 없습니다</div>
     </div>
 </div>
 
@@ -292,8 +429,37 @@
     </div>
 </div>
 
+<!-- Todo Add Modal -->
+<div class="modal-overlay" id="todoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">할 일 추가</div>
+            <button class="modal-close" onclick="closeTodoModal()">&times;</button>
+        </div>
+        <form id="todoForm" onsubmit="submitTodo(event)">
+            <div class="modal-section">
+                <div class="modal-label">카테고리 (선택)</div>
+                <select id="todoCategorySelect" class="form-control">
+                    <option value="">선택 안함</option>
+                    {% for category in activity_categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-section">
+                <div class="modal-label">내용</div>
+                <textarea id="todoContent" class="form-control" rows="3" required placeholder="할 일을 입력하세요"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-submit">추가</button>
+        </form>
+    </div>
+</div>
+
 <script>
-let currentDate = new Date();
+// Check URL parameter for date
+const urlParams = new URLSearchParams(window.location.search);
+const dateParam = urlParams.get('date');
+let currentDate = dateParam ? new Date(dateParam) : new Date();
 
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
@@ -301,6 +467,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function changeDate(delta) {
     currentDate.setDate(currentDate.getDate() + delta);
+    loadData();
+}
+
+function goToToday() {
+    currentDate = new Date();
     loadData();
 }
 
@@ -331,16 +502,21 @@ function loadData() {
     empty.style.display = 'none';
     grid.style.display = 'none';
 
-    // Load both plans and activities
+    // Load plans, activities, and todos
     Promise.all([
         fetch(`/echomind/api/plans/by-date/?date=${dateStr}`).then(r => r.json()),
-        fetch(`/echomind/api/activities/by-date/?date=${dateStr}`).then(r => r.json())
+        fetch(`/echomind/api/activities/by-date/?date=${dateStr}`).then(r => r.json()),
+        fetch(`/echomind/api/todos/by-date/?date=${dateStr}`).then(r => r.json())
     ])
-    .then(([plansData, activitiesData]) => {
+    .then(([plansData, activitiesData, todosData]) => {
         loading.style.display = 'none';
 
         const plans = plansData.plans || [];
         const activities = activitiesData.activities || [];
+        const todos = todosData.todos || [];
+
+        // Render todos
+        renderTodos(todos);
 
         if (plans.length === 0 && activities.length === 0) {
             empty.style.display = 'block';
@@ -747,6 +923,147 @@ function deleteActivity(activityId) {
 document.getElementById('detailModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeModal();
+    }
+});
+
+// Todo functions
+function renderTodos(todos) {
+    const todoList = document.getElementById('todoList');
+
+    if (todos.length === 0) {
+        todoList.innerHTML = '<div class="empty-todos">할 일이 없습니다</div>';
+        return;
+    }
+
+    todoList.innerHTML = '';
+    todos.forEach(todo => {
+        const todoItem = document.createElement('div');
+        todoItem.className = `todo-item ${todo.is_completed ? 'completed' : ''}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'todo-checkbox';
+        checkbox.checked = todo.is_completed;
+        checkbox.onchange = () => toggleTodoStatus(todo.id);
+
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'todo-content-wrapper';
+
+        if (todo.category && todo.color) {
+            const badge = document.createElement('div');
+            badge.className = 'todo-category-badge';
+            const colors = todo.color.split(',');
+            badge.style.background = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+            badge.textContent = todo.category;
+            contentWrapper.appendChild(badge);
+        }
+
+        const text = document.createElement('div');
+        text.className = 'todo-text';
+        text.textContent = todo.content;
+        contentWrapper.appendChild(text);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'todo-delete-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = () => deleteTodoItem(todo.id);
+
+        todoItem.appendChild(checkbox);
+        todoItem.appendChild(contentWrapper);
+        todoItem.appendChild(deleteBtn);
+
+        todoList.appendChild(todoItem);
+    });
+}
+
+function openAddTodoModal() {
+    document.getElementById('todoContent').value = '';
+    document.getElementById('todoCategorySelect').value = '';
+    document.getElementById('todoModal').classList.add('show');
+}
+
+function closeTodoModal() {
+    document.getElementById('todoModal').classList.remove('show');
+}
+
+function submitTodo(event) {
+    event.preventDefault();
+
+    const content = document.getElementById('todoContent').value;
+    const categoryId = document.getElementById('todoCategorySelect').value;
+    const dateStr = formatDate(currentDate);
+
+    fetch('/echomind/api/todo/create/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            date: dateStr,
+            category_id: categoryId || null,
+            content: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeTodoModal();
+            loadData();
+        } else {
+            console.error('할 일 추가 실패:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error creating todo:', error);
+    });
+}
+
+function toggleTodoStatus(todoId) {
+    fetch('/echomind/api/todo/toggle/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ todo_id: todoId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadData();
+        } else {
+            console.error('할 일 토글 실패:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling todo:', error);
+    });
+}
+
+function deleteTodoItem(todoId) {
+    fetch('/echomind/api/todo/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ todo_id: todoId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadData();
+        } else {
+            console.error('할 일 삭제 실패:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting todo:', error);
+    });
+}
+
+// Close todo modal on backdrop click
+document.getElementById('todoModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeTodoModal();
     }
 });
 </script>

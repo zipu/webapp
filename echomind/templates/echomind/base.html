@@ -166,7 +166,7 @@
     <nav class="bottom-nav">
         <a href="{% url 'echomind_home' %}" class="nav-item {% if request.resolver_match.url_name == 'echomind_home' or request.resolver_match.url_name == 'lapse_log' or request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
             <span class="nav-item-icon">📝</span>
-            Log
+            기록
         </a>
         <a href="{% url 'calendar' %}" class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
             <span class="nav-item-icon">📅</span>
@@ -178,7 +178,7 @@
         </a>
         <a href="{% url 'stats' %}" class="nav-item {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
             <span class="nav-item-icon">📈</span>
-            Stats
+            통계
         </a>
     </nav>
 

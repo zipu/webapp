@@ -17,7 +17,11 @@ from .views import (
     get_plans_by_date,
     get_plans_by_week,
     create_plan,
-    delete_plan
+    delete_plan,
+    get_todos_by_date,
+    create_todo,
+    toggle_todo,
+    delete_todo
 )
 
 urlpatterns = [
@@ -37,4 +41,8 @@ urlpatterns = [
     path('api/plans/by-week/', get_plans_by_week, name='get_plans_by_week'),
     path('api/plan/create/', create_plan, name='create_plan'),
     path('api/plan/delete/', delete_plan, name='delete_plan'),
+    path('api/todos/by-date/', get_todos_by_date, name='get_todos_by_date'),
+    path('api/todo/create/', create_todo, name='create_todo'),
+    path('api/todo/toggle/', toggle_todo, name='toggle_todo'),
+    path('api/todo/delete/', delete_todo, name='delete_todo'),
 ]

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from django.db.models import Sum, Count
 import json
 import traceback
-from .models import Activity, Activity_Category, Activity_Tag, Status_Tag, Attentional_Lapse, Lapse_Category, Plan
+from .models import Activity, Activity_Category, Activity_Tag, Status_Tag, Attentional_Lapse, Lapse_Category, Plan, Todo
 
 class HomeView(TemplateView):
     template_name = "echomind/home.html"
@@ -268,6 +268,11 @@ def get_activities_by_date(request):
 
 class ActivityTimelineView(TemplateView):
     template_name = "echomind/activity_timeline.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['activity_categories'] = Activity_Category.objects.all()
+        return context
 
 class PlanView(TemplateView):
     template_name = "echomind/plan.html"
@@ -622,3 +627,123 @@ class StatsView(TemplateView):
         })
 
         return context
+
+# Todo API views
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_todos_by_date(request):
+    """Get todos for a specific date"""
+    try:
+        date_str = request.GET.get('date')
+        if not date_str:
+            return JsonResponse({'success': False, 'error': 'Date parameter required'})
+
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        todos = Todo.objects.filter(date=date_obj).select_related('category')
+
+        todo_list = []
+        for todo in todos:
+            todo_list.append({
+                'id': todo.id,
+                'date': str(todo.date),
+                'category': todo.category.name if todo.category else None,
+                'category_id': todo.category.id if todo.category else None,
+                'color': todo.category.color if todo.category else None,
+                'content': todo.content,
+                'is_completed': todo.is_completed,
+                'completed_at': todo.completed_at.isoformat() if todo.completed_at else None,
+            })
+
+        return JsonResponse({
+            'success': True,
+            'todos': todo_list
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_todo(request):
+    """Create a new todo"""
+    try:
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        category_id = data.get('category_id')
+        content = data.get('content')
+
+        if not date_str or not content:
+            return JsonResponse({'success': False, 'error': 'Date and content required'})
+
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        todo = Todo.objects.create(
+            date=date_obj,
+            category_id=category_id if category_id else None,
+            content=content
+        )
+
+        return JsonResponse({
+            'success': True,
+            'todo': {
+                'id': todo.id,
+                'date': str(todo.date),
+                'category': todo.category.name if todo.category else None,
+                'category_id': todo.category.id if todo.category else None,
+                'color': todo.category.color if todo.category else None,
+                'content': todo.content,
+                'is_completed': todo.is_completed,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_todo(request):
+    """Toggle todo completion status"""
+    try:
+        data = json.loads(request.body)
+        todo_id = data.get('todo_id')
+
+        if not todo_id:
+            return JsonResponse({'success': False, 'error': 'Todo ID required'})
+
+        todo = Todo.objects.get(id=todo_id)
+        todo.is_completed = not todo.is_completed
+        todo.completed_at = timezone.now() if todo.is_completed else None
+        todo.save()
+
+        return JsonResponse({
+            'success': True,
+            'is_completed': todo.is_completed
+        })
+    except Todo.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Todo not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def delete_todo(request):
+    """Delete a todo"""
+    try:
+        data = json.loads(request.body)
+        todo_id = data.get('todo_id')
+
+        if not todo_id:
+            return JsonResponse({'success': False, 'error': 'Todo ID required'})
+
+        todo = Todo.objects.get(id=todo_id)
+        todo.delete()
+
+        return JsonResponse({'success': True})
+    except Todo.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Todo not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

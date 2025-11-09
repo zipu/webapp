@@ -146,3 +146,19 @@ class Plan(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.category.name} ({self.start_time.strftime('%H:%M')}-{self.end_time.strftime('%H:%M')})"
+
+class Todo(models.Model):
+    date = models.DateField()
+    category = models.ForeignKey(Activity_Category, on_delete=models.SET_NULL, null=True, blank=True)
+    content = models.TextField()
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['is_completed', '-created_at']
+
+    def __str__(self):
+        status = "✓" if self.is_completed else "○"
+        category_name = self.category.name if self.category else "미분류"
+        return f"{status} [{self.date}] {category_name}: {self.content[:30]}"
