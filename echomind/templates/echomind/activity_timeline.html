@@ -1,238 +1,197 @@
 {% extends "echomind/base.html" %}
 
-{% block title %}Activity Timeline{% endblock %}
+{% block title %}일간 비교 - Echo Mind{% endblock %}
 
 {% block extra_style %}
 /* Date Navigation */
 .date-nav {
     background: white;
     border-radius: 10px;
-    padding: 15px;
+    padding: 10px;
     margin-bottom: 15px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
-.date-nav-btn {
-    background: #007bff;
-    color: white;
+.date-nav-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-nav button {
+    background: linear-gradient(135deg, #C7CEEA 0%, #B5EAD7 100%);
+    color: #333;
     border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 20px;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s;
     cursor: pointer;
+}
+
+.date-nav button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.date-label {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Comparison Container */
+.comparison-container {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 80px;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr;
+    gap: 5px;
+}
+
+/* Column Headers */
+.column-header {
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.plan-header {
+    background: linear-gradient(135deg, #E0BBE4 0%, #D5AAFF 100%);
+    color: #333;
+}
+
+.activity-header {
+    background: linear-gradient(135deg, #BAFFC9 0%, #BAE1FF 100%);
+    color: #333;
+}
+
+/* Time Column */
+.time-column {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.time-label {
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    font-size: 11px;
+    color: #666;
+    border-bottom: 1px solid #eee;
 }
 
-.date-nav-btn:active {
-    transform: scale(0.95);
-    background: #0056b3;
+/* Data Columns */
+.data-column {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    overflow: visible;
 }
 
-.date-display {
-    flex: 1;
-    text-align: center;
-    margin: 0 10px;
-}
-
-.date-text {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-}
-
-.date-picker-input {
-    position: absolute;
-    opacity: 0;
+.time-slot {
+    height: 60px;
+    border-bottom: 1px solid #f0f0f0;
     pointer-events: none;
 }
 
-.today-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 14px;
+.time-slot:last-child {
+    border-bottom: none;
+}
+
+/* Plan/Activity Blocks */
+.block {
+    position: absolute !important;
+    left: 2px;
+    right: 2px;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 11px;
+    color: #333;
+    overflow: hidden;
     cursor: pointer;
-    margin-left: 10px;
-    white-space: nowrap;
-}
-
-.today-btn:active {
-    background: #1e7e34;
-}
-
-/* Timeline Container */
-.timeline-container {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    position: relative;
-}
-
-/* Timeline */
-.timeline {
-    position: relative;
-    margin-left: 50px;
-}
-
-/* Sleep time section */
-.sleep-section {
-    position: relative;
-    height: 50px;
-    background: #f5f5f5;
-    border-radius: 6px;
-    margin: 5px 0;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 14px;
-    border: 2px dashed #ddd;
-}
-
-.sleep-section:hover {
-    background: #eeeeee;
-}
-
-.sleep-section.expanded {
-    height: 360px; /* 6 hours * 60px */
-    background: transparent;
-    border: none;
-    cursor: default;
-}
-
-.sleep-section-content {
-    display: none;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-left: 3px solid #e0e0e0;
-}
-
-.sleep-section.expanded .sleep-section-content {
-    display: block;
-}
-
-.sleep-section.expanded .sleep-section-label {
-    display: none;
-}
-
-/* Active timeline section */
-.active-section {
-    position: relative;
-    min-height: 1080px; /* 18 hours * 60px (6am-midnight) */
-    border-left: 3px solid #e0e0e0;
-}
-
-/* Hour markers */
-.hour-marker {
-    position: absolute;
-    left: -55px;
-    width: 50px;
-    text-align: right;
-    font-size: 12px;
-    color: #999;
-    font-weight: bold;
-}
-
-.hour-line {
-    position: absolute;
-    left: -3px;
-    right: 0;
-    height: 1px;
-    background: #e0e0e0;
-}
-
-/* Activity block */
-.activity-block {
-    position: absolute;
-    left: 5px;
-    right: 10px;
-    border-radius: 6px;
-    padding: 8px;
-    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
     transition: all 0.2s;
-    overflow: hidden;
-    border-left: 4px solid;
-    z-index: 1;
-}
-
-.activity-block:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.activity-category {
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.activity-time {
-    font-size: 11px;
-    opacity: 0.8;
-}
-
-.activity-duration {
-    font-size: 11px;
-    opacity: 0.8;
-}
-
-/* Category colors */
-.category-color-1 { background: #e3f2fd; border-color: #2196f3; color: #1565c0; }
-.category-color-2 { background: #f3e5f5; border-color: #9c27b0; color: #6a1b9a; }
-.category-color-3 { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
-.category-color-4 { background: #fff3e0; border-color: #ff9800; color: #e65100; }
-.category-color-5 { background: #fce4ec; border-color: #e91e63; color: #ad1457; }
-.category-color-6 { background: #e0f2f1; border-color: #009688; color: #00695c; }
-.category-color-7 { background: #fff9c4; border-color: #fbc02d; color: #f57f17; }
-.category-color-8 { background: #ede7f6; border-color: #673ab7; color: #4527a0; }
-
-/* Lapse indicator */
-.lapse-indicator {
-    position: absolute;
-    left: -20px;
-    width: 20px;
-    height: 20px;
-    background: #dc3545;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
+    font-weight: 500;
     z-index: 10;
-    border: 2px solid white;
+}
+
+.block:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 20;
+}
+
+.block-category {
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.block-time {
+    font-size: 9px;
+    opacity: 0.8;
+}
+
+/* Lapse Stickers */
+.lapse-stickers {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    max-width: 50px;
+    justify-content: flex-end;
+    z-index: 5;
+}
+
+.lapse-sticker {
+    font-size: 12px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(255,0,0,0.5));
+}
+
+/* Loading & Empty States */
+.loading, .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
 }
 
 /* Modal */
 .modal-overlay {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    justify-content: center;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
     align-items: center;
-    z-index: 1001;
-    padding: 20px;
+    justify-content: center;
 }
 
 .modal-overlay.show {
@@ -241,10 +200,10 @@
 
 .modal-content {
     background: white;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 20px;
-    max-width: 500px;
-    width: 100%;
+    max-width: 400px;
+    width: 90%;
     max-height: 80vh;
     overflow-y: auto;
 }
@@ -257,24 +216,16 @@
 }
 
 .modal-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
-    color: #333;
 }
 
 .modal-close {
-    background: transparent;
+    background: none;
     border: none;
-    font-size: 28px;
+    font-size: 24px;
     color: #999;
     cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-}
-
-.modal-body {
-    font-size: 14px;
 }
 
 .modal-section {
@@ -284,647 +235,382 @@
 .modal-label {
     font-weight: bold;
     color: #666;
+    font-size: 12px;
     margin-bottom: 5px;
 }
 
 .modal-value {
-    color: #333;
-}
-
-.tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 5px;
-}
-
-.tag {
-    background: #e9ecef;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 12px;
-    color: #495057;
-}
-
-.lapse-list {
-    margin-top: 10px;
-}
-
-.lapse-item {
-    background: #fff3cd;
-    border-left: 3px solid #dc3545;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-}
-
-.lapse-header {
-    font-weight: bold;
-    color: #dc3545;
-    margin-bottom: 3px;
-}
-
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #999;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #999;
-}
-
-.empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
-}
-
-/* Activity List View */
-.activity-list-container {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.activity-list-header {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #e0e0e0;
-}
-
-.activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.activity-card {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-left: 4px solid;
-}
-
-.activity-card:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.activity-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-}
-
-.activity-card-category {
-    font-weight: bold;
     font-size: 15px;
     color: #333;
-}
-
-.activity-card-duration {
-    font-size: 13px;
-    color: #666;
-    background: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-}
-
-.activity-card-time {
-    font-size: 13px;
-    color: #666;
-}
-
-.activity-card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 5px;
-}
-
-.activity-card-tag {
-    background: white;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    color: #666;
-}
-
-.activity-card-lapse {
-    margin-top: 5px;
-    font-size: 12px;
-    color: #dc3545;
 }
 {% endblock %}
 
 {% block content %}
 <!-- Date Navigation -->
 <div class="date-nav">
-    <button class="date-nav-btn" id="prevDayBtn">←</button>
-    <div class="date-display">
-        <div class="date-text" id="currentDate"></div>
-        <input type="date" id="datePicker" class="date-picker-input">
+    <div class="date-nav-buttons">
+        <button onclick="changeDate(-1)">← 전날</button>
+        <span class="date-label" id="dateLabel">Loading...</span>
+        <button onclick="changeDate(1)">다음날 →</button>
     </div>
-    <button class="date-nav-btn" id="nextDayBtn">→</button>
-    <button class="today-btn" id="todayBtn">오늘</button>
 </div>
 
-<!-- Timeline Container -->
-<div class="timeline-container">
+<!-- Comparison Container -->
+<div class="comparison-container" id="comparisonContainer">
     <div id="loadingIndicator" class="loading">
         Loading...
     </div>
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-state-icon">📭</div>
-        <div>이 날짜에 기록된 활동이 없습니다</div>
+        <div>이 날짜에 기록된 데이터가 없습니다</div>
     </div>
-    <div class="timeline" id="timeline" style="display: none;">
-        <!-- Sleep section (00:00-06:00) -->
-        <div class="sleep-section" id="sleepSection">
-            <div class="sleep-section-label">🌙 수면 시간 (00:00-06:00) 클릭하여 펼치기</div>
-            <div class="sleep-section-content" id="sleepSectionContent">
-                <!-- Hour markers for 0-6 will be generated by JavaScript -->
-            </div>
-        </div>
+    <div class="comparison-grid" id="comparisonGrid" style="display: none;">
+        <!-- Headers -->
+        <div></div>
+        <div class="column-header plan-header">계획</div>
+        <div class="column-header activity-header">실행</div>
 
-        <!-- Active section (06:00-24:00) -->
-        <div class="active-section" id="activeSection">
-            <!-- Hour markers for 6-24 will be generated by JavaScript -->
-        </div>
-    </div>
-</div>
+        <!-- Time labels -->
+        <div class="time-column" id="timeColumn"></div>
 
-<!-- Activity List Container -->
-<div class="activity-list-container" id="activityListContainer" style="display: none;">
-    <div class="activity-list-header">활동 목록</div>
-    <div class="activity-list" id="activityList">
-        <!-- Activity cards will be generated by JavaScript -->
+        <!-- Plan column -->
+        <div class="data-column" id="planColumn"></div>
+
+        <!-- Activity column -->
+        <div class="data-column" id="activityColumn"></div>
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="activityModal">
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
     <div class="modal-content">
         <div class="modal-header">
             <div class="modal-title" id="modalTitle"></div>
-            <button class="modal-close" id="modalClose">&times;</button>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
-        <div class="modal-body" id="modalBody"></div>
+        <div id="modalBody"></div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_script %}
+<script>
 let currentDate = new Date();
-let categoryColorMap = {};
-let colorIndex = 1;
 
-// Helper function to format date as YYYY-MM-DD in local timezone
-function formatDateLocal(date) {
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+});
+
+function changeDate(delta) {
+    currentDate.setDate(currentDate.getDate() + delta);
+    loadData();
+}
+
+function formatDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    generateHourMarkers();
-    updateDateDisplay();
-    loadActivities();
-
-    // Event listeners
-    document.getElementById('prevDayBtn').addEventListener('click', () => changeDate(-1));
-    document.getElementById('nextDayBtn').addEventListener('click', () => changeDate(1));
-    document.getElementById('todayBtn').addEventListener('click', goToToday);
-    document.getElementById('currentDate').addEventListener('click', openDatePicker);
-    document.getElementById('datePicker').addEventListener('change', onDatePickerChange);
-    document.getElementById('modalClose').addEventListener('click', closeModal);
-    document.getElementById('activityModal').addEventListener('click', (e) => {
-        if (e.target.id === 'activityModal') closeModal();
-    });
-    document.getElementById('sleepSection').addEventListener('click', toggleSleepSection);
-
-    // Touch swipe support - only horizontal swipes
-    let touchStartX = 0;
-    let touchEndX = 0;
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    document.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-    });
-
-    document.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        touchEndY = e.changedTouches[0].screenY;
-        handleSwipe();
-    });
-
-    function handleSwipe() {
-        const diffX = touchStartX - touchEndX;
-        const diffY = touchStartY - touchEndY;
-
-        // Require minimum swipe distance and horizontal dominance
-        const minSwipeDistance = 100; // Increased from 50
-        const horizontalRatio = 2; // Horizontal movement must be 2x vertical
-
-        if (Math.abs(diffX) > minSwipeDistance &&
-            Math.abs(diffX) > Math.abs(diffY) * horizontalRatio) {
-            if (diffX > 0) {
-                // Swipe left - next day
-                changeDate(1);
-            } else {
-                // Swipe right - previous day
-                changeDate(-1);
-            }
-        }
-    }
-});
-
-function generateHourMarkers() {
-    const sleepContent = document.getElementById('sleepSectionContent');
-    const activeSection = document.getElementById('activeSection');
-
-    // Generate markers for sleep section (0-6)
-    for (let hour = 0; hour < 6; hour++) {
-        const y = hour * 60;
-
-        const marker = document.createElement('div');
-        marker.className = 'hour-marker';
-        marker.style.top = y + 'px';
-        marker.textContent = hour.toString().padStart(2, '0') + ':00';
-        sleepContent.appendChild(marker);
-
-        const line = document.createElement('div');
-        line.className = 'hour-line';
-        line.style.top = y + 'px';
-        sleepContent.appendChild(line);
-    }
-
-    // Generate markers for active section (6-24)
-    for (let hour = 6; hour < 24; hour++) {
-        const y = (hour - 6) * 60; // Offset for active section
-
-        const marker = document.createElement('div');
-        marker.className = 'hour-marker';
-        marker.style.top = y + 'px';
-        marker.textContent = hour.toString().padStart(2, '0') + ':00';
-        activeSection.appendChild(marker);
-
-        const line = document.createElement('div');
-        line.className = 'hour-line';
-        line.style.top = y + 'px';
-        activeSection.appendChild(line);
-    }
+function formatDateLabel(date) {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayOfWeek = days[date.getDay()];
+    return `${month}월 ${day}일 (${dayOfWeek})`;
 }
 
-function toggleSleepSection() {
-    const sleepSection = document.getElementById('sleepSection');
-    sleepSection.classList.toggle('expanded');
-}
+function loadData() {
+    const dateStr = formatDate(currentDate);
+    document.getElementById('dateLabel').textContent = formatDateLabel(currentDate);
 
-function updateDateDisplay() {
-    const dateStr = currentDate.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'short'
-    });
-    document.getElementById('currentDate').textContent = dateStr;
-
-    // Update date picker value using local date
-    document.getElementById('datePicker').value = formatDateLocal(currentDate);
-}
-
-function changeDate(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    updateDateDisplay();
-    loadActivities();
-}
-
-function goToToday() {
-    currentDate = new Date();
-    updateDateDisplay();
-    loadActivities();
-}
-
-function openDatePicker() {
-    document.getElementById('datePicker').showPicker();
-}
-
-function onDatePickerChange(e) {
-    // Parse date in local timezone to avoid timezone offset issues
-    const parts = e.target.value.split('-');
-    currentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    updateDateDisplay();
-    loadActivities();
-}
-
-function loadActivities() {
-    const dateStr = formatDateLocal(currentDate);
-    const timeline = document.getElementById('timeline');
     const loading = document.getElementById('loadingIndicator');
-    const emptyState = document.getElementById('emptyState');
-    const activityListContainer = document.getElementById('activityListContainer');
+    const empty = document.getElementById('emptyState');
+    const grid = document.getElementById('comparisonGrid');
 
-    // Clear previous activities
-    const blocks = timeline.querySelectorAll('.activity-block, .lapse-indicator');
-    blocks.forEach(block => block.remove());
-
-    // Show loading
-    timeline.style.display = 'none';
-    emptyState.style.display = 'none';
-    activityListContainer.style.display = 'none';
     loading.style.display = 'block';
+    empty.style.display = 'none';
+    grid.style.display = 'none';
 
-    fetch(`/echomind/api/activities/by-date/?date=${dateStr}`)
-        .then(response => response.json())
-        .then(data => {
-            loading.style.display = 'none';
+    // Load both plans and activities
+    Promise.all([
+        fetch(`/echomind/api/plans/by-date/?date=${dateStr}`).then(r => r.json()),
+        fetch(`/echomind/api/activities/by-date/?date=${dateStr}`).then(r => r.json())
+    ])
+    .then(([plansData, activitiesData]) => {
+        loading.style.display = 'none';
 
-            if (data.success && data.activities.length > 0) {
-                timeline.style.display = 'block';
-                activityListContainer.style.display = 'block';
-                renderActivities(data.activities);
-                renderActivityList(data.activities);
-            } else {
-                emptyState.style.display = 'block';
-            }
-        })
-        .catch(error => {
-            loading.style.display = 'none';
-            console.error('Error loading activities:', error);
-            showFeedback('Failed to load activities', 'error');
-        });
-}
+        const plans = plansData.plans || [];
+        const activities = activitiesData.activities || [];
 
-function renderActivities(activities) {
-    const sleepContent = document.getElementById('sleepSectionContent');
-    const activeSection = document.getElementById('activeSection');
-
-    // Get start and end of current viewing day
-    const dayStart = new Date(currentDate);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(currentDate);
-    dayEnd.setHours(23, 59, 59, 999);
-
-    activities.forEach(activity => {
-        const startTime = new Date(activity.start_time);
-        const endTime = new Date(activity.end_time);
-
-        // Calculate how much of this activity falls within the current day
-        const effectiveStart = startTime < dayStart ? dayStart : startTime;
-        const effectiveEnd = endTime > dayEnd ? dayEnd : endTime;
-
-        // Calculate position and height based on the current day
-        const startMinutes = effectiveStart.getHours() * 60 + effectiveStart.getMinutes();
-        const endMinutes = effectiveEnd.getHours() * 60 + effectiveEnd.getMinutes();
-        const durationMinutes = endMinutes - startMinutes;
-
-        // Determine which section(s) this activity belongs to
-        const startHour = effectiveStart.getHours();
-        const endHour = effectiveEnd.getHours();
-
-        // Get color for category
-        const categoryColor = getCategoryColor(activity.category);
-
-        // If activity spans both sections, create two blocks
-        if (startHour < 6 && endHour >= 6) {
-            // Part 1: Sleep section (0-6am)
-            const sleepEndMinutes = 6 * 60;
-            const sleepDuration = sleepEndMinutes - startMinutes;
-            createActivityBlock(sleepContent, activity, startMinutes, sleepDuration, categoryColor);
-
-            // Part 2: Active section (6am onwards)
-            const activeStartMinutes = 0;
-            const activeEndMinutes = endMinutes - sleepEndMinutes;
-            createActivityBlock(activeSection, activity, activeStartMinutes, activeEndMinutes, categoryColor);
-        } else if (startHour < 6) {
-            // Entirely in sleep section
-            createActivityBlock(sleepContent, activity, startMinutes, durationMinutes, categoryColor);
+        if (plans.length === 0 && activities.length === 0) {
+            empty.style.display = 'block';
         } else {
-            // Entirely in active section
-            const top = startMinutes - (6 * 60); // Offset for active section
-            const height = durationMinutes;
-            createActivityBlock(activeSection, activity, top, height, categoryColor);
+            grid.style.display = 'grid';
+            renderComparison(plans, activities);
         }
-
-        // Render lapses
-        activity.lapses.forEach(lapse => {
-            const lapseTime = lapse.timestamp.split(':');
-            const lapseMinutes = parseInt(lapseTime[0]) * 60 + parseInt(lapseTime[1]);
-            const lapseHour = parseInt(lapseTime[0]);
-
-            const lapseIndicator = document.createElement('div');
-            lapseIndicator.className = 'lapse-indicator';
-            lapseIndicator.textContent = '⚡';
-            lapseIndicator.title = `${lapse.type} - ${lapse.category}`;
-
-            if (lapseHour < 6) {
-                lapseIndicator.style.top = lapseMinutes + 'px';
-                sleepContent.appendChild(lapseIndicator);
-            } else {
-                lapseIndicator.style.top = (lapseMinutes - 360) + 'px';
-                activeSection.appendChild(lapseIndicator);
-            }
-        });
+    })
+    .catch(error => {
+        console.error('Error loading data:', error);
+        loading.style.display = 'none';
+        empty.style.display = 'block';
     });
 }
 
-function createActivityBlock(container, activity, top, height, categoryColor) {
-    height = Math.max(height, 30); // Minimum 30px for tap target
+function renderComparison(plans, activities) {
+    // Build time labels (6:00 - 24:00)
+    const timeColumn = document.getElementById('timeColumn');
+    timeColumn.innerHTML = '';
 
+    for (let hour = 6; hour < 24; hour++) {
+        const label = document.createElement('div');
+        label.className = 'time-label';
+        label.textContent = `${hour}:00`;
+        timeColumn.appendChild(label);
+    }
+
+    // Build plan column
+    const planColumn = document.getElementById('planColumn');
+    planColumn.innerHTML = '';
+
+    for (let hour = 6; hour < 24; hour++) {
+        const slot = document.createElement('div');
+        slot.className = 'time-slot';
+        slot.dataset.hour = hour;
+        planColumn.appendChild(slot);
+    }
+
+    // Render plans
+    plans.forEach(plan => {
+        renderPlanBlock(plan);
+    });
+
+    // Build activity column
+    const activityColumn = document.getElementById('activityColumn');
+    activityColumn.innerHTML = '';
+
+    for (let hour = 6; hour < 24; hour++) {
+        const slot = document.createElement('div');
+        slot.className = 'time-slot';
+        slot.dataset.hour = hour;
+        activityColumn.appendChild(slot);
+    }
+
+    // Render activities
+    activities.forEach(activity => {
+        renderActivityBlock(activity);
+    });
+}
+
+function renderPlanBlock(plan) {
+    const startTime = plan.start_time.split(':');
+    const endTime = plan.end_time.split(':');
+    const startHour = parseInt(startTime[0]);
+    const startMin = parseInt(startTime[1]);
+    const endHour = parseInt(endTime[0]);
+    const endMin = parseInt(endTime[1]);
+
+    // Skip if outside visible hours
+    if (endHour < 6 || startHour >= 24) return;
+
+    // Calculate exact minutes from midnight
+    const startTotalMinutes = startHour * 60 + startMin;
+    const endTotalMinutes = endHour * 60 + endMin;
+
+    // Clamp to visible hours (6:00 - 24:00)
+    const visibleStartMinutes = Math.max(startTotalMinutes, 6 * 60);
+    const visibleEndMinutes = Math.min(endTotalMinutes, 24 * 60);
+
+    // Calculate position and height (1 minute = 1 pixel)
+    const topOffset = visibleStartMinutes - (6 * 60); // Offset from 6:00
+    const height = visibleEndMinutes - visibleStartMinutes;
+
+    // Parse colors
+    const colors = plan.color ? plan.color.split(',') : ['#E0BBE4', '#D5AAFF'];
+    const gradient = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+
+    // Create block
+    const block = document.createElement('div');
+    block.className = 'block';
+    block.style.top = `${topOffset}px`;
+    block.style.height = `${Math.max(height, 20)}px`;
+    block.style.background = gradient;
+
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'block-category';
+    categoryDiv.textContent = plan.category;
+
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'block-time';
+    timeDiv.textContent = `${plan.start_time.substring(0, 5)}-${plan.end_time.substring(0, 5)}`;
+
+    block.appendChild(categoryDiv);
+    if (height > 30) {
+        block.appendChild(timeDiv);
+    }
+
+    // Setup long press to delete
+    setupLongPress(block, () => deletePlan(plan.id), () => showPlanDetail(plan));
+
+    document.getElementById('planColumn').appendChild(block);
+}
+
+function renderActivityBlock(activity) {
     const startTime = new Date(activity.start_time);
     const endTime = new Date(activity.end_time);
 
-    // Create activity block
-    const block = document.createElement('div');
-    block.className = `activity-block category-color-${categoryColor}`;
-    block.style.top = top + 'px';
-    block.style.height = height + 'px';
+    const startHour = startTime.getHours();
+    const startMin = startTime.getMinutes();
+    const endHour = endTime.getHours();
+    const endMin = endTime.getMinutes();
 
-    // Content
+    // Skip if outside visible hours
+    if (endHour < 6 || startHour >= 24) {
+        return;
+    }
+
+    // Calculate exact minutes from midnight
+    const startTotalMinutes = startHour * 60 + startMin;
+    const endTotalMinutes = endHour * 60 + endMin;
+
+    // Clamp to visible hours (6:00 - 24:00)
+    const visibleStartMinutes = Math.max(startTotalMinutes, 6 * 60);
+    const visibleEndMinutes = Math.min(endTotalMinutes, 24 * 60);
+
+    // Calculate position and height (1 minute = 1 pixel)
+    const topOffset = visibleStartMinutes - (6 * 60); // Offset from 6:00
+    const height = visibleEndMinutes - visibleStartMinutes;
+
+    // Get category color from activity data
+    const colors = activity.color ? activity.color.split(',') : ['#BAFFC9', '#BAE1FF'];
+    const gradient = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+
+    // Create block
+    const block = document.createElement('div');
+    block.className = 'block';
+    block.style.top = `${topOffset}px`;
+    block.style.height = `${Math.max(height, 20)}px`;
+    block.style.background = gradient;
+
     const categoryDiv = document.createElement('div');
-    categoryDiv.className = 'activity-category';
+    categoryDiv.className = 'block-category';
     categoryDiv.textContent = activity.category;
 
     const timeDiv = document.createElement('div');
-    timeDiv.className = 'activity-time';
-    timeDiv.textContent = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    timeDiv.className = 'block-time';
+    const startTimeStr = `${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+    const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+    timeDiv.textContent = `${startTimeStr}-${endTimeStr}`;
 
-    if (height > 45) {
-        const durationDiv = document.createElement('div');
-        durationDiv.className = 'activity-duration';
-        durationDiv.textContent = `${activity.net_duration}분`;
-        block.appendChild(categoryDiv);
+    block.appendChild(categoryDiv);
+    if (height > 30) {
         block.appendChild(timeDiv);
-        block.appendChild(durationDiv);
-    } else if (height > 30) {
-        block.appendChild(categoryDiv);
-        block.appendChild(timeDiv);
-    } else {
-        block.appendChild(categoryDiv);
     }
 
-    // Click handler
-    block.addEventListener('click', () => showActivityDetails(activity));
-
-    container.appendChild(block);
-}
-
-function renderActivityList(activities) {
-    const activityList = document.getElementById('activityList');
-    activityList.innerHTML = '';
-
-    // Sort activities by start time
-    const sortedActivities = [...activities].sort((a, b) => {
-        return new Date(a.start_time) - new Date(b.start_time);
-    });
-
-    sortedActivities.forEach(activity => {
-        const categoryColor = getCategoryColor(activity.category);
-
-        const card = document.createElement('div');
-        card.className = `activity-card category-color-${categoryColor}`;
-
-        // Header
-        const header = document.createElement('div');
-        header.className = 'activity-card-header';
-
-        const category = document.createElement('div');
-        category.className = 'activity-card-category';
-        category.textContent = activity.category;
-
-        const duration = document.createElement('div');
-        duration.className = 'activity-card-duration';
-        duration.textContent = `${activity.net_duration}분`;
-
-        header.appendChild(category);
-        header.appendChild(duration);
-
-        // Time
-        const time = document.createElement('div');
-        time.className = 'activity-card-time';
-        const startTime = new Date(activity.start_time);
-        const endTime = new Date(activity.end_time);
-        time.textContent = `${formatTime(startTime)} - ${formatTime(endTime)}`;
-
-        // Tags
-        const tags = document.createElement('div');
-        tags.className = 'activity-card-tags';
-
-        activity.activity_tags.forEach(tag => {
-            const tagEl = document.createElement('span');
-            tagEl.className = 'activity-card-tag';
-            tagEl.textContent = tag;
-            tags.appendChild(tagEl);
-        });
-
-        activity.status_tags.forEach(tag => {
-            const tagEl = document.createElement('span');
-            tagEl.className = 'activity-card-tag';
-            tagEl.textContent = tag;
-            tags.appendChild(tagEl);
-        });
-
-        // Lapse info
-        if (activity.lapses && activity.lapses.length > 0) {
-            const lapse = document.createElement('div');
-            lapse.className = 'activity-card-lapse';
-            lapse.textContent = `⚡ ${activity.lapses.length}건의 주의력 이탈`;
-            card.appendChild(header);
-            card.appendChild(time);
-            if (tags.children.length > 0) {
-                card.appendChild(tags);
-            }
-            card.appendChild(lapse);
-        } else {
-            card.appendChild(header);
-            card.appendChild(time);
-            if (tags.children.length > 0) {
-                card.appendChild(tags);
-            }
-        }
-
-        // Click handler
-        card.addEventListener('click', () => showActivityDetails(activity));
-
-        activityList.appendChild(card);
-    });
-}
-
-function getCategoryColor(category) {
-    if (!categoryColorMap[category]) {
-        categoryColorMap[category] = colorIndex;
-        colorIndex = (colorIndex % 8) + 1;
-    }
-    return categoryColorMap[category];
-}
-
-function formatTime(date) {
-    return date.toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    });
-}
-
-function showActivityDetails(activity) {
-    const modal = document.getElementById('activityModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-
-    modalTitle.textContent = activity.category;
-
-    let durationText = `순수 활동: ${activity.net_duration}분`;
+    // Add lapse stickers
     if (activity.lapses && activity.lapses.length > 0) {
-        const lapseDuration = activity.lapses.reduce((sum, lapse) => sum + (lapse.duration || 0), 0);
-        if (lapseDuration > 0) {
-            durationText += ` (총 ${activity.duration}분 - 이탈 ${lapseDuration}분)`;
+        const stickersContainer = document.createElement('div');
+        stickersContainer.className = 'lapse-stickers';
+        stickersContainer.style.position = 'absolute';
+        stickersContainer.style.top = '2px';
+        stickersContainer.style.right = '2px';
+        stickersContainer.style.display = 'flex';
+        stickersContainer.style.gap = '3px';
+        stickersContainer.style.flexWrap = 'wrap';
+        stickersContainer.style.maxWidth = '60px';
+        stickersContainer.style.justifyContent = 'flex-end';
+        stickersContainer.style.zIndex = '15';
+
+        activity.lapses.slice(0, 8).forEach((lapse, index) => {
+            const sticker = document.createElement('div');
+            sticker.className = 'lapse-sticker';
+            sticker.textContent = '⚡';
+            sticker.style.fontSize = '14px';
+            sticker.style.lineHeight = '1';
+            sticker.style.cursor = 'pointer';
+            sticker.style.filter = 'drop-shadow(0 2px 3px rgba(255,0,0,0.6))';
+            sticker.title = `${lapse.type} - ${lapse.category}${lapse.duration ? ` (${lapse.duration}분)` : ''}`;
+            stickersContainer.appendChild(sticker);
+        });
+
+        if (activity.lapses.length > 8) {
+            const more = document.createElement('div');
+            more.style.fontSize = '10px';
+            more.style.fontWeight = 'bold';
+            more.style.color = '#dc3545';
+            more.style.backgroundColor = 'white';
+            more.style.padding = '2px 3px';
+            more.style.borderRadius = '3px';
+            more.textContent = `+${activity.lapses.length - 8}`;
+            stickersContainer.appendChild(more);
         }
+
+        block.appendChild(stickersContainer);
     }
+
+    // Setup long press to delete
+    setupLongPress(block, () => deleteActivity(activity.id), () => showActivityDetail(activity));
+
+    document.getElementById('activityColumn').appendChild(block);
+}
+
+function showPlanDetail(plan) {
+    const modal = document.getElementById('detailModal');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+
+    title.textContent = `계획: ${plan.category}`;
 
     let html = `
         <div class="modal-section">
             <div class="modal-label">시간</div>
-            <div class="modal-value">${activity.start_time.split(' ')[1]} - ${activity.end_time.split(' ')[1]}</div>
-            <div class="modal-value">${durationText}</div>
+            <div class="modal-value">${plan.start_time.substring(0, 5)} - ${plan.end_time.substring(0, 5)}</div>
         </div>
     `;
 
-    if (activity.activity_tags && activity.activity_tags.length > 0) {
+    if (plan.estimated_hours) {
         html += `
             <div class="modal-section">
-                <div class="modal-label">Activity Tags</div>
-                <div class="tag-list">
-                    ${activity.activity_tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
+                <div class="modal-label">예상 시간</div>
+                <div class="modal-value">${plan.estimated_hours}시간</div>
             </div>
         `;
     }
 
-    if (activity.status_tags && activity.status_tags.length > 0) {
+    if (plan.note) {
         html += `
             <div class="modal-section">
-                <div class="modal-label">Status Tags</div>
-                <div class="tag-list">
-                    ${activity.status_tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
+                <div class="modal-label">메모</div>
+                <div class="modal-value">${plan.note}</div>
             </div>
         `;
     }
+
+    body.innerHTML = html;
+    modal.classList.add('show');
+}
+
+function showActivityDetail(activity) {
+    const modal = document.getElementById('detailModal');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+
+    title.textContent = `실행: ${activity.category}`;
+
+    const startTime = new Date(activity.start_time);
+    const endTime = new Date(activity.end_time);
+    const startStr = `${String(startTime.getHours()).padStart(2, '0')}:${String(startTime.getMinutes()).padStart(2, '0')}`;
+    const endStr = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
+
+    let html = `
+        <div class="modal-section">
+            <div class="modal-label">시간</div>
+            <div class="modal-value">${startStr} - ${endStr}</div>
+        </div>
+        <div class="modal-section">
+            <div class="modal-label">소요 시간</div>
+            <div class="modal-value">순수: ${activity.net_duration}분 / 총: ${activity.duration}분</div>
+        </div>
+    `;
 
     if (activity.description) {
         html += `
@@ -939,24 +625,129 @@ function showActivityDetails(activity) {
         html += `
             <div class="modal-section">
                 <div class="modal-label">주의력 이탈 (${activity.lapses.length}건)</div>
-                <div class="lapse-list">
-                    ${activity.lapses.map(lapse => `
-                        <div class="lapse-item">
-                            <div class="lapse-header">${lapse.type} - ${lapse.category}</div>
-                            <div>${lapse.timestamp}${lapse.duration ? ` (${lapse.duration}분)` : ''}</div>
-                            ${lapse.description ? `<div>${lapse.description}</div>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
         `;
+        activity.lapses.forEach(lapse => {
+            html += `
+                <div style="background: #fff3cd; padding: 8px; margin-top: 5px; border-radius: 4px; border-left: 3px solid #dc3545;">
+                    <div style="font-weight: bold; color: #dc3545; font-size: 12px;">${lapse.type} - ${lapse.category}</div>
+                    <div style="font-size: 11px;">${lapse.timestamp}${lapse.duration ? ` (${lapse.duration}분)` : ''}</div>
+                    ${lapse.description ? `<div style="font-size: 11px; margin-top: 3px;">${lapse.description}</div>` : ''}
+                </div>
+            `;
+        });
+        html += `</div>`;
     }
 
-    modalBody.innerHTML = html;
+    body.innerHTML = html;
     modal.classList.add('show');
 }
 
 function closeModal() {
-    document.getElementById('activityModal').classList.remove('show');
+    document.getElementById('detailModal').classList.remove('show');
 }
+
+function setupLongPress(element, onLongPress, onClick) {
+    let pressTimer = null;
+    let isLongPress = false;
+    let hasMoved = false;
+
+    const startPress = (e) => {
+        isLongPress = false;
+        hasMoved = false;
+        pressTimer = setTimeout(() => {
+            if (!hasMoved) {
+                isLongPress = true;
+                // Visual feedback
+                element.style.opacity = '0.5';
+                // Small delay to show the visual feedback before deleting
+                setTimeout(() => onLongPress(), 200);
+            }
+        }, 500); // 500ms long press
+    };
+
+    const cancelPress = () => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+        element.style.opacity = '1';
+    };
+
+    const handleClick = (e) => {
+        cancelPress();
+        if (!isLongPress && !hasMoved) {
+            onClick();
+        }
+        isLongPress = false;
+    };
+
+    const handleMove = () => {
+        hasMoved = true;
+        cancelPress();
+    };
+
+    // Touch events for mobile
+    element.addEventListener('touchstart', startPress, { passive: true });
+    element.addEventListener('touchend', handleClick);
+    element.addEventListener('touchmove', handleMove, { passive: true });
+    element.addEventListener('touchcancel', cancelPress);
+
+    // Mouse events for desktop
+    element.addEventListener('mousedown', startPress);
+    element.addEventListener('mouseup', handleClick);
+    element.addEventListener('mousemove', handleMove);
+    element.addEventListener('mouseleave', cancelPress);
+}
+
+function deletePlan(planId) {
+    fetch('/echomind/api/plan/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan_id: planId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeModal();
+            loadData(); // Reload the data
+        } else {
+            console.error('삭제 실패:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting plan:', error);
+    });
+}
+
+function deleteActivity(activityId) {
+    fetch('/echomind/api/activity/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ activity_id: activityId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeModal();
+            loadData(); // Reload the data
+        } else {
+            console.error('삭제 실패:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting activity:', error);
+    });
+}
+
+// Close modal on backdrop click
+document.getElementById('detailModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
 {% endblock %}

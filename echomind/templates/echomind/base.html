@@ -168,13 +168,13 @@
             <span class="nav-item-icon">📝</span>
             Log
         </a>
+        <a href="{% url 'calendar' %}" class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+            <span class="nav-item-icon">📅</span>
+            주간
+        </a>
         <a href="{% url 'activity_timeline' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_timeline' %}active{% endif %}">
             <span class="nav-item-icon">📊</span>
-            Timeline
-        </a>
-        <a href="{% url 'plan' %}" class="nav-item {% if request.resolver_match.url_name == 'plan' %}active{% endif %}">
-            <span class="nav-item-icon">📅</span>
-            Plan
+            일간
         </a>
         <a href="{% url 'stats' %}" class="nav-item {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
             <span class="nav-item-icon">📈</span>

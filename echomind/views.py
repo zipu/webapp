@@ -86,11 +86,45 @@ def create_activity(request):
             activity__isnull=True
         ).update(activity=activity)
 
+        # Auto-match with Plan
+        # Find overlapping plans on the same date with the same category
+        if category:
+            overlapping_plans = Plan.objects.filter(
+                date=start_time.date(),
+                category=category
+            )
+
+            # Find the plan with the most overlap
+            best_match = None
+            max_overlap = 0
+
+            for plan in overlapping_plans:
+                # Convert times to minutes for easier calculation
+                plan_start_minutes = plan.start_time.hour * 60 + plan.start_time.minute
+                plan_end_minutes = plan.end_time.hour * 60 + plan.end_time.minute
+                activity_start_minutes = start_time.hour * 60 + start_time.minute
+                activity_end_minutes = end_time.hour * 60 + end_time.minute
+
+                # Calculate overlap
+                overlap_start = max(plan_start_minutes, activity_start_minutes)
+                overlap_end = min(plan_end_minutes, activity_end_minutes)
+                overlap = max(0, overlap_end - overlap_start)
+
+                if overlap > max_overlap:
+                    max_overlap = overlap
+                    best_match = plan
+
+            # Link to plan if there's significant overlap (at least 15 minutes)
+            if best_match and max_overlap >= 15:
+                activity.planned_from = best_match
+                activity.save()
+
         return JsonResponse({
             'success': True,
             'activity_id': activity.id,
             'duration': activity.duration_in_minutes,
-            'lapses_linked': lapses_linked
+            'lapses_linked': lapses_linked,
+            'plan_matched': activity.planned_from_id is not None
         })
     except Exception as e:
         # Print error to terminal for debugging
@@ -100,8 +134,30 @@ def create_activity(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def delete_activity(request):
+    """Delete an activity"""
+    try:
+        data = json.loads(request.body)
+        activity_id = data.get('activity_id')
+
+        if not activity_id:
+            return JsonResponse({'success': False, 'error': 'Activity ID is required'}, status=400)
+
+        activity = Activity.objects.get(id=activity_id)
+        activity.delete()
+
+        return JsonResponse({'success': True})
+    except Activity.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Activity not found'}, status=404)
+    except Exception as e:
+        print(f"Error in delete_activity: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def create_lapse(request):
-    """Create new attentional lapse"""
+    """Create new attentional lapse with auto-matching to activity"""
     try:
         data = json.loads(request.body)
 
@@ -122,10 +178,30 @@ def create_lapse(request):
             description=description
         )
 
+        # Auto-match lapse to activity
+        # Find activities that overlap with the lapse timestamp
+        lapse_time = lapse.timestamp
+
+        overlapping_activities = Activity.objects.filter(
+            start_time__lte=lapse_time,
+            end_time__gte=lapse_time
+        ).order_by('-start_time')  # Most recent first
+
+        if overlapping_activities.exists():
+            # Use the most recent overlapping activity
+            matched_activity = overlapping_activities.first()
+            lapse.activity = matched_activity
+            lapse.save(update_fields=['activity'])
+
+            print(f"Auto-matched lapse {lapse.id} to activity {matched_activity.id} ({matched_activity.category.name})")
+        else:
+            print(f"No matching activity found for lapse at {lapse_time}")
+
         return JsonResponse({
             'success': True,
             'lapse_id': lapse.id,
-            'timestamp': lapse.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            'timestamp': lapse.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'matched_activity_id': lapse.activity.id if lapse.activity else None
         })
     except Exception as e:
         # Print error to terminal for debugging
@@ -169,6 +245,7 @@ def get_activities_by_date(request):
             activities_data.append({
                 'id': activity.id,
                 'category': activity.category.name if activity.category else 'Unknown',
+                'color': activity.category.color if activity.category else '#667eea,#764ba2',
                 'start_time': activity.start_time.strftime('%Y-%m-%d %H:%M'),
                 'end_time': activity.end_time.strftime('%Y-%m-%d %H:%M'),
                 'description': activity.description or '',
@@ -194,6 +271,14 @@ class ActivityTimelineView(TemplateView):
 
 class PlanView(TemplateView):
     template_name = "echomind/plan.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['activity_categories'] = Activity_Category.objects.all()
+        return context
+
+class CalendarView(TemplateView):
+    template_name = "echomind/calendar.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -238,12 +323,15 @@ def get_plans_by_date(request):
         plans_data = []
         for plan in plans:
             category_name = plan.category.name
-            estimated = float(plan.estimated_hours)
+            estimated = float(plan.estimated_hours) if plan.estimated_hours else 0
             actual = actual_hours_by_category.get(category_name, 0)
 
             plans_data.append({
                 'id': plan.id,
                 'category': category_name,
+                'start_time': plan.start_time.strftime('%H:%M'),
+                'end_time': plan.end_time.strftime('%H:%M'),
+                'color': plan.category.color,
                 'estimated_hours': estimated,
                 'actual_hours': round(actual, 1),
                 'difference': round(actual - estimated, 1),
@@ -260,6 +348,76 @@ def get_plans_by_date(request):
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+@require_http_methods(["GET"])
+def get_plans_by_week(request):
+    """Get all plans for a specific week"""
+    try:
+        # Get week start date (Monday)
+        date_str = request.GET.get('date')
+        if not date_str:
+            date_obj = datetime.now().date()
+        else:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        # Calculate week start (Monday) and end (Sunday)
+        week_start = date_obj - timedelta(days=date_obj.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        print(f"DEBUG: get_plans_by_week - date_str: {date_str}, week_start: {week_start}, week_end: {week_end}")
+
+        # Get all plans for this week
+        plans = Plan.objects.filter(
+            date__gte=week_start,
+            date__lte=week_end
+        ).select_related('category')
+
+        print(f"DEBUG: Found {plans.count()} plans")
+        for plan in plans:
+            print(f"DEBUG: Plan - date: {plan.date}, category: {plan.category.name}, time: {plan.start_time}-{plan.end_time}")
+
+        # Get all activities for this week
+        start_of_week = datetime.combine(week_start, datetime.min.time())
+        end_of_week = datetime.combine(week_end, datetime.max.time())
+
+        activities = Activity.objects.filter(
+            start_time__gte=start_of_week,
+            end_time__lte=end_of_week
+        ).select_related('category')
+
+        # Prepare plans data
+        plans_data = []
+        for plan in plans:
+            # Check if there's a matching activity
+            has_activity = activities.filter(
+                category=plan.category,
+                start_time__date=plan.date,
+                start_time__time__lte=plan.end_time,
+                end_time__time__gte=plan.start_time
+            ).exists()
+
+            plans_data.append({
+                'id': plan.id,
+                'date': plan.date.strftime('%Y-%m-%d'),
+                'category': plan.category.name,
+                'category_id': plan.category.id,
+                'color': plan.category.color,
+                'start_time': plan.start_time.strftime('%H:%M'),
+                'end_time': plan.end_time.strftime('%H:%M'),
+                'note': plan.note or '',
+                'has_activity': has_activity
+            })
+
+        return JsonResponse({
+            'success': True,
+            'week_start': week_start.strftime('%Y-%m-%d'),
+            'week_end': week_end.strftime('%Y-%m-%d'),
+            'plans': plans_data
+        })
+    except Exception as e:
+        print(f"Error in get_plans_by_week: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_plan(request):
@@ -269,18 +427,31 @@ def create_plan(request):
 
         date_str = data.get('date')
         category_id = data.get('category_id')
+        start_time_str = data.get('start_time')
+        end_time_str = data.get('end_time')
         estimated_hours = data.get('estimated_hours')
         note = data.get('note', '')
 
-        if not date_str or not category_id or not estimated_hours:
-            return JsonResponse({'success': False, 'error': 'Date, category, and estimated hours are required'}, status=400)
+        if not date_str or not category_id or not start_time_str or not end_time_str:
+            return JsonResponse({'success': False, 'error': 'Date, category, start_time, and end_time are required'}, status=400)
 
         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        start_time_obj = datetime.strptime(start_time_str, '%H:%M').time()
+        end_time_obj = datetime.strptime(end_time_str, '%H:%M').time()
         category = Activity_Category.objects.get(id=category_id)
+
+        # Calculate estimated_hours if not provided
+        if not estimated_hours:
+            start_dt = datetime.combine(date_obj, start_time_obj)
+            end_dt = datetime.combine(date_obj, end_time_obj)
+            delta = end_dt - start_dt
+            estimated_hours = round(delta.total_seconds() / 3600, 1)
 
         plan = Plan.objects.create(
             date=date_obj,
             category=category,
+            start_time=start_time_obj,
+            end_time=end_time_obj,
             estimated_hours=estimated_hours,
             note=note
         )
