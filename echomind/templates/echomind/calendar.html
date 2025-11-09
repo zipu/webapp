@@ -65,6 +65,7 @@
     background: white;
     border-radius: 8px;
     overflow-x: auto;
+    overflow-y: visible;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     margin-bottom: 80px;
     -webkit-overflow-scrolling: touch;
@@ -74,6 +75,7 @@
     display: grid;
     grid-template-columns: 45px repeat(7, minmax(50px, 1fr));
     width: 100%;
+    overflow: visible;
 }
 
 @media (max-width: 768px) {
@@ -132,6 +134,7 @@
     position: relative;
     cursor: pointer;
     transition: background 0.2s;
+    overflow: visible;
 }
 
 .time-slot:hover {
@@ -161,6 +164,7 @@
     transition: all 0.2s;
     line-height: 1.1;
     font-weight: 500;
+    z-index: 5;
 }
 
 @media (max-width: 768px) {
