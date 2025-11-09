@@ -437,6 +437,17 @@
     </div>
 </div>
 
+<!-- Activity Detail Modal -->
+<div class="modal-backdrop" id="activityDetailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="activityDetailTitle">활동 상세</h3>
+            <button class="modal-close" onclick="closeActivityDetailModal()">&times;</button>
+        </div>
+        <div id="activityDetailBody"></div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div class="modal-backdrop" id="deleteModal">
     <div class="modal-content">
@@ -794,20 +805,21 @@ function renderActivities(activities, monday) {
         block.style.height = `${Math.max(height, 10)}px`; // Minimum 10px
         block.style.background = gradientBg;
 
-        // Short text for small blocks
-        if (height < 30) {
-            block.innerHTML = `${activity.category.substring(0, 3)}`;
+        // Show full category name even for smaller blocks
+        if (height < 20) {
+            block.innerHTML = `<span style="font-size: 8px;">${activity.category}</span>`;
+        } else if (height < 30) {
+            block.innerHTML = `${activity.category}`;
         } else {
             block.innerHTML = `${activity.category}<br><span style="font-size: 8px;">${activity.start_time.substring(0, 5)}</span>`;
         }
 
         block.title = `${activity.category} (${activity.start_time}-${activity.end_time})${activity.description ? '\n' + activity.description : ''}`;
 
-        // Click to show details (we can implement later)
+        // Click to show details
         block.onclick = (e) => {
             e.stopPropagation();
-            console.log('Activity clicked:', activity);
-            // TODO: Show activity details modal
+            showActivityDetails(activity);
         };
 
         console.log('Appending activity block:', {
@@ -959,6 +971,106 @@ function showPlanDetails(plan) {
 
 function closePlanDetailModal() {
     const modal = document.getElementById('planDetailModal');
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+}
+
+function showActivityDetails(activity) {
+    const modal = document.getElementById('activityDetailModal');
+    const title = document.getElementById('activityDetailTitle');
+    const body = document.getElementById('activityDetailBody');
+
+    title.textContent = activity.category;
+
+    let html = `
+        <div style="margin-bottom: 15px;">
+            <div style="color: #666; font-size: 12px; margin-bottom: 3px;">날짜</div>
+            <div style="font-size: 15px;">${activity.date}</div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <div style="color: #666; font-size: 12px; margin-bottom: 3px;">시간</div>
+            <div style="font-size: 15px;">${activity.start_time} - ${activity.end_time}</div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <div style="color: #666; font-size: 12px; margin-bottom: 3px;">총 소요 시간</div>
+            <div style="font-size: 15px;">${activity.duration}분 (순수 시간: ${activity.net_duration}분)</div>
+        </div>
+    `;
+
+    if (activity.description) {
+        html += `
+            <div style="margin-bottom: 15px;">
+                <div style="color: #666; font-size: 12px; margin-bottom: 3px;">설명</div>
+                <div style="font-size: 14px; white-space: pre-wrap;">${activity.description}</div>
+            </div>
+        `;
+    }
+
+    if (activity.activity_tags && activity.activity_tags.length > 0) {
+        html += `
+            <div style="margin-bottom: 15px;">
+                <div style="color: #666; font-size: 12px; margin-bottom: 3px;">활동 태그</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                    ${activity.activity_tags.map(tag => `
+                        <span style="display: inline-block; padding: 3px 8px; background: #e9ecef; border-radius: 12px; font-size: 12px;">
+                            ${tag.name}
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    if (activity.status_tags && activity.status_tags.length > 0) {
+        html += `
+            <div style="margin-bottom: 15px;">
+                <div style="color: #666; font-size: 12px; margin-bottom: 3px;">상태 태그</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                    ${activity.status_tags.map(tag => `
+                        <span style="display: inline-block; padding: 3px 8px; background: #fff3cd; border-radius: 12px; font-size: 12px;">
+                            ${tag}
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    if (activity.lapses && activity.lapses.length > 0) {
+        html += `
+            <div style="margin-bottom: 15px;">
+                <div style="color: #666; font-size: 12px; margin-bottom: 3px;">주의 이탈 (${activity.lapses.length}건)</div>
+                <div style="margin-top: 5px;">
+                    ${activity.lapses.map(lapse => `
+                        <div style="padding: 8px; margin-bottom: 5px; background: #fff0f0; border-left: 3px solid #dc3545; border-radius: 3px;">
+                            <div style="font-size: 13px; font-weight: 500;">${lapse.type} - ${lapse.category}</div>
+                            <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                ${lapse.timestamp}${lapse.duration ? ` (${lapse.duration}분)` : ''}
+                            </div>
+                            ${lapse.description ? `<div style="font-size: 12px; margin-top: 5px;">${lapse.description}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    body.innerHTML = html;
+
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    modal.style.zIndex = '10000';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    modal.style.opacity = '1';
+
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.style.backgroundColor = 'white';
+    modalContent.style.opacity = '1';
+    modalContent.style.zIndex = '10001';
+}
+
+function closeActivityDetailModal() {
+    const modal = document.getElementById('activityDetailModal');
     modal.classList.remove('show');
     modal.style.display = 'none';
 }
