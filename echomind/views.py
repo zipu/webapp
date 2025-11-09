@@ -431,6 +431,70 @@ def get_plans_by_week(request):
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+def get_activities_by_week(request):
+    """Get all activities for a specific week"""
+    try:
+        # Get week start date (Monday)
+        date_str = request.GET.get('date')
+        if not date_str:
+            date_obj = datetime.now().date()
+        else:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        # Calculate week start (Monday) and end (Sunday)
+        week_start = date_obj - timedelta(days=date_obj.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        # Get all activities for this week
+        start_of_week = datetime.combine(week_start, datetime.min.time())
+        end_of_week = datetime.combine(week_end, datetime.max.time())
+
+        activities = Activity.objects.filter(
+            start_time__gte=start_of_week,
+            end_time__lte=end_of_week
+        ).select_related('category').prefetch_related('activity_tags', 'status_tags')
+
+        # Prepare activities data
+        activities_data = []
+        for activity in activities:
+            # Get lapses associated with this activity
+            lapses = Attentional_Lapse.objects.filter(activity=activity).select_related('category')
+            lapses_data = [{
+                'id': lapse.id,
+                'type': lapse.get_lapse_type_display(),
+                'category': lapse.category.name if lapse.category else 'Unknown',
+                'timestamp': lapse.timestamp.strftime('%H:%M'),
+                'duration': lapse.duration_in_minute,
+                'description': lapse.description or ''
+            } for lapse in lapses]
+
+            activities_data.append({
+                'id': activity.id,
+                'date': activity.start_time.strftime('%Y-%m-%d'),
+                'category': activity.category.name if activity.category else 'Unknown',
+                'category_id': activity.category.id if activity.category else None,
+                'color': activity.category.color if activity.category else '#667eea,#764ba2',
+                'start_time': activity.start_time.strftime('%H:%M'),
+                'end_time': activity.end_time.strftime('%H:%M'),
+                'description': activity.description or '',
+                'duration': activity.duration_in_minutes,
+                'net_duration': activity.get_net_duration(),
+                'activity_tags': [{'id': tag.id, 'name': tag.name} for tag in activity.activity_tags.all()],
+                'status_tags': [tag.name for tag in activity.status_tags.all()],
+                'lapses': lapses_data
+            })
+
+        return JsonResponse({
+            'success': True,
+            'week_start': week_start.strftime('%Y-%m-%d'),
+            'week_end': week_end.strftime('%Y-%m-%d'),
+            'activities': activities_data
+        })
+    except Exception as e:
+        print(f"Error in get_activities_by_week: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_plan(request):

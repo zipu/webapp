@@ -149,8 +149,41 @@
     background: #e0f0ff;
 }
 
-/* Plan blocks */
+/* Plan blocks - outline only */
 .plan-block {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    border-radius: 3px;
+    padding: 3px 2px;
+    font-size: 9px;
+    color: #666;
+    overflow: hidden;
+    cursor: pointer;
+    background: transparent;
+    border: 1px dashed rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    line-height: 1.1;
+    font-weight: 400;
+    z-index: 3;
+}
+
+@media (max-width: 768px) {
+    .plan-block {
+        padding: 2px 1px;
+        font-size: 8px;
+        border-radius: 2px;
+    }
+}
+
+.plan-block:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+/* Activity blocks - filled with color */
+.activity-block {
     position: absolute;
     left: 1px;
     right: 1px;
@@ -168,25 +201,20 @@
 }
 
 @media (max-width: 768px) {
-    .plan-block {
+    .activity-block {
         padding: 2px 1px;
         font-size: 8px;
         border-radius: 2px;
     }
 }
 
-.plan-block:hover {
+.activity-block:hover {
     transform: scale(1.02);
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     z-index: 10;
 }
 
-.plan-block.completed {
-    opacity: 0.7;
-    border: 2px solid #28a745;
-}
-
-/* Category colors are now dynamically applied via JavaScript using plan.color field */
+/* Category colors are now dynamically applied via JavaScript using plan/activity.color field */
 
 /* Add Plan Modal */
 .modal-backdrop {
@@ -542,10 +570,10 @@ function loadCalendar() {
     buildCalendarGrid(monday);
 
     // Load plans
-    const apiUrl = `/echomind/api/plans/by-week/?date=${formatDate(monday)}`;
-    console.log('Fetching plans from:', apiUrl);
+    const plansApiUrl = `/echomind/api/plans/by-week/?date=${formatDate(monday)}`;
+    console.log('Fetching plans from:', plansApiUrl);
 
-    fetch(apiUrl)
+    fetch(plansApiUrl)
         .then(res => res.json())
         .then(data => {
             console.log('Plans API response:', data);
@@ -554,6 +582,20 @@ function loadCalendar() {
             }
         })
         .catch(err => console.error('Error loading plans:', err));
+
+    // Load activities
+    const activitiesApiUrl = `/echomind/api/activities/by-week/?date=${formatDate(monday)}`;
+    console.log('Fetching activities from:', activitiesApiUrl);
+
+    fetch(activitiesApiUrl)
+        .then(res => res.json())
+        .then(data => {
+            console.log('Activities API response:', data);
+            if (data.success) {
+                renderActivities(data.activities, monday);
+            }
+        })
+        .catch(err => console.error('Error loading activities:', err));
 }
 
 function buildCalendarGrid(monday) {
@@ -601,6 +643,8 @@ function buildCalendarGrid(monday) {
 function renderPlans(plans, monday) {
     console.log('Rendering plans:', plans);
 
+    const now = new Date();
+
     plans.forEach(plan => {
         const planDate = new Date(plan.date);
         const dayIndex = Math.floor((planDate - monday) / (1000 * 60 * 60 * 24));
@@ -614,6 +658,15 @@ function renderPlans(plans, monday) {
         const endHour = parseInt(plan.end_time.split(':')[0]);
         const startMin = parseInt(plan.start_time.split(':')[1]);
         const endMin = parseInt(plan.end_time.split(':')[1]);
+
+        // Skip past plans (plans that have already ended)
+        const planEndTime = new Date(planDate);
+        planEndTime.setHours(endHour, endMin, 0, 0);
+
+        if (planEndTime < now) {
+            console.log('Skipping past plan:', plan);
+            return;
+        }
 
         // Skip if entirely outside visible hours (6-24)
         if (endHour < 6 || startHour >= 24) {
@@ -648,15 +701,15 @@ function renderPlans(plans, monday) {
 
         const completedClass = plan.has_activity ? 'completed' : '';
 
-        // Parse color from plan (format: "color1,color2")
+        // Parse color from plan for border (format: "color1,color2")
         const colors = plan.color ? plan.color.split(',') : ['#667eea', '#764ba2'];
-        const gradientBg = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+        const borderColor = colors[0]; // Use first color for border
 
         const block = document.createElement('div');
-        block.className = `plan-block ${completedClass}`;
+        block.className = 'plan-block';
         block.style.top = `${topOffset}px`;
         block.style.height = `${Math.max(height, 10)}px`; // Minimum 10px
-        block.style.background = gradientBg;
+        block.style.borderColor = borderColor;
 
         // Short text for small blocks
         if (height < 30) {
@@ -674,6 +727,93 @@ function renderPlans(plans, monday) {
             date: plan.date,
             category: plan.category,
             time: `${plan.start_time}-${plan.end_time}`,
+            slotHour: startSlotHour,
+            height: height,
+            topOffset: topOffset
+        });
+
+        startSlot.appendChild(block);
+    });
+}
+
+function renderActivities(activities, monday) {
+    console.log('Rendering activities:', activities);
+
+    activities.forEach(activity => {
+        const activityDate = new Date(activity.date);
+        const dayIndex = Math.floor((activityDate - monday) / (1000 * 60 * 60 * 24));
+
+        if (dayIndex < 0 || dayIndex > 6) {
+            console.log('Activity outside week range:', activity);
+            return;
+        }
+
+        const startHour = parseInt(activity.start_time.split(':')[0]);
+        const endHour = parseInt(activity.end_time.split(':')[0]);
+        const startMin = parseInt(activity.start_time.split(':')[1]);
+        const endMin = parseInt(activity.end_time.split(':')[1]);
+
+        // Skip if entirely outside visible hours (6-24)
+        if (endHour < 6 || startHour >= 24) {
+            console.log('Activity outside visible hours:', activity);
+            return;
+        }
+
+        // Clamp to visible hours
+        const clampedStartHour = Math.max(6, startHour);
+        const clampedEndHour = Math.min(24, endHour);
+        const clampedStartMin = startHour < 6 ? 0 : startMin;
+        const clampedEndMin = endHour >= 24 ? 0 : endMin;
+
+        // Find start slot
+        const startSlotHour = clampedStartHour === 24 ? 23 : clampedStartHour;
+        const startSlot = document.querySelector(
+            `.time-slot[data-date="${activity.date}"][data-hour="${startSlotHour}"]`
+        );
+
+        if (!startSlot) {
+            console.log('Start slot not found for activity:', activity, 'hour:', startSlotHour);
+            return;
+        }
+
+        // Calculate position and height
+        const hourHeight = 40; // min-height of time-slot
+        const totalMinutes = (clampedEndHour * 60 + clampedEndMin) - (clampedStartHour * 60 + clampedStartMin);
+        const height = (totalMinutes / 60) * hourHeight;
+
+        // Top offset relative to start slot
+        const topOffset = clampedStartHour === startHour ? (startMin / 60) * hourHeight : 0;
+
+        // Parse color from activity (format: "color1,color2")
+        const colors = activity.color ? activity.color.split(',') : ['#BAFFC9', '#BAE1FF'];
+        const gradientBg = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+
+        const block = document.createElement('div');
+        block.className = 'activity-block';
+        block.style.top = `${topOffset}px`;
+        block.style.height = `${Math.max(height, 10)}px`; // Minimum 10px
+        block.style.background = gradientBg;
+
+        // Short text for small blocks
+        if (height < 30) {
+            block.innerHTML = `${activity.category.substring(0, 3)}`;
+        } else {
+            block.innerHTML = `${activity.category}<br><span style="font-size: 8px;">${activity.start_time.substring(0, 5)}</span>`;
+        }
+
+        block.title = `${activity.category} (${activity.start_time}-${activity.end_time})${activity.description ? '\n' + activity.description : ''}`;
+
+        // Click to show details (we can implement later)
+        block.onclick = (e) => {
+            e.stopPropagation();
+            console.log('Activity clicked:', activity);
+            // TODO: Show activity details modal
+        };
+
+        console.log('Appending activity block:', {
+            date: activity.date,
+            category: activity.category,
+            time: `${activity.start_time}-${activity.end_time}`,
             slotHour: startSlotHour,
             height: height,
             topOffset: topOffset
