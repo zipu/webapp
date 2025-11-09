@@ -272,6 +272,7 @@ class ActivityTimelineView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['activity_categories'] = Activity_Category.objects.all()
+        context['activity_tags'] = Activity_Tag.objects.all()
         return context
 
 class PlanView(TemplateView):
@@ -288,6 +289,7 @@ class CalendarView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['activity_categories'] = Activity_Category.objects.all()
+        context['activity_tags'] = Activity_Tag.objects.all()
         return context
 
 @require_http_methods(["GET"])
@@ -301,7 +303,7 @@ def get_plans_by_date(request):
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
 
         # Get plans for this date
-        plans = Plan.objects.filter(date=date_obj).select_related('category')
+        plans = Plan.objects.filter(date=date_obj).select_related('category').prefetch_related('activity_tags')
 
         # Get actual activities for this date
         start_of_day = datetime.combine(date_obj, datetime.min.time())
@@ -331,6 +333,8 @@ def get_plans_by_date(request):
             estimated = float(plan.estimated_hours) if plan.estimated_hours else 0
             actual = actual_hours_by_category.get(category_name, 0)
 
+            tags_list = [{'id': tag.id, 'name': tag.name} for tag in plan.activity_tags.all()]
+
             plans_data.append({
                 'id': plan.id,
                 'category': category_name,
@@ -340,7 +344,8 @@ def get_plans_by_date(request):
                 'estimated_hours': estimated,
                 'actual_hours': round(actual, 1),
                 'difference': round(actual - estimated, 1),
-                'note': plan.note or ''
+                'note': plan.note or '',
+                'tags': tags_list
             })
 
         return JsonResponse({
@@ -374,7 +379,7 @@ def get_plans_by_week(request):
         plans = Plan.objects.filter(
             date__gte=week_start,
             date__lte=week_end
-        ).select_related('category')
+        ).select_related('category').prefetch_related('activity_tags')
 
         print(f"DEBUG: Found {plans.count()} plans")
         for plan in plans:
@@ -400,6 +405,8 @@ def get_plans_by_week(request):
                 end_time__time__gte=plan.start_time
             ).exists()
 
+            tags_list = [{'id': tag.id, 'name': tag.name} for tag in plan.activity_tags.all()]
+
             plans_data.append({
                 'id': plan.id,
                 'date': plan.date.strftime('%Y-%m-%d'),
@@ -409,7 +416,8 @@ def get_plans_by_week(request):
                 'start_time': plan.start_time.strftime('%H:%M'),
                 'end_time': plan.end_time.strftime('%H:%M'),
                 'note': plan.note or '',
-                'has_activity': has_activity
+                'has_activity': has_activity,
+                'tags': tags_list
             })
 
         return JsonResponse({
@@ -436,6 +444,7 @@ def create_plan(request):
         end_time_str = data.get('end_time')
         estimated_hours = data.get('estimated_hours')
         note = data.get('note', '')
+        activity_tag_ids = data.get('activity_tag_ids', [])
 
         if not date_str or not category_id or not start_time_str or not end_time_str:
             return JsonResponse({'success': False, 'error': 'Date, category, start_time, and end_time are required'}, status=400)
@@ -460,6 +469,10 @@ def create_plan(request):
             estimated_hours=estimated_hours,
             note=note
         )
+
+        # Add activity tags
+        if activity_tag_ids:
+            plan.activity_tags.set(activity_tag_ids)
 
         return JsonResponse({
             'success': True,

@@ -293,6 +293,27 @@
     font-weight: bold;
 }
 
+.tag-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 12px;
+}
+
+.tag-btn.selected {
+    border-color: #28a745;
+    background: #d4edda;
+    color: #155724;
+    font-weight: 500;
+}
+
+.tag-btn:hover {
+    background: #f8f9fa;
+}
+
 .time-inputs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -356,6 +377,19 @@
                 </div>
             </div>
             <div class="form-group">
+                <label>활동 태그 (선택)</label>
+                <div id="tagsContainer" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for tag in activity_tags %}
+                    <button type="button" class="tag-btn" data-tag-id="{{ tag.id }}" data-category-id="{{ tag.category.id|default:'' }}" onclick="toggleTag(this)">
+                        {{ tag.name }}
+                    </button>
+                    {% endfor %}
+                </div>
+                <div id="noTagsMessage" style="display: none; color: #999; font-size: 13px; padding: 8px;">
+                    이 카테고리에 연결된 태그가 없습니다
+                </div>
+            </div>
+            <div class="form-group">
                 <label>메모 (선택)</label>
                 <textarea class="form-control" id="planNote" rows="2"></textarea>
             </div>
@@ -394,10 +428,58 @@
 {% block extra_script %}
 let currentDate = new Date();
 let selectedCategoryId = null;
+let selectedTagIds = [];
 let planToDelete = null;
 
 const HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+
+function toggleTag(button) {
+    const tagId = parseInt(button.dataset.tagId);
+
+    if (button.classList.contains('selected')) {
+        button.classList.remove('selected');
+        selectedTagIds = selectedTagIds.filter(id => id !== tagId);
+    } else {
+        button.classList.add('selected');
+        selectedTagIds.push(tagId);
+    }
+}
+
+function filterTagsByCategory(categoryId) {
+    const allTagButtons = document.querySelectorAll('.tag-btn');
+    const tagsContainer = document.getElementById('tagsContainer');
+    const noTagsMessage = document.getElementById('noTagsMessage');
+
+    let visibleCount = 0;
+
+    allTagButtons.forEach(btn => {
+        const btnCategoryId = btn.dataset.categoryId;
+
+        // Show tag if it matches the selected category or has no category
+        if (!categoryId || btnCategoryId === categoryId || btnCategoryId === '') {
+            btn.style.display = '';
+            visibleCount++;
+        } else {
+            btn.style.display = 'none';
+            // Remove selection if hidden
+            if (btn.classList.contains('selected')) {
+                btn.classList.remove('selected');
+                const tagId = parseInt(btn.dataset.tagId);
+                selectedTagIds = selectedTagIds.filter(id => id !== tagId);
+            }
+        }
+    });
+
+    // Show/hide no tags message
+    if (visibleCount === 0) {
+        tagsContainer.style.display = 'none';
+        noTagsMessage.style.display = 'block';
+    } else {
+        tagsContainer.style.display = 'flex';
+        noTagsMessage.style.display = 'none';
+    }
+}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -407,6 +489,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected'));
             e.target.classList.add('selected');
             selectedCategoryId = e.target.dataset.id;
+            filterTagsByCategory(selectedCategoryId);
         }
     });
 
@@ -613,7 +696,15 @@ function openAddPlanModal(date, hour) {
     document.getElementById('endTime').value = `${String(hour + 1).padStart(2, '0')}:00`;
     document.getElementById('planNote').value = '';
     selectedCategoryId = null;
+    selectedTagIds = [];
     document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected'));
+    document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('selected'));
+
+    // Hide all tags initially until category is selected
+    document.querySelectorAll('.tag-btn').forEach(btn => btn.style.display = 'none');
+    document.getElementById('tagsContainer').style.display = 'none';
+    document.getElementById('noTagsMessage').style.display = 'block';
+    document.getElementById('noTagsMessage').textContent = '먼저 카테고리를 선택하세요';
 
     const modal = document.getElementById('planModal');
     modal.classList.add('show');
@@ -826,7 +917,8 @@ function handleFormSubmit(e) {
         category_id: selectedCategoryId,
         start_time: document.getElementById('startTime').value,
         end_time: document.getElementById('endTime').value,
-        note: document.getElementById('planNote').value
+        note: document.getElementById('planNote').value,
+        activity_tag_ids: selectedTagIds
     };
 
     console.log('Sending plan data:', planData);

@@ -152,6 +152,24 @@
     opacity: 0.8;
 }
 
+.block-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 4px;
+}
+
+.tag-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 500;
+    color: #333;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
 /* Lapse Stickers */
 .lapse-stickers {
     position: absolute;
@@ -609,11 +627,23 @@ function renderPlanBlock(plan) {
     block.className = 'block';
     block.style.top = `${topOffset}px`;
     block.style.height = `${Math.max(height, 20)}px`;
-    block.style.background = gradient;
+
+    // Make '여백' category transparent
+    if (plan.category === '여백') {
+        block.style.background = 'transparent';
+        block.style.border = '1px dashed rgba(0,0,0,0.1)';
+    } else {
+        block.style.background = gradient;
+    }
 
     const categoryDiv = document.createElement('div');
     categoryDiv.className = 'block-category';
     categoryDiv.textContent = plan.category;
+
+    // Hide category name for '여백' category
+    if (plan.category === '여백') {
+        categoryDiv.style.display = 'none';
+    }
 
     const timeDiv = document.createElement('div');
     timeDiv.className = 'block-time';
@@ -622,6 +652,23 @@ function renderPlanBlock(plan) {
     block.appendChild(categoryDiv);
     if (height > 30) {
         block.appendChild(timeDiv);
+    }
+
+    // Add tags if available and enough height
+    if (plan.tags && plan.tags.length > 0 && height > 50) {
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'block-tags';
+        plan.tags.forEach(tag => {
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'tag-badge';
+            tagSpan.textContent = tag.name;
+            tagsDiv.appendChild(tagSpan);
+        });
+        // Hide tags for '여백' category
+        if (plan.category === '여백') {
+            tagsDiv.style.opacity = '0.3';
+        }
+        block.appendChild(tagsDiv);
     }
 
     // Setup long press to delete
@@ -665,11 +712,23 @@ function renderActivityBlock(activity) {
     block.className = 'block';
     block.style.top = `${topOffset}px`;
     block.style.height = `${Math.max(height, 20)}px`;
-    block.style.background = gradient;
+
+    // Make '여백' category transparent
+    if (activity.category === '여백') {
+        block.style.background = 'transparent';
+        block.style.border = '1px dashed rgba(0,0,0,0.1)';
+    } else {
+        block.style.background = gradient;
+    }
 
     const categoryDiv = document.createElement('div');
     categoryDiv.className = 'block-category';
     categoryDiv.textContent = activity.category;
+
+    // Hide category name for '여백' category
+    if (activity.category === '여백') {
+        categoryDiv.style.display = 'none';
+    }
 
     const timeDiv = document.createElement('div');
     timeDiv.className = 'block-time';
@@ -721,6 +780,23 @@ function renderActivityBlock(activity) {
         }
 
         block.appendChild(stickersContainer);
+    }
+
+    // Add tags if available and enough height
+    if (activity.activity_tags && activity.activity_tags.length > 0 && height > 50) {
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'block-tags';
+        activity.activity_tags.forEach(tagName => {
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'tag-badge';
+            tagSpan.textContent = tagName;
+            tagsDiv.appendChild(tagSpan);
+        });
+        // Hide tags for '여백' category
+        if (activity.category === '여백') {
+            tagsDiv.style.opacity = '0.3';
+        }
+        block.appendChild(tagsDiv);
     }
 
     // Setup long press to delete

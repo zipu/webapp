@@ -9,7 +9,7 @@ from .views import StatementView, PostLessonView, ConsultView
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     #path('',  RedirectView.as_view(url='calendar', permanent=False)),
-    path('calendar/', CalendarView.as_view(), name='calendar'),
+    path('calendar/', CalendarView.as_view(), name='tutoring_calendar'),
     path('calendar/dailymemo/<str:date>', DailyMemoView.as_view(), name='dailymemo'),
     path('course/', CourseView.as_view(), name='course'),
     path('course/<int:pk>/', CourseDetailView.as_view(), name='coursedetail'),

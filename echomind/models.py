@@ -139,6 +139,7 @@ class Plan(models.Model):
     end_time = models.TimeField()
     estimated_hours = models.DecimalField(max_digits=4, decimal_places=1, help_text="Estimated time in hours", blank=True, null=True)
     note = models.TextField(blank=True, null=True)
+    activity_tags = models.ManyToManyField(Activity_Tag, blank=True, related_name='plans')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
