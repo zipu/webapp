@@ -657,6 +657,12 @@ function renderPlans(plans, monday) {
     const now = new Date();
 
     plans.forEach(plan => {
+        // Skip '여백' category
+        if (plan.category === '여백') {
+            console.log('Skipping 여백 plan:', plan);
+            return;
+        }
+
         const planDate = new Date(plan.date);
         const dayIndex = Math.floor((planDate - monday) / (1000 * 60 * 60 * 24));
 
@@ -751,6 +757,12 @@ function renderActivities(activities, monday) {
     console.log('Rendering activities:', activities);
 
     activities.forEach(activity => {
+        // Skip '여백' category
+        if (activity.category === '여백') {
+            console.log('Skipping 여백 activity:', activity);
+            return;
+        }
+
         const activityDate = new Date(activity.date);
         const dayIndex = Math.floor((activityDate - monday) / (1000 * 60 * 60 * 24));
 
