@@ -598,17 +598,24 @@ function renderComparison(plans, activities) {
 function renderPlanBlock(plan) {
     const startTime = plan.start_time.split(':');
     const endTime = plan.end_time.split(':');
-    const startHour = parseInt(startTime[0]);
-    const startMin = parseInt(startTime[1]);
-    const endHour = parseInt(endTime[0]);
-    const endMin = parseInt(endTime[1]);
+    let startHour = parseInt(startTime[0]);
+    let startMin = parseInt(startTime[1]);
+    let endHour = parseInt(endTime[0]);
+    let endMin = parseInt(endTime[1]);
 
-    // Skip if outside visible hours
-    if (endHour < 6 || startHour >= 24) return;
+    // Detect midnight crossover
+    if (endHour < startHour) {
+        // Plan crosses midnight - clamp to midnight
+        endHour = 24;
+        endMin = 0;
+    }
 
     // Calculate exact minutes from midnight
     const startTotalMinutes = startHour * 60 + startMin;
     const endTotalMinutes = endHour * 60 + endMin;
+
+    // Skip if completely outside visible hours (6:00 - 24:00)
+    if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) return;
 
     // Clamp to visible hours (6:00 - 24:00)
     const visibleStartMinutes = Math.max(startTotalMinutes, 6 * 60);
@@ -681,19 +688,27 @@ function renderActivityBlock(activity) {
     const startTime = new Date(activity.start_time);
     const endTime = new Date(activity.end_time);
 
-    const startHour = startTime.getHours();
-    const startMin = startTime.getMinutes();
-    const endHour = endTime.getHours();
-    const endMin = endTime.getMinutes();
+    let startHour = startTime.getHours();
+    let startMin = startTime.getMinutes();
+    let endHour = endTime.getHours();
+    let endMin = endTime.getMinutes();
 
-    // Skip if outside visible hours
-    if (endHour < 6 || startHour >= 24) {
-        return;
+    // Detect midnight crossover by comparing dates
+    const startDate = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+    const endDate = new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate());
+
+    if (endDate > startDate) {
+        // Activity crosses midnight - clamp to midnight
+        endHour = 24;
+        endMin = 0;
     }
 
     // Calculate exact minutes from midnight
     const startTotalMinutes = startHour * 60 + startMin;
     const endTotalMinutes = endHour * 60 + endMin;
+
+    // Skip if completely outside visible hours (6:00 - 24:00)
+    if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) return;
 
     // Clamp to visible hours (6:00 - 24:00)
     const visibleStartMinutes = Math.max(startTotalMinutes, 6 * 60);

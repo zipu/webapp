@@ -225,8 +225,8 @@ def get_activities_by_date(request):
         end_of_day = datetime.combine(date_obj, datetime.max.time())
 
         activities = Activity.objects.filter(
-            start_time__lte=end_of_day,
-            end_time__gte=start_of_day
+            start_time__gte=start_of_day,
+            start_time__lte=end_of_day
         ).select_related('category').prefetch_related('activity_tags', 'status_tags')
 
         activities_data = []
@@ -310,8 +310,8 @@ def get_plans_by_date(request):
         end_of_day = datetime.combine(date_obj, datetime.max.time())
 
         activities = Activity.objects.filter(
-            start_time__lte=end_of_day,
-            end_time__gte=start_of_day
+            start_time__gte=start_of_day,
+            start_time__lte=end_of_day
         ).select_related('category')
 
         # Calculate actual hours by category
@@ -451,7 +451,7 @@ def get_activities_by_week(request):
 
         activities = Activity.objects.filter(
             start_time__gte=start_of_week,
-            end_time__lte=end_of_week
+            start_time__lte=end_of_week
         ).select_related('category').prefetch_related('activity_tags', 'status_tags')
 
         # Prepare activities data

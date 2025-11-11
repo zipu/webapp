@@ -671,10 +671,17 @@ function renderPlans(plans, monday) {
             return;
         }
 
-        const startHour = parseInt(plan.start_time.split(':')[0]);
-        const endHour = parseInt(plan.end_time.split(':')[0]);
+        let startHour = parseInt(plan.start_time.split(':')[0]);
+        let endHour = parseInt(plan.end_time.split(':')[0]);
         const startMin = parseInt(plan.start_time.split(':')[1]);
-        const endMin = parseInt(plan.end_time.split(':')[1]);
+        let endMin = parseInt(plan.end_time.split(':')[1]);
+
+        // Detect midnight crossover
+        if (endHour < startHour) {
+            // Plan crosses midnight - clamp to midnight
+            endHour = 24;
+            endMin = 0;
+        }
 
         // Skip past plans (plans that have already ended)
         const planEndTime = new Date(planDate);
@@ -686,7 +693,9 @@ function renderPlans(plans, monday) {
         }
 
         // Skip if entirely outside visible hours (6-24)
-        if (endHour < 6 || startHour >= 24) {
+        const startTotalMinutes = startHour * 60 + startMin;
+        const endTotalMinutes = endHour * 60 + endMin;
+        if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) {
             console.log('Plan outside visible hours:', plan);
             return;
         }
@@ -771,13 +780,22 @@ function renderActivities(activities, monday) {
             return;
         }
 
-        const startHour = parseInt(activity.start_time.split(':')[0]);
-        const endHour = parseInt(activity.end_time.split(':')[0]);
+        let startHour = parseInt(activity.start_time.split(':')[0]);
+        let endHour = parseInt(activity.end_time.split(':')[0]);
         const startMin = parseInt(activity.start_time.split(':')[1]);
-        const endMin = parseInt(activity.end_time.split(':')[1]);
+        let endMin = parseInt(activity.end_time.split(':')[1]);
+
+        // Detect midnight crossover
+        if (endHour < startHour) {
+            // Activity crosses midnight - clamp to midnight
+            endHour = 24;
+            endMin = 0;
+        }
 
         // Skip if entirely outside visible hours (6-24)
-        if (endHour < 6 || startHour >= 24) {
+        const startTotalMinutes = startHour * 60 + startMin;
+        const endTotalMinutes = endHour * 60 + endMin;
+        if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) {
             console.log('Activity outside visible hours:', activity);
             return;
         }
