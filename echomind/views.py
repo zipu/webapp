@@ -225,8 +225,8 @@ def get_activities_by_date(request):
         end_of_day = datetime.combine(date_obj, datetime.max.time())
 
         activities = Activity.objects.filter(
-            start_time__gte=start_of_day,
-            start_time__lte=end_of_day
+            start_time__lte=end_of_day,
+            end_time__gte=start_of_day
         ).select_related('category').prefetch_related('activity_tags', 'status_tags')
 
         activities_data = []
@@ -310,8 +310,8 @@ def get_plans_by_date(request):
         end_of_day = datetime.combine(date_obj, datetime.max.time())
 
         activities = Activity.objects.filter(
-            start_time__gte=start_of_day,
-            start_time__lte=end_of_day
+            start_time__lte=end_of_day,
+            end_time__gte=start_of_day
         ).select_related('category')
 
         # Calculate actual hours by category
@@ -450,8 +450,8 @@ def get_activities_by_week(request):
         end_of_week = datetime.combine(week_end, datetime.max.time())
 
         activities = Activity.objects.filter(
-            start_time__gte=start_of_week,
-            start_time__lte=end_of_week
+            start_time__lte=end_of_week,
+            end_time__gte=start_of_week
         ).select_related('category').prefetch_related('activity_tags', 'status_tags')
 
         # Prepare activities data
@@ -476,6 +476,8 @@ def get_activities_by_week(request):
                 'color': activity.category.color if activity.category else '#667eea,#764ba2',
                 'start_time': activity.start_time.strftime('%H:%M'),
                 'end_time': activity.end_time.strftime('%H:%M'),
+                'start_time_full': activity.start_time.strftime('%Y-%m-%d %H:%M'),
+                'end_time_full': activity.end_time.strftime('%Y-%m-%d %H:%M'),
                 'description': activity.description or '',
                 'duration': activity.duration_in_minutes,
                 'net_duration': activity.get_net_duration(),

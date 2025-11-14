@@ -772,97 +772,134 @@ function renderActivities(activities, monday) {
             return;
         }
 
-        const activityDate = new Date(activity.date);
-        const dayIndex = Math.floor((activityDate - monday) / (1000 * 60 * 60 * 24));
+        // Parse full datetime
+        const startTime = new Date(activity.start_time_full);
+        const endTime = new Date(activity.end_time_full);
 
-        if (dayIndex < 0 || dayIndex > 6) {
-            console.log('Activity outside week range:', activity);
-            return;
+        const startDate = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+        const endDate = new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate());
+
+        // Iterate through each date the activity spans
+        const currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const dayIndex = Math.floor((currentDate - monday) / (1000 * 60 * 60 * 24));
+
+            if (dayIndex >= 0 && dayIndex <= 6) {
+                // This date is within the week range
+                let displayStartHour, displayStartMin, displayEndHour, displayEndMin;
+
+                if (currentDate.getTime() === startDate.getTime() && currentDate.getTime() === endDate.getTime()) {
+                    // Activity starts and ends on the same day
+                    displayStartHour = startTime.getHours();
+                    displayStartMin = startTime.getMinutes();
+                    displayEndHour = endTime.getHours();
+                    displayEndMin = endTime.getMinutes();
+                } else if (currentDate.getTime() === startDate.getTime()) {
+                    // Start date (continues to next day)
+                    displayStartHour = startTime.getHours();
+                    displayStartMin = startTime.getMinutes();
+                    displayEndHour = 24;
+                    displayEndMin = 0;
+                } else if (currentDate.getTime() === endDate.getTime()) {
+                    // End date (started previous day)
+                    displayStartHour = 0;
+                    displayStartMin = 0;
+                    displayEndHour = endTime.getHours();
+                    displayEndMin = endTime.getMinutes();
+                } else {
+                    // Middle date (show full day)
+                    displayStartHour = 0;
+                    displayStartMin = 0;
+                    displayEndHour = 24;
+                    displayEndMin = 0;
+                }
+
+                // Skip if entirely outside visible hours (6-24)
+                const startTotalMinutes = displayStartHour * 60 + displayStartMin;
+                const endTotalMinutes = displayEndHour * 60 + displayEndMin;
+                if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) {
+                    console.log('Activity outside visible hours on this date');
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    continue;
+                }
+
+                renderActivityForDate(activity, currentDate, displayStartHour, displayStartMin, displayEndHour, displayEndMin);
+            }
+
+            currentDate.setDate(currentDate.getDate() + 1);
         }
-
-        let startHour = parseInt(activity.start_time.split(':')[0]);
-        let endHour = parseInt(activity.end_time.split(':')[0]);
-        const startMin = parseInt(activity.start_time.split(':')[1]);
-        let endMin = parseInt(activity.end_time.split(':')[1]);
-
-        // Detect midnight crossover
-        if (endHour < startHour) {
-            // Activity crosses midnight - clamp to midnight
-            endHour = 24;
-            endMin = 0;
-        }
-
-        // Skip if entirely outside visible hours (6-24)
-        const startTotalMinutes = startHour * 60 + startMin;
-        const endTotalMinutes = endHour * 60 + endMin;
-        if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) {
-            console.log('Activity outside visible hours:', activity);
-            return;
-        }
-
-        // Clamp to visible hours
-        const clampedStartHour = Math.max(6, startHour);
-        const clampedEndHour = Math.min(24, endHour);
-        const clampedStartMin = startHour < 6 ? 0 : startMin;
-        const clampedEndMin = endHour >= 24 ? 0 : endMin;
-
-        // Find start slot
-        const startSlotHour = clampedStartHour === 24 ? 23 : clampedStartHour;
-        const startSlot = document.querySelector(
-            `.time-slot[data-date="${activity.date}"][data-hour="${startSlotHour}"]`
-        );
-
-        if (!startSlot) {
-            console.log('Start slot not found for activity:', activity, 'hour:', startSlotHour);
-            return;
-        }
-
-        // Calculate position and height
-        const hourHeight = 40; // min-height of time-slot
-        const totalMinutes = (clampedEndHour * 60 + clampedEndMin) - (clampedStartHour * 60 + clampedStartMin);
-        const height = (totalMinutes / 60) * hourHeight;
-
-        // Top offset relative to start slot
-        const topOffset = clampedStartHour === startHour ? (startMin / 60) * hourHeight : 0;
-
-        // Parse color from activity (format: "color1,color2")
-        const colors = activity.color ? activity.color.split(',') : ['#BAFFC9', '#BAE1FF'];
-        const gradientBg = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
-
-        const block = document.createElement('div');
-        block.className = 'activity-block';
-        block.style.top = `${topOffset}px`;
-        block.style.height = `${Math.max(height, 10)}px`; // Minimum 10px
-        block.style.background = gradientBg;
-
-        // Show full category name even for smaller blocks
-        if (height < 20) {
-            block.innerHTML = `<span style="font-size: 8px;">${activity.category}</span>`;
-        } else if (height < 30) {
-            block.innerHTML = `${activity.category}`;
-        } else {
-            block.innerHTML = `${activity.category}<br><span style="font-size: 8px;">${activity.start_time.substring(0, 5)}</span>`;
-        }
-
-        block.title = `${activity.category} (${activity.start_time}-${activity.end_time})${activity.description ? '\n' + activity.description : ''}`;
-
-        // Click to show details
-        block.onclick = (e) => {
-            e.stopPropagation();
-            showActivityDetails(activity);
-        };
-
-        console.log('Appending activity block:', {
-            date: activity.date,
-            category: activity.category,
-            time: `${activity.start_time}-${activity.end_time}`,
-            slotHour: startSlotHour,
-            height: height,
-            topOffset: topOffset
-        });
-
-        startSlot.appendChild(block);
     });
+}
+
+function renderActivityForDate(activity, viewDate, startHour, startMin, endHour, endMin) {
+    const dateStr = formatDate(viewDate);
+
+    // Clamp to visible hours
+    const clampedStartHour = Math.max(6, startHour);
+    const clampedEndHour = Math.min(24, endHour);
+    const clampedStartMin = startHour < 6 ? 0 : startMin;
+    const clampedEndMin = endHour >= 24 ? 0 : endMin;
+
+    // Find start slot
+    const startSlotHour = clampedStartHour === 24 ? 23 : clampedStartHour;
+    const startSlot = document.querySelector(
+        `.time-slot[data-date="${dateStr}"][data-hour="${startSlotHour}"]`
+    );
+
+    if (!startSlot) {
+        console.log('Start slot not found for activity on date:', dateStr, 'hour:', startSlotHour);
+        return;
+    }
+
+    // Calculate position and height
+    const hourHeight = 40; // min-height of time-slot
+    const totalMinutes = (clampedEndHour * 60 + clampedEndMin) - (clampedStartHour * 60 + clampedStartMin);
+    const height = (totalMinutes / 60) * hourHeight;
+
+    // Top offset relative to start slot
+    const topOffset = clampedStartHour === startHour ? (startMin / 60) * hourHeight : 0;
+
+    // Parse color from activity (format: "color1,color2")
+    const colors = activity.color ? activity.color.split(',') : ['#BAFFC9', '#BAE1FF'];
+    const gradientBg = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+
+    const block = document.createElement('div');
+    block.className = 'activity-block';
+    block.style.top = `${topOffset}px`;
+    block.style.height = `${Math.max(height, 10)}px`; // Minimum 10px
+    block.style.background = gradientBg;
+
+    // Format time display
+    const displayStartTime = `${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`;
+    const displayEndTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+
+    // Show full category name even for smaller blocks
+    if (height < 20) {
+        block.innerHTML = `<span style="font-size: 8px;">${activity.category}</span>`;
+    } else if (height < 30) {
+        block.innerHTML = `${activity.category}`;
+    } else {
+        block.innerHTML = `${activity.category}<br><span style="font-size: 8px;">${displayStartTime}</span>`;
+    }
+
+    block.title = `${activity.category} (${displayStartTime}-${displayEndTime})${activity.description ? '\n' + activity.description : ''}`;
+
+    // Click to show details
+    block.onclick = (e) => {
+        e.stopPropagation();
+        showActivityDetails(activity);
+    };
+
+    console.log('Appending activity block:', {
+        date: dateStr,
+        category: activity.category,
+        time: `${displayStartTime}-${displayEndTime}`,
+        slotHour: startSlotHour,
+        height: height,
+        topOffset: topOffset
+    });
+
+    startSlot.appendChild(block);
 }
 
 function handleTimeSlotClick(event, date, hour) {

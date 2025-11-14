@@ -551,6 +551,8 @@ function loadData() {
 }
 
 function renderComparison(plans, activities) {
+    console.log('renderComparison called with:', { plans: plans.length, activities: activities.length });
+
     // Build time labels (6:00 - 24:00)
     const timeColumn = document.getElementById('timeColumn');
     timeColumn.innerHTML = '';
@@ -590,7 +592,9 @@ function renderComparison(plans, activities) {
     }
 
     // Render activities
+    console.log('About to render activities:', activities);
     activities.forEach(activity => {
+        console.log('Rendering activity:', activity.category, activity.start_time, activity.end_time);
         renderActivityBlock(activity);
     });
 }
@@ -685,27 +689,76 @@ function renderPlanBlock(plan) {
 }
 
 function renderActivityBlock(activity) {
-    const startTime = new Date(activity.start_time);
-    const endTime = new Date(activity.end_time);
+    // Parse datetime - convert space to 'T' for better cross-browser compatibility
+    const startTime = new Date(activity.start_time.replace(' ', 'T'));
+    const endTime = new Date(activity.end_time.replace(' ', 'T'));
 
-    let startHour = startTime.getHours();
-    let startMin = startTime.getMinutes();
-    let endHour = endTime.getHours();
-    let endMin = endTime.getMinutes();
+    console.log('renderActivityBlock - parsing times:', {
+        category: activity.category,
+        start_time: activity.start_time,
+        end_time: activity.end_time,
+        startTime: startTime,
+        endTime: endTime
+    });
 
-    // Detect midnight crossover by comparing dates
+    const startHour = startTime.getHours();
+    const startMin = startTime.getMinutes();
+    const endHour = endTime.getHours();
+    const endMin = endTime.getMinutes();
+
+    // Compare dates (ignore time)
+    const viewDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
     const startDate = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
     const endDate = new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate());
 
-    if (endDate > startDate) {
-        // Activity crosses midnight - clamp to midnight
-        endHour = 24;
-        endMin = 0;
+    console.log('renderActivityBlock - date comparison:', {
+        viewDate: viewDate,
+        startDate: startDate,
+        endDate: endDate,
+        viewTime: viewDate.getTime(),
+        startTime: startDate.getTime(),
+        endTime: endDate.getTime()
+    });
+
+    let displayStartHour, displayStartMin, displayEndHour, displayEndMin;
+
+    if (viewDate.getTime() === startDate.getTime() && viewDate.getTime() === endDate.getTime()) {
+        // Activity starts and ends on the same day
+        console.log('Same day activity');
+        displayStartHour = startHour;
+        displayStartMin = startMin;
+        displayEndHour = endHour;
+        displayEndMin = endMin;
+    } else if (viewDate.getTime() === startDate.getTime()) {
+        // View date = start date (activity continues to next day)
+        console.log('Start date - continues to next day');
+        displayStartHour = startHour;
+        displayStartMin = startMin;
+        displayEndHour = 24;
+        displayEndMin = 0;
+    } else if (viewDate.getTime() === endDate.getTime()) {
+        // View date = end date (activity started previous day)
+        console.log('End date - started previous day');
+        displayStartHour = 0;
+        displayStartMin = 0;
+        displayEndHour = endHour;
+        displayEndMin = endMin;
+    } else if (viewDate > startDate && viewDate < endDate) {
+        // View date is between start and end (show full day)
+        console.log('Middle date - show full day');
+        displayStartHour = 0;
+        displayStartMin = 0;
+        displayEndHour = 24;
+        displayEndMin = 0;
+    } else {
+        // Activity not on this date
+        console.log('Activity not on this date - skipping');
+        return;
     }
 
     // Calculate exact minutes from midnight
-    const startTotalMinutes = startHour * 60 + startMin;
-    const endTotalMinutes = endHour * 60 + endMin;
+    const startTotalMinutes = displayStartHour * 60 + displayStartMin;
+    const endTotalMinutes = displayEndHour * 60 + displayEndMin;
 
     // Skip if completely outside visible hours (6:00 - 24:00)
     if (endTotalMinutes <= 6 * 60 || startTotalMinutes >= 24 * 60) return;
