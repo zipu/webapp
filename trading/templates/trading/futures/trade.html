@@ -1,18 +1,43 @@
 {% extends "trading/futures/base.html"%}
 {% load humanize %}
 {% load static %}
-{% block content2 %}
-<div class='row' style="width:60%; margin: 0 auto;">
+{% load trading_filters %}
+
+{% block content %}
+<div class='container-mobile'>
+  <!-- 탭 네비게이션 -->
+  <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #f0f0f0;">
+    <a href="{% url 'futurestrade' page=1 %}"
+       style="flex: 1; padding: 12px; text-align: center; text-decoration: none; font-weight: 600; color: #2962FF; border-bottom: 3px solid #2962FF; margin-bottom: -2px;">
+      거래 내역
+    </a>
+    <a href="{% url 'transaction' page=1 %}"
+       style="flex: 1; padding: 12px; text-align: center; text-decoration: none; font-weight: 500; color: #757575;">
+      체결 기록
+    </a>
+  </div>
+
+  <!-- 필터 바 (간소화) -->
+  <div class="filter-bar" style="margin-bottom: 16px;">
+    <button class="filter-btn active" data-filter="week">이번 주</button>
+    <button class="filter-btn" data-filter="month">이번 달</button>
+    <button class="filter-btn" data-filter="all">전체</button>
+  </div>
+
+  <!-- 거래 목록 컨테이너 -->
+  <div id="trades-container">
+
+  <!-- 페이지네이션 (상단) -->
   {% if is_paginated %}
-    <nav aria-label="Page navigator">
+    <nav aria-label="Page navigator" style="margin-bottom: 16px;">
       <ul class="pagination pagination-sm justify-content-center">
         <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'futurestrade' page=1 %}" aria-label="First">
+          <a class="page-link" href="{% url 'futurestrade' page=1 %}?filter={{ current_filter }}" aria-label="First">
             <span aria-hidden="true">&laquo;</span>
           </a>
         </li>
         <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}" aria-label="Previous">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}?filter={{ current_filter }}" aria-label="Previous">
             <span aria-hidden="true">&lt;</span>
           </a>
         </li>
@@ -23,17 +48,17 @@
             </li>
           {% else %}
             <li class="page-item">
-              <a class="page-link" href="{% url 'futurestrade' page=page %}">{{page}}</a>
+              <a class="page-link" href="{% url 'futurestrade' page=page %}?filter={{ current_filter }}">{{page}}</a>
             </li>
           {% endif %}
         {% endfor %}
         <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}" aria-label="Previous">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}?filter={{ current_filter }}" aria-label="Next">
             <span aria-hidden="true">&gt;</span>
           </a>
         </li>
         <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}" aria-label="Next">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}?filter={{ current_filter }}" aria-label="Last">
             <span aria-hidden="true">&raquo;</span>
           </a>
         </li>
@@ -41,385 +66,299 @@
     </nav>
   {% endif %}
 
-  <table class="table table-sm table-bordered" style="font-size:small">
-      <tr class="table table-secondary">
-        <td scope="col" rowspan=2>계좌</td>
-        <td scope="col" rowspan=2>시작일</td>
-        <td scope="col" rowspan=2>상품</td>
-        <td scope="col" rowspan=2>종류</td>
-        <td scope="col" rowspan=2>코드</td>
-        <td scope="col" rowspan=2>포지션</td>
-        <td scope="col" colspan=2>진입</td>
-        <td scope="col" colspan=2>청산</td>
-        <td scope="col" rowspan=2>잔여</td>
-        <td scope="col" rowspan=2>실현</td>
-        <td scope="col" rowspan=2>틱</td>
-        <td scope="col" rowspan=2>통화</td>
-
-      </tr>
-      <tr class="table table-secondary">
-        <td scope="col"> 가격 </td>
-        <td scope="col"> 수량 </td>
-        <td scope="col"> 가격 </td>
-        <td scope="col"> 수량 </td>
-      </tr>
- 
-      {% for trade, entries, exits, cons in data %}
-      <tr class='trade' onclick="ShowDetail({{trade.id}})"
-       {% if trade.is_open %} bgcolor='azure' 
-       {% elif not trade.entry_strategy %} bgcolor='#FBEEE6'
+  <!-- 거래 카드 목록 -->
+  {% for trade, entries, exits, cons in data %}
+  <div class="trade-card" onclick="toggleDetail('{{trade.id}}')"
+       {% if trade.is_open %}
+       style="background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%); border: 2px solid #ff9800; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);"
        {% endif %}>
-          <td>{{trade.account}} </td>
-          <td>{{trade.pub_date | date:"Y-m-d"}} </td>
-          <td>{{trade.instrument.name}} </td>
-          <td>{{trade.type}} </td>
-          <td>{{trade.ebest_code}} </td>
-          <td style={% if trade.position == 1 %} 'color:red' {% else %} 'color:blue' {% endif %}>
-            {% if trade.position == 1 %}
-             Long
-            {% else %}
-             Short
-            {% endif %}
-          </td>
-          <td>
-            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
-              {% for entry in entries %}
-              <tr><td> {{entry.price.normalize}} </td></tr>
-              {% endfor %}
-            </table>
-          </td>
-          <td>
-            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
-              {% for entry in entries %}
-              <tr><td> {{entry.cnt}} </td></tr>
-              {% endfor %}
-            </table>
-          </td>
-          <td>
-            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
-              {% for exit in exits %}
-              <tr><td> {{exit.price.normalize}} </td></tr>
-              {% endfor %}
-            </table>
-          </td>
-          <td>
-            <table class="table table-sm table-bordered" style="margin:0; padding:0;">
-              {% for exit in exits %}
-              <tr><td> {{exit.cnt}} </td></tr>
-              {% endfor %}
-            </table>
-          </td>
-          <td>
-            {{cons}}
-          </td>
-          <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
-            {{trade.realized_profit.normalize}}
-          </td>
-          <td style="color: {% if trade.realized_profit > 0 %} red {% elif trade.realized_profit < 0 %} blue {% endif%}">
-            {{trade.realized_profit_ticks |floatformat:1}}
-          </td>
-          <td>{{trade.instrument.currency.symbol}} </td>
-      </tr>
-      <!-- 매매 디테일 뷰 -->
-      <tr id='{{trade.id}}' style='display:none;'> 
-        <td colspan=14 style='padding:0;'>
-          <div class="trade-detail-container">
-            <!-- 기본 정보 그리드 -->
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>평균매입가</label>
-                <span>{{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
-              </div>
-              <div class="detail-item">
-                <label>평균청산가</label>
-                <span>{{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
-              </div>
-              <div class="detail-item">
-                <label>손절가</label>
-                <span>{{ trade.stop_price.normalize |default_if_none:"-" }}</span>
-              </div>
-              <div class="detail-item">
-                <label>타임프레임</label>
-                <span>{{ trade.timeframe |default_if_none:"-" }}</span>
-              </div>
-              <div class="detail-item">
-                <label>멘탈</label>
-                <span>{{trade.mental |default_if_none:"-"}}</span>
-              </div>
-              <div class="detail-item">
-                <label>진입전략</label>
-                <span>{{ trade.entry_strategy.name |default_if_none:"-" }}</span>
-              </div>
-              <div class="detail-item">
-                <label>청산전략</label>
-                <span>{{trade.exit_strategy.name |default_if_none:"-"}}</span>
-              </div>
-              <div class="detail-item">
-                <label>수수료</label>
-                <span>{{ trade.commission.normalize }}</span>
-              </div>
-              <div class="detail-item">
-                <label>지속시간</label>
-                <span>{{ trade.duration|default:"-" }}</span>
-              </div>
-              <div class="detail-item">
-                <label>상태</label>
-                <span>{% if trade.is_open %}진행중{% else %}완료{% endif %}</span>
-              </div>
+    <div class="trade-header">
+      <div class="instrument">
+        <span class="symbol" style="font-size: 18px; font-weight: bold; color: #333;">{{ trade.instrument.name }}</span>
+        <span class="name" style="font-size: 12px; color: #757575;">{{ trade.instrument.symbol }}</span>
+      </div>
+      <div class="profit {% if trade.realized_profit > 0 %}positive{% else %}negative{% endif %}">
+        {% if trade.realized_profit >= 0 %}+{% else %}-{% endif %}{{ trade.instrument.currency.symbol|currency_symbol }}{{ trade.realized_profit|floatformat:0|intcomma|cut:"-" }}
+      </div>
+    </div>
+
+    <div class="trade-body">
+      <div class="position {% if trade.position == 1 %}long{% else %}short{% endif %}">
+        {% if trade.position == 1 %}Long{% else %}Short{% endif %}
+      </div>
+      <div class="date">
+        {{ trade.pub_date|date:"m/d H:i" }} → {% if trade.is_open %}진행중{% else %}{{ trade.end_date|date:"m/d H:i" }}{% endif %}
+      </div>
+      {% if trade.is_open %}
+      <div class="duration" data-start="{{ trade.pub_date|date:'c' }}" id="duration-{{ trade.id }}">
+        경과: 계산 중...
+      </div>
+      {% elif trade.duration %}
+      <div class="duration">{{ trade.duration }}</div>
+      {% endif %}
+    </div>
+
+    <div class="trade-tags">
+      {% for tag in trade.entry_tags.all %}
+      <span class="tag">{{ tag.name }}</span>
+      {% endfor %}
+      {% if trade.is_open %}
+      <span class="tag" style="background: #ff9800; color: #fff; font-weight: 600;">
+        🔥 진행중 - {% if trade.type == 'Option' %}옵션{% elif trade.type == 'Futures' %}선물{% else %}{{ trade.type }}{% endif %}
+      </span>
+      {% endif %}
+    </div>
+
+    <div class="trade-footer">
+      <span>진입: {{ trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places|intcomma }}</span>
+      <span>청산: {{ trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places|intcomma }}</span>
+      <span>{{ trade.realized_profit_ticks|floatformat:1|intcomma }} ticks</span>
+    </div>
+  </div>
+
+  <!-- 거래 상세 (펼침) -->
+  <div id="detail-{{trade.id}}" style="display:none; margin-top: -12px; margin-bottom: 12px;">
+    <div class="card">
+      <h6 style="margin-bottom: 12px; font-weight: 600;">거래 상세</h6>
+
+      <!-- 기본 정보 그리드 -->
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+        <div>
+          <div style="font-size: 12px; color: #757575;">평균매입가</div>
+          <div style="font-weight: 600;">{{ trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places|intcomma }}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: #757575;">평균청산가</div>
+          <div style="font-weight: 600;">{{ trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places|intcomma }}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: #757575;">손절가</div>
+          <div style="font-weight: 600;">{% if trade.stop_price %}{{ trade.stop_price.normalize|intcomma }}{% else %}-{% endif %}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: #757575;">타임프레임</div>
+          <div style="font-weight: 600;">{{ trade.timeframe|default:"-" }}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: #757575;">멘탈</div>
+          <div style="font-weight: 600;">{{ trade.mental|default:"-" }}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: #757575;">수수료</div>
+          <div style="font-weight: 600;">{{ trade.instrument.currency.symbol|currency_symbol }}{{ trade.commission.normalize|intcomma }}</div>
+        </div>
+      </div>
+
+      <!-- 진입/청산 이유 -->
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 12px; color: #757575; margin-bottom: 4px;">진입 전략</div>
+        <div>{{ trade.entry_strategy.name|default:"-" }}</div>
+        {% if trade.entry_reason %}
+        <div style="margin-top: 4px; padding: 8px; background: #f5f5f5; border-radius: 8px; font-size: 13px;">
+          {{ trade.entry_reason|safe }}
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 12px; color: #757575; margin-bottom: 4px;">청산 전략</div>
+        <div>{{ trade.exit_strategy.name|default:"-" }}</div>
+        {% if trade.exit_reason %}
+        <div style="margin-top: 4px; padding: 8px; background: #f5f5f5; border-radius: 8px; font-size: 13px;">
+          {{ trade.exit_reason|safe }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- 수정 버튼 -->
+      <button class="btn btn-primary btn-sm w-100"
+              onclick="openEditModal({{trade.id}}, '{{trade.mental|default:''}}', {{trade.entry_strategy.id|default:'null'}}, {{trade.exit_strategy.id|default:'null'}}, {{trade.stop_price|default:'null'}}, '{{trade.entry_reason|default:''|escapejs}}', '{{trade.exit_reason|default:''|escapejs}}'); event.stopPropagation();">
+        수정
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- 수정 모달 -->
+  <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="border-radius: 12px;">
+        <div class="modal-header" style="border-bottom: 1px solid #f0f0f0;">
+          <h6 class="modal-title" style="font-weight: 600;">거래 수정</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{% url 'futurestrade' page=1 %}">
+          {% csrf_token %}
+          <input type="hidden" name="id" id="edit-id">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">멘탈</label>
+              <select name="mental" id="edit-mental" class="form-select form-select-sm">
+                <option value="">-</option>
+                <option value="Good">Good</option>
+                <option value="Normal">Normal</option>
+                <option value="Bad">Bad</option>
+              </select>
             </div>
-            
-            <!-- 진입/청산 이유 섹션 -->
-            <div class="reason-section">
-              <div class="reason-entry">
-                <h6>진입 이유</h6>
-                <div class="reason-tags">
-                  {% for tag in trade.entry_tags.all %}
-                  <span class="reason-tag">{{tag.name}}</span>
-                  {% endfor %}
-                </div>
-                <div class="reason-content">
-                  {{ trade.entry_reason |default_if_none:"" |safe }}
-                </div>
-              </div>
-              <div class="reason-exit">
-                <h6>청산 이유</h6>
-                <div class="reason-tags">
-                  {% for tag in trade.exit_tags.all %}
-                  <span class="reason-tag">{{tag.name}}</span>
-                  {% endfor %}
-                </div>
-                <div class="reason-content">
-                  {{ trade.exit_reason |default_if_none:"" |safe }}
-                </div>
-              </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">진입 전략</label>
+              <select name="entry_strategy" id="edit-entry-strategy" class="form-select form-select-sm">
+                <option value="">-</option>
+                {% for strategy in entry_strategies %}
+                <option value="{{strategy.id}}">{{strategy.name}}</option>
+                {% endfor %}
+              </select>
             </div>
-            
-            <!-- 수정 버튼 -->
-            <div class="action-section">
-              <button type="button" class="btn btn-primary btn-sm" onclick="ShowUpdateDetal({{trade.id}});">
-                수정
-              </button>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">청산 전략</label>
+              <select name="exit_strategy" id="edit-exit-strategy" class="form-select form-select-sm">
+                <option value="">-</option>
+                {% for strategy in exit_strategies %}
+                <option value="{{strategy.id}}">{{strategy.name}}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">손절가</label>
+              <input type="number" name="stopprice" id="edit-stop-price" class="form-control form-control-sm" step="0.01">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">진입 이유</label>
+              <textarea name="entryreason" id="edit-entry-reason" class="form-control form-control-sm" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">청산 이유</label>
+              <textarea name="exitreason" id="edit-exit-reason" class="form-control form-control-sm" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">진입 태그 (세미콜론으로 구분)</label>
+              <input type="text" name="entrytags" id="edit-entry-tags" class="form-control form-control-sm" placeholder="예: 지지; 돌파">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 13px; font-weight: 600;">청산 태그 (세미콜론으로 구분)</label>
+              <input type="text" name="exittags" id="edit-exit-tags" class="form-control form-control-sm" placeholder="예: 목표도달; 손절">
             </div>
           </div>
-      </td>
-      </tr>
-      <!-- 매매 디테일 업데이트 뷰 -->
-      <tr id='{{trade.id}}-mod' style='display:none;'> 
-        <td colspan=14 style='padding:0;'>
-          <form action="{% url 'futurestrade' page=1 %}" method='post'>
-           {% csrf_token %}
-           <input type='hidden' value='{{trade.id}}' name='id'></input>
-           
-           <div class="trade-edit-container">
-             <!-- 수정 가능한 기본 정보 그리드 -->
-             <div class="edit-grid">
-               <div class="edit-item">
-                 <label>평균매입가</label>
-                 <span>{{trade.avg_entry_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
-               </div>
-               <div class="edit-item">
-                 <label>평균청산가</label>
-                 <span>{{trade.avg_exit_price.normalize|floatformat:trade.instrument.decimal_places}}</span>
-               </div>
-               <div class="edit-item">
-                 <label>손절가</label>
-                 <input type="number" step="any" value='{{trade.stop_price.normalize}}' name='stopprice' class="form-control form-control-sm">
-               </div>
-               <div class="edit-item">
-                 <label>타임프레임</label>
-                 <span>{{ trade.timeframe }}</span>
-               </div>
-               <div class="edit-item">
-                 <label>멘탈</label>
-                 <select name="mental" class="form-select form-select-sm">
-                   <option value=''>선택</option>
-                   <option value='Good' {% if trade.mental == 'Good' %} selected {% endif %}>Good</option>
-                   <option value='Normal' {% if trade.mental == 'Normal' %} selected {% endif %}>Normal</option>
-                   <option value='Bad' {% if trade.mental == 'Bad' %} selected {% endif %}>Bad</option>
-                 </select>
-               </div>
-               <div class="edit-item">
-                 <label>진입전략</label>
-                 <select name="entry_strategy" class="form-select form-select-sm">
-                   <option value=''>선택</option>
-                   {% for strategy in entry_strategies%}
-                   <option value={{strategy.id}} {% if strategy.id == trade.entry_strategy.id %} selected {% endif %}>{{ strategy.name }}</option>
-                   {% endfor %}
-                 </select>
-               </div>
-               <div class="edit-item">
-                 <label>청산전략</label>
-                 <select name="exit_strategy" class="form-select form-select-sm">
-                   <option value=''>선택</option>
-                   {% for strategy in exit_strategies%}
-                   <option value={{strategy.id}} {% if strategy.id == trade.exit_strategy.id %} selected {% endif %}>{{ strategy.name }}</option>
-                   {% endfor %}
-                 </select>
-               </div>
-               <div class="edit-item">
-                 <label>수수료</label>
-                 <span>{{ trade.commission.normalize }}</span>
-               </div>
-             </div>
-             
-             <!-- 진입/청산 이유 편집 섹션 -->
-             <div class="reason-edit-section">
-               <div class="reason-edit-entry">
-                 <h6>진입 이유</h6>
-                 <div class="mb-2">
-                   <label class="form-label">태그</label>
-                   <input type="text" class="form-control form-control-sm" name="entrytags" 
-                     value="{% for tag in trade.entry_tags.all %}{{tag.name}};{% endfor %}" 
-                     placeholder="태그1;태그2;태그3">
-                 </div>
-                 <div>
-                   <label class="form-label">이유</label>
-                   <div id="entryreason-{{trade.id}}" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
-                   <script type="text/template" id="entry-content-{{trade.id}}">{{trade.entry_reason|safe}}</script>
-                   <input type="hidden" name="entryreason" id="entryreason-hidden-{{trade.id}}">
-                 </div>
-               </div>
-               <div class="reason-edit-exit">
-                 <h6>청산 이유</h6>
-                 <div class="mb-2">
-                   <label class="form-label">태그</label>
-                   <input type="text" class="form-control form-control-sm" name="exittags" 
-                     value="{% for tag in trade.exit_tags.all %}{{tag.name}};{% endfor %}" 
-                     placeholder="태그1;태그2;태그3">
-                 </div>
-                 <div>
-                   <label class="form-label">이유</label>
-                   <div id="exitreason-{{trade.id}}" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
-                   <script type="text/template" id="exit-content-{{trade.id}}">{{trade.exit_reason|safe}}</script>
-                   <input type="hidden" name="exitreason" id="exitreason-hidden-{{trade.id}}">
-                 </div>
-               </div>
-             </div>
-             
-             <!-- 액션 버튼 -->
-             <div class="action-section">
-               <button type="submit" class="btn btn-success btn-sm">저장</button>
-               <button type="button" class="btn btn-secondary btn-sm" onclick="ShowDetail({{trade.id}});">취소</button>
-             </div>
-           </div>
+          <div class="modal-footer" style="border-top: 1px solid #f0f0f0;">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
+            <button type="submit" class="btn btn-primary btn-sm">저장</button>
+          </div>
         </form>
-        </td>
-      </tr>
-      {% endfor %}
-  </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 빈 상태 -->
+  {% if not data %}
+  <div class="empty-state">
+    <p>거래 내역이 없습니다</p>
+  </div>
+  {% endif %}
+
+  <!-- 페이지네이션 (하단) -->
+  {% if is_paginated %}
+    <nav aria-label="Page navigator" style="margin-top: 16px;">
+      <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=1 %}?filter={{ current_filter }}">처음</a>
+        </li>
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.previous %}?filter={{ current_filter }}">이전</a>
+        </li>
+        <li class="page-item active">
+          <span class="page-link">{{ page_obj.page }} / {{ page_obj.num_page }}</span>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.next %}?filter={{ current_filter }}">다음</a>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'futurestrade' page=page_obj.num_page %}?filter={{ current_filter }}">마지막</a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+  </div> <!-- trades-container 닫기 -->
 </div>
-{% endblock content2 %}
+{% endblock %}
 
 {% block script %}
-
-<link rel="stylesheet" href="{% static 'css/trading.css' %}">
-<!-- 텍스트 에디터 -->
-<link rel="stylesheet" href="{% static 'css/pell.min.css' %}">
-<script src="{% static 'js/pell.min.js' %}"></script>
-
 <script>
-// 매매내역 디테일 드롭다운 보이기
-var ShowDetail = function(id){
-  if($('#'+id).css('display') == 'none' & $('#'+id+'-mod').css('display')=='none'){
-     $('#'+id).css('display', 'table-row');
+// 거래 상세 토글
+function toggleDetail(id) {
+  const detail = document.getElementById('detail-' + id);
+  if (detail.style.display === 'none') {
+    // 모든 다른 상세 닫기
+    document.querySelectorAll('[id^="detail-"]').forEach(el => {
+      el.style.display = 'none';
+    });
+    detail.style.display = 'block';
   } else {
-    $('#'+id).css('display', 'none'); 
-    $('#'+id+'-mod').css('display','none');
-  }
-};
-
-var ShowUpdateDetal = function(id){
-  $('#'+id).css('display','none');
-  $('#'+id+'-mod').css('display','table-row');
-
-  // 해당 수정 폼의 Pell Editor 초기화
-  initPellEditor(id);
-}
-
-// Pell Editor 초기화 함수
-function initPellEditor(tradeId) {
-  const entryDiv = document.getElementById('entryreason-' + tradeId);
-  const exitDiv = document.getElementById('exitreason-' + tradeId);
-  
-  // template 스크립트에서 기존 내용 가져오기
-  const entryTemplate = document.getElementById('entry-content-' + tradeId);
-  const exitTemplate = document.getElementById('exit-content-' + tradeId);
-  
-  const entryHidden = document.getElementById(`entryreason-hidden-${tradeId}`);
-  const exitHidden = document.getElementById(`exitreason-hidden-${tradeId}`);
-  
-  // 진입 이유 에디터 초기화
-  if (entryDiv && !entryDiv.classList.contains('pell')) {
-    pell.init({
-      element: entryDiv,
-      actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
-      onChange: html => {
-        if (entryHidden) entryHidden.value = html;
-      }
-    });
-    
-    // 기존 내용 설정 (template에서)
-    setTimeout(() => {
-      if (entryTemplate && entryDiv.querySelector('.pell-content')) {
-        const content = entryTemplate.innerHTML.trim();
-        if (content) {
-          entryDiv.querySelector('.pell-content').innerHTML = content;
-          if (entryHidden) entryHidden.value = content;
-        }
-      }
-    }, 100);
-  }
-  
-  // 청산 이유 에디터 초기화
-  if (exitDiv && !exitDiv.classList.contains('pell')) {
-    pell.init({
-      element: exitDiv,
-      actions: ['bold', 'italic', 'heading1', 'heading2', 'olist', 'ulist', 'image'],
-      onChange: html => {
-        if (exitHidden) exitHidden.value = html;
-      }
-    });
-    
-    // 기존 내용 설정 (template에서)
-    setTimeout(() => {
-      if (exitTemplate && exitDiv.querySelector('.pell-content')) {
-        const content = exitTemplate.innerHTML.trim();
-        if (content) {
-          exitDiv.querySelector('.pell-content').innerHTML = content;
-          if (exitHidden) exitHidden.value = content;
-        }
-      }
-    }, 100);
+    detail.style.display = 'none';
   }
 }
 
-// 폼 제출 이벤트 핸들러
-document.addEventListener('DOMContentLoaded', function() {
-  // 모든 폼에 submit 이벤트 리스너 추가
-  document.querySelectorAll('form').forEach(function(form) {
-    form.addEventListener('submit', function(e) {
-      // 해당 폼 내의 모든 Pell 에디터에서 hidden input 업데이트
-      const pellContents = form.querySelectorAll('.pell-content');
-      pellContents.forEach(function(pellContent) {
-        const editorDiv = pellContent.parentElement;
-        const tradeId = editorDiv.id.split('-').pop();
-
-        if (editorDiv.id.includes('entryreason')) {
-          const hiddenInput = document.getElementById(`entryreason-hidden-${tradeId}`);
-          if (hiddenInput) {
-            hiddenInput.value = pellContent.innerHTML;
-          }
-        } else if (editorDiv.id.includes('exitreason')) {
-          const hiddenInput = document.getElementById(`exitreason-hidden-${tradeId}`);
-          if (hiddenInput) {
-            hiddenInput.value = pellContent.innerHTML;
-          }
-        }
-      });
-    });
+// 필터 버튼
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const filter = this.getAttribute('data-filter');
+    window.location.href = "{% url 'futurestrade' page=1 %}?filter=" + filter;
   });
 });
 
+// 페이지 로드 시 현재 필터 상태 복원
+const urlParams = new URLSearchParams(window.location.search);
+const currentFilter = urlParams.get('filter') || 'week';
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  if (btn.getAttribute('data-filter') === currentFilter) {
+    btn.classList.add('active');
+  } else {
+    btn.classList.remove('active');
+  }
+});
 
+// 진행중인 거래 경과 시간 계산
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-start]').forEach(function(element) {
+    const startTime = new Date(element.getAttribute('data-start'));
+    const now = new Date();
+    const elapsed = now - startTime;
+
+    const days = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((elapsed % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+
+    let timeText = '경과: ';
+    if (days > 0) {
+      timeText += `${days}일 ${hours}시간 ${minutes}분`;
+    } else if (hours > 0) {
+      timeText += `${hours}시간 ${minutes}분`;
+    } else {
+      timeText += `${minutes}분`;
+    }
+
+    element.textContent = timeText;
+  });
+});
+
+// 수정 모달 열기
+function openEditModal(id, mental, entryStrategy, exitStrategy, stopPrice, entryReason, exitReason) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-mental').value = mental || '';
+  document.getElementById('edit-entry-strategy').value = entryStrategy || '';
+  document.getElementById('edit-exit-strategy').value = exitStrategy || '';
+  document.getElementById('edit-stop-price').value = stopPrice || '';
+  document.getElementById('edit-entry-reason').value = entryReason || '';
+  document.getElementById('edit-exit-reason').value = exitReason || '';
+
+  const modal = new bootstrap.Modal(document.getElementById('editModal'));
+  modal.show();
+}
 </script>
-{% endblock script%}
+{% endblock %}

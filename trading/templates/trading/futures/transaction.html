@@ -1,120 +1,212 @@
 {% extends "trading/futures/base.html"%}
 {% load humanize %}
-{% block content2 %}
-<div class='row' style="width:60%; margin: 0 auto;">
+
+{% block content %}
+<div class='container-mobile'>
+  <!-- 탭 네비게이션 -->
+  <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #f0f0f0;">
+    <a href="{% url 'futurestrade' page=1 %}"
+       style="flex: 1; padding: 12px; text-align: center; text-decoration: none; font-weight: 500; color: #757575;">
+      거래 내역
+    </a>
+    <a href="{% url 'transaction' page=1 %}"
+       style="flex: 1; padding: 12px; text-align: center; text-decoration: none; font-weight: 600; color: #2962FF; border-bottom: 3px solid #2962FF; margin-bottom: -2px;">
+      체결 기록
+    </a>
+  </div>
+
+  <!-- 액션 카드 (상단) -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">📊 데이터 관리</h6>
+
+    <!-- 환율 정보 -->
+    <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+      <div style="font-size: 12px; color: #757575; margin-bottom: 4px;">
+        환율 ({{currencies.first.date|date:'Y년 m월 d일'}})
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        {% for currency in currencies %}
+        <div>
+          <span style="font-weight: 600;">{{currency.symbol}}</span>
+          <span style="color: #757575;">{{currency.rate|floatformat:2}}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 액션 버튼 그룹 -->
+    <div style="display: grid; gap: 8px;">
+      <button class="btn btn-primary w-100" onclick="updateCurrency()" id="btn-currency">
+        🔄 1단계: 환율 갱신
+      </button>
+
+      <form action="{% url 'transaction' page=1 %}" method='post' style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success w-100" id="btn-sync">
+          📥 2단계: 체결기록 추가
+        </button>
+      </form>
+
+      <button class="btn btn-warning w-100" onclick="createTrades()" id="btn-create" style="color: white;">
+        ⚙️ 3단계: 거래내역 생성
+      </button>
+    </div>
+
+    <div style="margin-top: 12px; padding: 8px; background: #fff3cd; border-radius: 8px; font-size: 12px;">
+      <strong>⚠️ 순서대로 실행:</strong> 각 단계를 확인 후 다음 단계로 진행하세요
+    </div>
+  </div>
+
+  <!-- 페이지네이션 (상단) -->
   {% if is_paginated %}
-    <nav aria-label="Page navigator">
+    <nav aria-label="Page navigator" style="margin-bottom: 16px;">
       <ul class="pagination pagination-sm justify-content-center">
         <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'transaction' page=1 %}" aria-label="First">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
+          <a class="page-link" href="{% url 'transaction' page=1 %}">처음</a>
         </li>
         <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'transaction' page=page_obj.previous %}" aria-label="Previous">
-            <span aria-hidden="true">&lt;</span>
-          </a>
+          <a class="page-link" href="{% url 'transaction' page=page_obj.previous %}">이전</a>
         </li>
-        {% for page in page_obj.rng %}
-          {% if page_obj.page == page %}
-            <li class="page-item active">
-              <a class="page-link" href="">{{page}}</a>
-            </li>
-          {% else %}
-            <li class="page-item">
-              <a class="page-link" href="{% url 'transaction' page=page %}">{{page}}</a>
-            </li>
-          {% endif %}
-        {% endfor %}
-        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'transaction' page=page_obj.next %}" aria-label="Previous">
-            <span aria-hidden="true">&gt;</span>
-          </a>
+        <li class="page-item active">
+          <span class="page-link">{{page_obj.page}} / {{page_obj.num_page}}</span>
         </li>
         <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
-          <a class="page-link" href="{% url 'transaction' page=page_obj.num_page %}" aria-label="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
+          <a class="page-link" href="{% url 'transaction' page=page_obj.next %}">다음</a>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=page_obj.num_page %}">마지막</a>
         </li>
       </ul>
     </nav>
   {% endif %}
 
-  <table class="table table-sm table-bordered" id="history">
-      <tr class="table table-secondary">
-        <td scope="col">계좌번호</td>
-        <td scope="col">체결일시</td>
-        <td scope="col">체결번호</td>
-        <td scope="col">상품</td>
-        <td scope="col">종류</td>
-        <td scope="col">이베스트코드</td>
-        <td scope="col">포지션</td>
-        <td scope="col">체결가격</td>
-        <td scope="col">수수료</td>
-        <td scope="col">거래코드</td>
-      </tr>
-      {% for transaction in transactions %}
-        <tr class="transaction" id="{{ transaction.id }}">
-          <td>{{transaction.account}}</td>
-          <td>{{transaction.date | date:"Y-m-d H:i" }}
-          </td>
-          <td>{{transaction.ebest_id}}
-          </td>
-          <td>{{transaction.instrument.name}}
-          </td>
-          <td>{{transaction.type}}
-          </td>
-          <td>{{transaction.ebest_code}}
-          </td>
-          <td>
-            {% if transaction.position == 1 %}
-              Long
-            {% else %}
-              Short
-            {% endif %}
-          </td>
-          <td>
-            {{transaction.price.normalize}}
-          </td>
-          <td>{{transaction.commission}}
-          </td>
-          <td>
-            {% if transaction.trade %}
-             {{ transaction.trade.id }}
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-  </table>
+  <!-- 체결 내역 카드 -->
+  <h6 style="margin-bottom: 12px; font-weight: 600;">📋 체결 내역</h6>
 
-  <table class="table table-sm table-bordered" id="management">
-        <tr>
-          <td style='width:15%;background-color:#e9ecef;'> 체결기록 추가 </td>
-          <td style='width:35%;' >
-            <form action="{% url 'transaction' page=1 %}" method='post'>
-              {% csrf_token %}
-              <input type="submit">
-            </form>
-          </td>
-          <td style='width:15%;background-color:#e9ecef;'> 거래내역 생성 </td>
-          <td style='width:35%'>
-            <input type='submit' value='생성'  onclick="location.href='{% url 'transaction' page=1%}?create_trades=true'"></td>
-          </td>
-        </tr>
-    </table>
-    <table class="table table-sm table-bordered">    
-      <tr>
-        <td style='background-color:#e9ecef;' colspan=4> 환율 ({{currencies.first.date |date:'Y년 m월 d일'}})</td>
-        {% for currency in currencies %}
-        <td>{{currency.symbol}} </td>
-        <td>{{currency.rate |floatformat:2}} </td>
-        {% endfor %}
-      </tr>
-      <tr> 
-        <td colspan='100%'>
-          <input type='submit' value='업데이트'  onclick="location.href='{% url 'transaction' page=1%}?currency=true'"></td>
-       </tr>
-</table>
-  <br>
+  {% for transaction in transactions %}
+  <div class="card" style="margin-bottom: 12px;" onclick="toggleTransactionDetail('{{transaction.id}}')">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+      <div>
+        <div style="font-weight: 600; color: #333;">
+          {{transaction.instrument.name}}
+        </div>
+        <div style="font-size: 12px; color: #757575;">
+          {{transaction.date|date:"Y-m-d H:i"}}
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div class="position {% if transaction.position == 1 %}long{% else %}short{% endif %}" style="margin-bottom: 4px;">
+          {% if transaction.position == 1 %}Long{% else %}Short{% endif %}
+        </div>
+        <div style="font-size: 12px; color: #757575;">
+          {% if transaction.trade %}
+          거래 #{{transaction.trade.id}}
+          {% else %}
+          <span style="color: #f57c00;">미분류</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+      <span>가격: <strong>{{transaction.price.normalize}}</strong></span>
+      <span>수수료: {{transaction.commission|floatformat:2}}</span>
+    </div>
+
+    <!-- 상세 정보 (펼침) -->
+    <div id="detail-{{transaction.id}}" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0;">
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 13px;">
+        <div>
+          <div style="color: #757575;">계좌</div>
+          <div>{{transaction.account}}</div>
+        </div>
+        <div>
+          <div style="color: #757575;">체결번호</div>
+          <div>{{transaction.ebest_id}}</div>
+        </div>
+        <div>
+          <div style="color: #757575;">종류</div>
+          <div>{{transaction.type}}</div>
+        </div>
+        <div>
+          <div style="color: #757575;">코드</div>
+          <div style="font-size: 11px;">{{transaction.ebest_code}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- 빈 상태 -->
+  {% if not transactions %}
+  <div class="empty-state">
+    <p>체결 내역이 없습니다</p>
+    <p style="font-size: 12px; margin-top: 8px;">위의 "체결기록 추가" 버튼을 눌러 데이터를 가져오세요</p>
+  </div>
+  {% endif %}
+
+  <!-- 페이지네이션 (하단) -->
+  {% if is_paginated %}
+    <nav aria-label="Page navigator" style="margin-top: 16px;">
+      <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item {% if page_obj.page == 1 %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=1 %}">처음</a>
+        </li>
+        <li class="page-item active">
+          <span class="page-link">{{page_obj.page}} / {{page_obj.num_page}}</span>
+        </li>
+        <li class="page-item {% if page_obj.page == page_obj.num_page %}disabled{% endif %}">
+          <a class="page-link" href="{% url 'transaction' page=page_obj.num_page %}">마지막</a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
 </div>
-{% endblock content2 %}
+{% endblock %}
+
+{% block script %}
+<script>
+// 체결 내역 상세 토글
+function toggleTransactionDetail(id) {
+  const detail = document.getElementById('detail-' + id);
+  if (detail.style.display === 'none') {
+    // 다른 모든 상세 닫기
+    document.querySelectorAll('[id^="detail-"]').forEach(el => {
+      el.style.display = 'none';
+    });
+    detail.style.display = 'block';
+  } else {
+    detail.style.display = 'none';
+  }
+}
+
+// 환율 갱신
+function updateCurrency() {
+  if (!confirm('환율을 갱신하시겠습니까?')) return;
+
+  const btn = document.getElementById('btn-currency');
+  btn.disabled = true;
+  btn.textContent = '갱신 중...';
+
+  location.href = "{% url 'transaction' page=1 %}?currency=true";
+}
+
+// 거래내역 생성
+function createTrades() {
+  if (!confirm('체결기록에서 거래내역을 생성하시겠습니까?\n\n주의: 체결기록을 확인한 후 실행하세요.')) return;
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true;
+  btn.textContent = '생성 중...';
+
+  location.href = "{% url 'transaction' page=1 %}?create_trades=true";
+}
+
+// 폼 제출 시 버튼 비활성화
+document.querySelector('form').addEventListener('submit', function() {
+  const btn = document.getElementById('btn-sync');
+  btn.disabled = true;
+  btn.textContent = '가져오는 중...';
+});
+</script>
+{% endblock %}

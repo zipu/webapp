@@ -724,3 +724,32 @@ class Transfer(models.Model):
     def __str__(self):
         return f"({self.acc_from} --> {self.acc_to}) 출금: {self.amount_from},  입금: {self.amount_to}"
 
+
+###########################################
+# 사용자 설정 및 목표                      #
+###########################################
+class UserGoal(models.Model):
+    """사용자 거래 목표 설정"""
+    PERIODS = [
+        ('daily', '일간'),
+        ('weekly', '주간'),
+        ('monthly', '월간')
+    ]
+
+    period = models.CharField("기간", max_length=20, choices=PERIODS, default='weekly')
+    profit_goal = models.DecimalField("수익 목표", max_digits=12, decimal_places=2, default=0)
+    max_loss_limit = models.DecimalField("최대 손실 한도", max_digits=12, decimal_places=2, default=0)
+    max_trades_per_day = models.PositiveIntegerField("일일 최대 거래 횟수", default=5)
+
+    alert_consecutive_losses = models.PositiveIntegerField("연속 손실 알림 횟수", default=3)
+    alert_low_win_rate = models.DecimalField("낮은 승률 알림 기준 (%)", max_digits=5, decimal_places=2, default=40)
+
+    created_at = models.DateTimeField("생성일", auto_now_add=True)
+    updated_at = models.DateTimeField("수정일", auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.get_period_display()} 목표: ${self.profit_goal}"
+

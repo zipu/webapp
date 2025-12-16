@@ -1,353 +1,409 @@
-{% extends "trading/futures/base.html"%}
+{% extends "trading/futures/base.html" %}
 {% load humanize %}
-{% block content2 %}
 
-<div class="row" id="system" style="width:60%; margin: 0 auto;">
-  <div >
-    <div id="profit-chart" style="text-align: -webkit-center;width:100%;height:500px;"></div>
+{% block content %}
+<div class="container-mobile">
+  <!-- 기간 선택 탭 -->
+  <div style="display: flex; gap: 8px; margin-bottom: 12px; background: #f5f5f5; padding: 4px; border-radius: 8px;">
+    <button class="period-btn active" data-period="month" style="flex: 1; padding: 8px; border: none; border-radius: 6px; background: #fff; font-weight: 600; cursor: pointer; transition: all 0.3s;">최근 한 달</button>
+    <button class="period-btn" data-period="year" style="flex: 1; padding: 8px; border: none; border-radius: 6px; background: transparent; font-weight: 600; cursor: pointer; transition: all 0.3s;">최근 1년</button>
+    <button class="period-btn" data-period="all" style="flex: 1; padding: 8px; border: none; border-radius: 6px; background: transparent; font-weight: 600; cursor: pointer; transition: all 0.3s;">전체</button>
   </div>
-  <div id="summary" style="width:100%; margin-top: 40px">
-    <div>
-      <table class="table table-bordered table-sm">
-        <tr>
-          <td style="width:20%;"> 시작 </td>
-          <td style="width:20%;"> 종료 </td>
-          <td style="width:15%;"> 계좌 </td>
-          <td style="width:35%;"> 태그 </td>
-          <td style="width:10%;">  </td>
-        </tr>
-        <tr>
-          <td> <input type="date" class="date" id='start' name="start"> </td>
-          <td> <input type="date" class="date" id='end' name="end"> </td>
-          <td><select id='account' name="account">
-            <option value=''> 합산 </option>
-            <option value='A001'> A001 </option>
-            <option value='A002'> A002 </option>
-            </select>
-          </td>
-          <td> 
-            <input type="text" id='tags' name="tags" style='width:100%;'>
-          </td>
-          
-          <td>
-            <input type="submit" value="조회" onclick="requestStatData('part');">
-          </td>
-        </tr>
-      </table>
-      
-    </div>
-      <table class="table table-bordered">
-        <tr class="table-success">
-          <th scope="col" style="width:33.3%">누적손익</th>
-          <th scope="col" style="width:33.3%">수수료</th>
-          <th scope="col" style="width:33.3%">순손익</th>
-        </tr>
-        <tr>
-          <td id="revenue"></td>
-          <td id="commission"></td>
-          <td id="profit"></td>
-        </tr>
-        <tr class="table-success">
-          <th scope="col" style="width:20%">승률</th>
-          <th scope="col" style="width:20%">손익비</th>
-          <th scope="col" style="width:20%">Optimal F</th>
-        </tr>
-        <tr>
-          <td id="win_rate"></td>
-          <td id="pnl"></td>
-          <td id="optimal_f"></td>
-        </tr>
-        <tr class="table-success">
-          <th scope="col" style="width:20%">자본인하율</th>
-          <th scope="col" style="width:20%">MDD</th>
-          <th scope="col" style="width:20%">매매횟수</th>
-        </tr>
-        <tr>
-          <td id="dd"></td>
-          <td id="mdd"></td>
-          <td id="num_trades"></td>
-        </tr>
-        
-      </table>
-      <table class="table table-bordered">
-        <tr class="table-info">
-          <th scope="col" style="width:20%">거래일</th>
-          <th scope="col" style="width:20%">일평균 손익</th>
-          <th scope="col" style="width:20%">일간 승률</th>
-          <th scope="col" style="width:20%">일간 손익비</th>
-          <th scope="col" style="width:20%">Optimal F</th>
-        </tr>
-        <tr>
-          <td id="days"></td>
-          <td id="day_avg_revenue"></td>
-          <td id="day_win_rate"></td>
-          <td id="day_pnl"></td>
-          <td id="day_optimal_f"></td>
-        </tr>
-      </table>
 
-  </br>
+  <!-- 요약 카드 -->
+  <div class="summary-card">
+    <h3 id="period-title">최근 한 달</h3>
+    <div class="profit-big" id="week-profit">로딩 중...</div>
+    <div class="stats-row">
+      <span id="win-rate">승률: -</span>
+      <span id="pnl-ratio">손익비: -</span>
+    </div>
+  </div>
+
+  <!-- 목표 프로그레스 (나중에 추가) -->
+  <!-- <div class="goal-card">
+    <h3>🎯 주간 목표</h3>
+    <div class="progress">
+      <div class="progress-bar" id="goal-progress" style="width: 0%"></div>
+    </div>
+    <span id="goal-text">$0 / $0 (0%)</span>
+  </div> -->
+
+  <!-- UserGoal 기반 알림 -->
+  {% if goal_alerts %}
+  <div id="goal-alerts-container">
+    {% for alert in goal_alerts %}
+    <div class="alert-card {% if alert.level == 'high' %}high{% else %}medium{% endif %}" style="margin-bottom: 12px;">
+      <strong>{% if alert.level == 'high' %}🚨 긴급{% else %}⚠️ 주의{% endif %}</strong>
+      <p style="margin: 8px 0 0 0;">{{ alert.message }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 알림 컨테이너 (기존 차트 기반) -->
+  <div id="alerts-container"></div>
+
+  <!-- 수익 곡선 -->
+  <div class="chart-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h3 style="margin: 0;">📈 수익 곡선 <span style="font-size: 12px; color: #757575; font-weight: normal;">(단위: 만원)</span></h3>
+      <select id="chart-type-selector" style="padding: 6px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; background: #fff; cursor: pointer;">
+        <option value="net">순수익 (수수료 포함)</option>
+        <option value="gross">총수익 (수수료 미포함)</option>
+        <option value="commission">누적 수수료</option>
+      </select>
+    </div>
+    <div id="profit-chart"></div>
+  </div>
+
+  <!-- 핵심 지표 -->
+  <div style="margin-bottom: 16px;" id="key-metrics-container">
+    <!-- JavaScript로 동적 로드 -->
+  </div>
 </div>
-{% endblock content2%}
+{% endblock %}
 
 {% block script %}
-
 <script>
-//차트 그리기
-Highcharts.setOptions({
-		lang: { thousandsSep: ',' }
-});
-var chart = Highcharts.chart('profit-chart', {
-            //chart: { height: '600', width:'1000' },// 16:9 ratio}
-            legend: { enabled: false},
-            chart: {
-              zooming: {
-                  type: 'x',
-                  resetButton: {
-                      position: {
-                          x: 5,
-                          y: -50
-                      }
-                  }
-              }
-            },           
-            title: { text: "Profit Curve" },
-            xAxis: { 
-                type: 'datetime',
-                crosshair:{
-                  zIndex: 10,
-                }
-            },
-            yAxis: [{
-                title: {text:"수익(원)"},
-                labels: {
-                  align: 'left',
-                  x: 2,
-                },
-                plotLines: [{
-                  color:'#808080',
-                  width: 1,
-                  value: 0,
-                  zIndex: 8,
-                  dashStyle: 'dash',
+// Lightweight Charts 초기화
+let chart = null;
+let lineSeries = null;
+let currentChartData = null; // 차트 데이터 저장
+let currentChartType = 'net'; // 현재 차트 타입
 
-                }],
-                lineColor: 'lightgrey',
-                lineWidth: 2,
-                height: '50%',
-            },{
-              //opposite: true,
-              title: {text:"수익(일)"},
-              labels: {
-                enabled: false,
-              },
-              lineColor: 'lightgrey',
-              lineWidth: 2,
-              top: '51%',
-              height: '19%',
-              offset: 0,
-              margin: 300
-          },{
-                //opposite: true,
-                title: {text:"변동성(%)"},
-                labels: {
-                  enabled: false,
-                },
-                lineColor: 'lightgrey',
-                lineWidth: 2,
-                top: '71%',
-                height: '14%',
-                offset: 0,
-                margin: 300
-            }, {
-              //opposite: true,
-              title: {
-                text: "거래량"
-              },
-              labels: {
-                enabled: false
-              },
-              lineColor: 'lightgrey',
-              lineWidth: 2,
-              top: '86%',
-              height: '14%',
-              offset: 0,
-            }],
-            tooltip: {
-              valueDecimals: 0,
-              xDateFormat: '%Y-%m-%d',
-              crosshairs: true,
-              outside: true,
-              useHTML: true
-              //split: true,
-            },
-            plotOptions: {
-              series: {
-                animation: false,
-                marker: {
-                  enabled: false,
-                  radius: 2,
-                  symbol: 'circle',
-                },
-                states: {
-                  inactive: { opacity: 1  }
-                }
-              },
-              column: {
-                zones: [{
-                    value: 0, // Values up to 10 (not including) ...
-                    color: 'red' // ... have the color blue.
-                },{
-                    color: 'black' // Values from 10 (including) and up have the color red
-                }]
-              }
+try {
+    if (typeof LightweightCharts === 'undefined') {
+        throw new Error('LightweightCharts library not loaded');
+    }
+
+    const chartContainer = document.getElementById('profit-chart');
+    chart = LightweightCharts.createChart(chartContainer, {
+        width: chartContainer.offsetWidth,
+        height: 300,
+        layout: {
+            textColor: '#333',
+            background: { color: '#fff' }
+        },
+        grid: {
+            vertLines: { color: '#f0f0f0' },
+            horzLines: { color: '#f0f0f0' }
+        },
+        timeScale: {
+            timeVisible: true,
+            secondsVisible: false,
+        },
+        rightPriceScale: {
+            borderVisible: false,
+        },
+        localization: {
+            priceFormatter: function(price) {
+                return Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }
+        }
+    });
+
+    lineSeries = chart.addLineSeries({
+        color: '#2962FF',
+        lineWidth: 2
+    });
+} catch (error) {
+    console.error('Chart initialization error:', error);
+    document.getElementById('profit-chart').innerHTML = '<p style="color: red; padding: 20px;">차트 로딩 실패: ' + error.message + '</p>';
+}
+
+// 차트 타입 선택기 이벤트
+document.getElementById('chart-type-selector').addEventListener('change', function() {
+    currentChartType = this.value;
+    if (currentChartData) {
+        updateChart(currentChartData, currentChartType);
+    }
+});
+
+// 차트 업데이트 함수
+function updateChart(chartData, chartType) {
+    if (!lineSeries || !chart) return;
+
+    const processedData = [];
+    let cumulative = 0;
+
+    if (chartData && chartData.length > 0) {
+        for (let item of chartData) {
+            const profit = item[1];      // day_profit
+            const commission = item[2];  // day_commission
+
+            // 차트 타입에 따라 누적값 계산
+            if (chartType === 'net') {
+                // 순수익 (수수료 포함)
+                cumulative += profit - commission;
+                lineSeries.applyOptions({ color: '#2962FF' });
+            } else if (chartType === 'gross') {
+                // 총수익 (수수료 미포함)
+                cumulative += profit;
+                lineSeries.applyOptions({ color: '#4CAF50' });
+            } else if (chartType === 'commission') {
+                // 누적 수수료
+                cumulative += commission;
+                lineSeries.applyOptions({ color: '#ff9800' });
+            }
+
+            processedData.push({
+                time: item[0],
+                value: cumulative / 10000  // 만원 단위로 변환
+            });
+        }
+
+        // 마지막 데이터 날짜가 오늘이 아니면, 오늘 날짜 추가 (같은 누적값)
+        const lastDate = processedData[processedData.length - 1].time;
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (lastDate !== todayStr) {
+            processedData.push({
+                time: todayStr,
+                value: cumulative / 10000
+            });
+        }
+
+        lineSeries.setData(processedData);
+        chart.timeScale().fitContent();
+    } else {
+        // 데이터 없을 때 초기값
+        lineSeries.setData([{
+            time: new Date().toISOString().split('T')[0],
+            value: 0
+        }]);
+        chart.timeScale().fitContent();
+    }
+}
+
+// 기간 선택 버튼 이벤트
+let currentPeriod = 'month';
+document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        currentPeriod = this.getAttribute('data-period');
+
+        // 버튼 활성화 상태 변경
+        document.querySelectorAll('.period-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = 'transparent';
         });
+        this.classList.add('active');
+        this.style.background = '#fff';
 
-(requestStatData = function(arg){
-  if (arg == 'all'){
-    filter = '';
-  } else if(arg == 'part'){
-    filter = {
-      start: $('#start').val(),
-      end: $('#end').val(),
-      //mental: $('#mental').val(),
-      //entry_strategy: $('#entry_strategy').val(),
-      //exit_strategy: $('#exit_strategy').val(),
-      tags: $('#tags').val(),
-      account: $('#account').val(),
-      //timeframe: $('#timeframe').val(),
-      //pnl:$('#timeframe').val()
+        // 타이틀 변경
+        const titles = {
+            'month': '최근 한 달',
+            'year': '최근 1년',
+            'all': '전체'
+        };
+        document.getElementById('period-title').textContent = titles[currentPeriod];
+
+        // 데이터 다시 로드
+        loadHomeData(currentPeriod);
+    });
+});
+
+// 데이터 로드
+loadHomeData('month');
+
+function loadHomeData(period) {
+    const today = new Date();
+    let startDate;
+
+    if (period === 'month') {
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30);
+    } else if (period === 'year') {
+        startDate = new Date(today);
+        startDate.setFullYear(today.getFullYear() - 1);
+    } else { // 'all'
+        startDate = new Date('1900-01-01'); // 전체 기간
     }
-  }
 
-  $.ajax({
-    url: "{% url 'statdata' %}",
-    type: "get", //send it through get method
-    data: filter,
-    success: function(data) {
-      //$('#value').text((data.value).toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      //$('#principal').text(data.principal.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#revenue').text(data.revenue.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#profit').text(data.profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#loss').text(data.loss+'원');
-      $('#commission').text((-data.commission).toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      //$('#roe').text(data.roe.toFixed(2)+' %');
-      $('#num_trades').text(data.num_trades);
-      $('#avg_profit').text(data.avg_profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      //$('#std_profit').text(data.std_profit.toLocaleString('en-US', {maximumFractionDigits: 0,style: 'currency', currency: 'KRW' }));
-      $('#win_rate').text(data.win_rate.toFixed(2)+'%');
-      $('#pnl').text(data.pnl.toFixed(2)+' : 1');
-      //$('#cagr').text(data.cagr.toFixed(2));
-      $('#optimal_f').text(data.optimal_f.toFixed(2));
+    $.ajax({
+        url: "{% url 'statdata' %}",
+        type: "get",
+        data: {
+            start: startDate.toISOString().split('T')[0],
+            end: today.toISOString().split('T')[0],
+            period: period
+        },
+        success: function(data) {
+            // 요약 업데이트
+            const profit = data.profit || 0;
+            document.getElementById('week-profit').textContent =
+                (profit >= 0 ? '₩' : '-₩') + Math.abs(profit).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            document.getElementById('week-profit').className =
+                profit >= 0 ? 'profit-big' : 'profit-big negative';
 
-      //$('#revenue_2').text(data.revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
-      //$('#win').text(data.win.toLocaleString('en-US', {maximumFractionDigits: 0}));
-      //$('#avg_win').text(data.avg_win.toLocaleString('en-US', {maximumFractionDigits: 0 }));
-      //$('#loss').text(data.loss.toLocaleString('en-US', {maximumFractionDigits: 0 }));
-      //$('#avg_loss').text(data.avg_loss.toLocaleString('en-US', {maximumFractionDigits: 0 }));
+            document.getElementById('win-rate').textContent =
+                `승률: ${(data.win_rate || 0).toFixed(0)}%`;
+            document.getElementById('pnl-ratio').textContent =
+                `손익비: ${(data.pnl || 0).toFixed(1)}:1`;
 
-      //$('#revenue_ticks').text(data.revenue_ticks.toFixed(1));
-      //$('#win_ticks').text(data.win_ticks.toFixed(1));
-      //$('#avg_win_ticks').text(data.avg_win_ticks.toFixed(1));
-      //$('#loss_ticks').text(data.loss_ticks.toFixed(1));
-      //$('#avg_loss_ticks').text(data.avg_loss_ticks.toFixed(1));
+            // 차트 데이터 저장 및 업데이트
+            if (lineSeries && chart) {
+                currentChartData = data.chart_data;
+                updateChart(currentChartData, currentChartType);
+            }
 
-      $('#days').text(data.days+'일');
-      $('#day_avg_revenue').text(data.day_avg_revenue.toLocaleString('en-US', {maximumFractionDigits: 0}));
-      $('#day_win_rate').text(data.day_win_rate.toFixed(2)*100+'%');
-      $('#day_pnl').text(data.day_pnl.toFixed(2)+' : 1');
-      $('#day_optimal_f').text(data.day_optimal_f.toFixed(2));
+            // key_metrics 업데이트
+            if (data.key_metrics) {
+                updateKeyMetrics(data.key_metrics);
+            }
 
+            // 알림 생성 (기간 정보 포함)
+            generateAlerts(data, period);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading data:', error, xhr.responseText);
+            document.getElementById('week-profit').textContent = 'Error: ' + status;
+            document.getElementById('week-profit').className = 'profit-big negative';
+            alert('데이터 로딩 실패: ' + status + '\n' + (xhr.responseText || error));
+        }
+    });
+}
 
-      //console.log(data);
-      //차트 데이터 
-      //profit = data.principal;
-      profit = 0;
-      max_profit = profit;
-      mdd = 0
-      commission =0;
-      cum_profit = [];
-      day_profit = [];
-      cum_commission = [];
-      volatility = [];
-      volume = [];
-      console.log(data);
-      for (item of data.chart_data){
-        
-        date = new Date(item[0]).getTime();
-        //누적수익: 시드+수익-수수료
-        last_profit = profit;
-        profit += item[1]-item[2];
+function updateKeyMetrics(metrics) {
+    const container = document.getElementById('key-metrics-container');
+    if (!container) return;
 
-        cum_profit.push([date, profit]);
-        day_profit.push([date, item[1]-item[2]]);
-        volatility.push([date, Math.abs(profit/last_profit-1)*100]);
-        volume.push([date, item[3]]);
+    const formatNumber = (num) => {
+        return num.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
 
-        commission += item[2];
-        cum_commission.push([date, commission]);
+    container.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">총 거래</div>
+        <div style="font-size: 24px; font-weight: bold; color: #333;">${metrics.total_trades}회</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">승률</div>
+        <div style="font-size: 24px; font-weight: bold; color: ${metrics.win_rate >= 50 ? '#4CAF50' : '#ff9800'};">${metrics.win_rate.toFixed(0)}%</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">순수익</div>
+        <div style="font-size: 20px; font-weight: bold; color: ${metrics.net_profit >= 0 ? '#d32f2f' : '#1976d2'};">
+          ${metrics.net_profit >= 0 ? '₩' : '-₩'}${formatNumber(Math.abs(metrics.net_profit))}
+        </div>
+        <div style="font-size: 11px; color: #9e9e9e; margin-top: 4px;">일평균 ${metrics.day_avg_profit >= 0 ? '₩' : '-₩'}${formatNumber(Math.abs(metrics.day_avg_profit))}</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">평균 수익</div>
+        <div style="font-size: 20px; font-weight: bold; color: ${metrics.avg_profit >= 0 ? '#d32f2f' : '#1976d2'};">
+          ${metrics.avg_profit >= 0 ? '₩' : '-₩'}${formatNumber(Math.abs(metrics.avg_profit))}
+        </div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">손익비</div>
+        <div style="font-size: 24px; font-weight: bold; color: #2962FF;">${metrics.pnl_ratio.toFixed(1)}:1</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">Optimal F</div>
+        <div style="font-size: 24px; font-weight: bold; color: #9c27b0;">${metrics.optimal_f.toFixed(1)}%</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">최고 수익</div>
+        <div style="font-size: 18px; font-weight: bold; color: #d32f2f;">₩${formatNumber(metrics.best_trade)}</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">최대 손실</div>
+        <div style="font-size: 18px; font-weight: bold; color: #1976d2;">-₩${formatNumber(Math.abs(metrics.worst_trade))}</div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px;">
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">기대값</div>
+        <div style="font-size: 22px; font-weight: bold; color: ${metrics.expectancy >= 0 ? '#d32f2f' : '#1976d2'};">
+          ${metrics.expectancy >= 0 ? '₩' : '-₩'}${formatNumber(Math.abs(metrics.expectancy))}
+        </div>
+        <div style="font-size: 11px; color: #9e9e9e; margin-top: 4px;">거래당 평균 기대수익</div>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">샤프 비율</div>
+        <div style="font-size: 22px; font-weight: bold; color: ${metrics.sharpe_ratio >= 1 ? '#d32f2f' : metrics.sharpe_ratio >= 0 ? '#ff9800' : '#1976d2'};">
+          ${metrics.sharpe_ratio.toFixed(2)}
+        </div>
+        <div style="font-size: 11px; color: #9e9e9e; margin-top: 4px;">리스크 대비 수익률</div>
+      </div>
+    </div>
+    `;
+}
 
+function generateAlerts(data, period) {
+    const alerts = [];
 
-        // dd and mdd 계산
-        if (profit >= max_profit) { max_profit = profit; };
-        dd = (1 - profit/max_profit)*100;
-        if (dd >= mdd){ mdd = dd; };
-      }
-      $('#dd').text(dd.toFixed(2)+'%');
-      $('#mdd').text(mdd.toFixed(2)+'%');
-      //$('#comm_ratio').text((100*commission/(profit-data.principal)).toFixed(1)+'%');
-      //기존차트 데이터 삭제
-      while(chart.series.length > 0)
-        chart.series[0].remove(true);
+    // 기간 텍스트 매핑
+    const periodText = {
+        'month': '최근 한 달',
+        'year': '최근 1년',
+        'all': '전체 기간'
+    };
+    const periodStr = periodText[period] || '해당 기간';
 
-      chart.addSeries({ 
-        name: "자산",
-        data: cum_profit,
-        yAxis: 0,
-        tooltip: {valueSuffix: ' 원'},
-        type: 'line',
-        lineColor:'blue',
-        zIndex: 5,
-        //marker: { enabled: false}
-       });
-       chart.addSeries({ 
-        name: "수익",
-        data: day_profit,
-        yAxis: 1,
-        tooltip: {valueSuffix: ' 원'},
-        type: 'column',
-        zIndex: 5,
-        //marker: { enabled: false}
-       });
-       chart.addSeries({
-        name: "수수료",
-        data: cum_commission,
-        yAxis: 0,
-        tooltip: {valueSuffix: ' 원'},
-        type:'line',
-        color:	'grey', //#FFFFE0',
-        zIndex: 10,
-      });
-      chart.addSeries({
-        name: "변동성",
-        data: volatility,
-        yAxis: 2,
-        tooltip: {valueSuffix: '%', valueDecimals: 1},
-        type: 'line',
-        color: 'purple',
-        //marker: { enabled: false}
-      });
-      chart.addSeries({
-        name: "거래량",
-        data: volume,
-        yAxis: 3,
-        type: 'column',
-        color: 'black',
-        //marker: { enabled: false}
-      });
+    // 승률 체크
+    if (data.win_rate && data.win_rate < 40 && data.num_trades > 5) {
+        alerts.push({
+            message: `${periodStr} 동안 승률이 낮습니다 (${data.win_rate.toFixed(1)}%, 40% 미만)`,
+            severity: 'high'
+        });
     }
-  });
-})('all');
+
+    // 손익비 체크
+    if (data.pnl && data.pnl < 1 && data.num_trades > 5) {
+        alerts.push({
+            message: `${periodStr} 동안 손익비가 1:1 미만입니다 (${data.pnl.toFixed(2)}:1)`,
+            severity: 'medium'
+        });
+    }
+
+    // 손실 체크
+    if (data.profit < 0) {
+        alerts.push({
+            message: `${periodStr} 동안 손실이 발생했습니다 (₩${Math.abs(data.profit).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')})`,
+            severity: 'high'
+        });
+    }
+
+    // 거래 횟수가 너무 적을 때
+    if (data.num_trades < 3 && period === 'month') {
+        alerts.push({
+            message: `${periodStr} 동안 거래 횟수가 적습니다 (${data.num_trades}건). 더 많은 거래 기회를 찾아보세요.`,
+            severity: 'medium'
+        });
+    }
+
+    // 알림 표시
+    if (alerts.length > 0) {
+        const html = `
+            <div class="alert-card ${alerts[0].severity}" style="margin-bottom: 12px;">
+                <strong>⚠️ ${periodStr} 주의사항 (${alerts.length}건)</strong>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                    ${alerts.map(a => `<li>${a.message}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        document.getElementById('alerts-container').innerHTML = html;
+    } else {
+        // 알림이 없으면 초기화
+        document.getElementById('alerts-container').innerHTML = '';
+    }
+}
+
+// 반응형 차트
+if (chart) {
+    window.addEventListener('resize', () => {
+        chart.applyOptions({
+            width: document.getElementById('profit-chart').offsetWidth
+        });
+    });
+
+    // 차트 초기 크기 조정
+    setTimeout(() => {
+        chart.applyOptions({
+            width: document.getElementById('profit-chart').offsetWidth
+        });
+    }, 100);
+}
 </script>
-{% endblock script %}
+{% endblock %}

@@ -1,0 +1,404 @@
+{% extends "trading/futures/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-mobile">
+  {% if no_data %}
+  <!-- 데이터 없음 -->
+  <div class="empty-state">
+    <p>거래 데이터가 없습니다</p>
+    <p style="font-size: 12px; margin-top: 8px;">거래를 진행한 후 다시 확인해주세요</p>
+  </div>
+  {% else %}
+
+  <!-- 주요 지표 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">📊 주요 지표</h6>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">최대 낙폭 (MDD)</div>
+        <div style="font-size: 20px; font-weight: bold; color: #f44336;">₩{{ max_drawdown|floatformat:0|intcomma }}</div>
+      </div>
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">평균 보유 시간</div>
+        <div style="font-size: 20px; font-weight: bold; color: #2962FF;">{{ avg_duration|floatformat:1 }}h</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px; padding: 8px; background: #e8f5e9; border-radius: 8px; font-size: 12px; color: #2e7d32;">
+      <strong>💡 Tip:</strong> MDD가 낮을수록 안정적인 거래입니다.
+    </div>
+  </div>
+
+  <!-- 월별 수익 차트 -->
+  <div class="chart-card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">📅 월별 수익 추이 <span style="font-size: 11px; color: #757575; font-weight: normal;">(단위: 만원)</span></h6>
+    <div id="monthly-chart" style="height: 250px;"></div>
+  </div>
+
+  <!-- 멘탈 상태별 성과 -->
+  {% if mental_stats %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">🧠 멘탈 상태별 성과</h6>
+    {% for stat in mental_stats %}
+    <div style="padding: 10px 0; {% if not forloop.last %}border-bottom: 1px solid #f0f0f0;{% endif %}">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <div>
+          <span style="font-weight: 600;">
+            {% if stat.mental == 'Good' %}😊 Good
+            {% elif stat.mental == 'Normal' %}😐 Normal
+            {% elif stat.mental == 'Bad' %}😰 Bad
+            {% else %}{{ stat.mental }}{% endif %}
+          </span>
+          <span style="color: #757575; font-size: 12px; margin-left: 8px;">{{ stat.num_trades }}건</span>
+        </div>
+        <div style="font-weight: bold; {% if stat.total_profit > 0 %}color: #d32f2f;{% else %}color: #1976d2;{% endif %}">
+          {% if stat.total_profit > 0 %}+{% endif %}₩{{ stat.total_profit|floatformat:0|intcomma }}
+        </div>
+      </div>
+      <div style="display: flex; gap: 16px; font-size: 12px; color: #757575;">
+        <span>승률: <strong>{{ stat.win_rate|floatformat:0 }}%</strong></span>
+        <span>평균: <strong>₩{{ stat.avg_profit|floatformat:0|intcomma }}</strong></span>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div style="margin-top: 12px; padding: 8px; background: #fff3cd; border-radius: 8px; font-size: 12px;">
+      <strong>💡 분석:</strong> 멘탈 상태가 좋을 때 더 나은 결과가 나오나요?
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 요일별 성과 -->
+  {% if weekday_stats %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">📆 요일별 성과</h6>
+    {% for stat in weekday_stats %}
+    <div style="padding: 8px 12px; margin-bottom: 6px; background: #f5f5f5; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span style="font-weight: 600;">
+          {% if stat.weekday == 1 %}일요일
+          {% elif stat.weekday == 2 %}월요일
+          {% elif stat.weekday == 3 %}화요일
+          {% elif stat.weekday == 4 %}수요일
+          {% elif stat.weekday == 5 %}목요일
+          {% elif stat.weekday == 6 %}금요일
+          {% elif stat.weekday == 7 %}토요일
+          {% endif %}
+        </span>
+        <span style="color: #757575; font-size: 12px; margin-left: 8px;">{{ stat.num_trades }}건</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 12px; color: #757575;">승률 {{ stat.win_rate|floatformat:0 }}%</span>
+        <span style="font-weight: bold; {% if stat.total_profit > 0 %}color: #d32f2f;{% else %}color: #1976d2;{% endif %}">
+          {% if stat.total_profit > 0 %}+{% endif %}₩{{ stat.total_profit|floatformat:0|intcomma }}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 손익 분포 -->
+  <div class="chart-card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">📊 손익 분포도 <span style="font-size: 11px; color: #757575; font-weight: normal;">(단위: 만원)</span></h6>
+    <div id="distribution-chart" style="height: 250px;"></div>
+    <div style="margin-top: 12px; padding: 8px; background: #f5f5f5; border-radius: 8px; font-size: 12px; color: #616161;">
+      분포가 오른쪽(+)으로 치우쳐 있을수록 수익 거래가 많습니다.
+    </div>
+  </div>
+
+  <!-- 매매 간 독립성 검정 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">🔬 매매 간 독립성 검정</h6>
+
+    <div style="margin-bottom: 12px; padding: 12px; background: #e3f2fd; border-radius: 8px;">
+      <div style="font-size: 12px; color: #1565c0; margin-bottom: 8px;">
+        <strong>종합 평가:</strong>
+      </div>
+      <div style="font-size: 13px; color: #0d47a1;">
+        {{ independence_test.overall_interpretation }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">런 검정 (Runs Test)</div>
+        <div style="font-size: 16px; font-weight: bold; color: #333; margin-bottom: 4px;">
+          {{ independence_test.runs_interpretation }}
+        </div>
+        {% if independence_test.runs_test_p %}
+        <div style="font-size: 11px; color: #9e9e9e;">
+          p-value: {{ independence_test.runs_test_p|floatformat:4 }}
+          {% if independence_test.runs_test_p < 0.05 %}
+          <span style="color: #f44336;">*</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">자기상관 (Lag 1)</div>
+        {% if independence_test.autocorr_lag1 is not None %}
+        <div style="font-size: 16px; font-weight: bold; color: {% if independence_test.autocorr_lag1 > 0.3 or independence_test.autocorr_lag1 < -0.3 %}#f44336{% else %}#4CAF50{% endif %};">
+          {{ independence_test.autocorr_lag1|floatformat:3 }}
+        </div>
+        <div style="font-size: 11px; color: #9e9e9e;">
+          {% if independence_test.autocorr_lag1 > 0.3 or independence_test.autocorr_lag1 < -0.3 %}
+          상관관계 있음
+          {% else %}
+          독립적
+          {% endif %}
+        </div>
+        {% else %}
+        <div style="font-size: 14px; color: #9e9e9e;">데이터 부족</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if independence_test.win_after_win is not None and independence_test.win_after_loss is not None %}
+    <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+      <div style="font-size: 12px; color: #856404; margin-bottom: 8px;">
+        <strong>조건부 승률 분석:</strong>
+      </div>
+      <div style="display: flex; justify-content: space-around; margin-bottom: 8px;">
+        <div style="text-align: center;">
+          <div style="font-size: 11px; color: #856404;">승리 후 승률</div>
+          <div style="font-size: 20px; font-weight: bold; color: #d32f2f;">
+            {{ independence_test.win_after_win|floatformat:1 }}%
+          </div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 11px; color: #856404;">패배 후 승률</div>
+          <div style="font-size: 20px; font-weight: bold; color: #1976d2;">
+            {{ independence_test.win_after_loss|floatformat:1 }}%
+          </div>
+        </div>
+        {% if independence_test.win_after_draw is not None %}
+        <div style="text-align: center;">
+          <div style="font-size: 11px; color: #856404;">무승부 후 승률</div>
+          <div style="font-size: 20px; font-weight: bold; color: #ff9800;">
+            {{ independence_test.win_after_draw|floatformat:1 }}%
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% if independence_test.conditional_test_p %}
+      <div style="font-size: 11px; color: #856404; text-align: center;">
+        통계적 유의성: p = {{ independence_test.conditional_test_p|floatformat:4 }}
+        {% if independence_test.conditional_test_p < 0.05 %}
+        <span style="color: #f44336;">** 유의함</span>
+        {% else %}
+        <span style="color: #4CAF50;">독립적</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 12px; padding: 8px; background: #e8f5e9; border-radius: 8px; font-size: 12px; color: #2e7d32;">
+      <strong>💡 해석:</strong>
+      <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+        <li>런 검정: 승/무/패가 랜덤하게 발생하는지 확인</li>
+        <li>자기상관: 이전 거래 손익이 다음 거래에 영향을 주는지 측정</li>
+        <li>조건부 승률: 승리/무승부/패배 후 다음 거래 성과 비교</li>
+        <li>무승부 기준: 진입가 대비 ±5틱 이내</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 개선 제안 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">💬 분석 결과</h6>
+    <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8; color: #616161;">
+      {% if max_drawdown > 5000 %}
+      <li>최대 낙폭이 큽니다. 리스크 관리를 강화하세요.</li>
+      {% else %}
+      <li>최대 낙폭이 잘 관리되고 있습니다.</li>
+      {% endif %}
+
+      {% if avg_duration < 1 %}
+      <li>평균 보유 시간이 1시간 미만입니다. 스캘핑 스타일이네요.</li>
+      {% elif avg_duration < 24 %}
+      <li>평균 보유 시간이 {{avg_duration|floatformat:1}}시간입니다. 데이 트레이딩 스타일입니다.</li>
+      {% else %}
+      <li>평균 보유 시간이 {{avg_duration|floatformat:0}}시간입니다. 스윙/장기 트레이딩 스타일입니다.</li>
+      {% endif %}
+
+      {% if mental_stats.0.mental == 'Good' %}
+      <li>Good 멘탈일 때 수익이 가장 좋습니다. 멘탈 관리가 중요합니다!</li>
+      {% endif %}
+
+      <li>가장 수익이 좋은 요일에 집중하는 것도 좋은 전략입니다.</li>
+    </ul>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+{% if not no_data %}
+// 월별 수익 차트
+try {
+  if (typeof LightweightCharts === 'undefined') {
+    throw new Error('LightweightCharts library not loaded');
+  }
+
+  const monthlyData = {{ monthly_data|safe }};
+  if (monthlyData && monthlyData.length > 0) {
+    const monthlyChart = LightweightCharts.createChart(document.getElementById('monthly-chart'), {
+      width: document.getElementById('monthly-chart').offsetWidth,
+      height: 250,
+      layout: {
+        textColor: '#333',
+        background: { color: '#fff' }
+      },
+      grid: {
+        vertLines: { color: '#f0f0f0' },
+        horzLines: { color: '#f0f0f0' }
+      },
+      timeScale: {
+        timeVisible: true,
+        fixLeftEdge: true,
+        fixRightEdge: true,
+      },
+      localization: {
+        priceFormatter: function(price) {
+          return Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+      }
+    });
+
+    const monthlyHistogram = monthlyChart.addHistogramSeries({
+      color: '#2196F3',
+      priceFormat: {
+        type: 'volume',
+      },
+    });
+
+    const chartData = monthlyData.map(item => ({
+      time: item.month,
+      value: item.total_profit / 10000,  // 만원 단위로 변환
+      color: item.total_profit >= 0 ? '#d32f2f' : '#1976d2'  // 수익 빨강, 손실 파랑
+    }));
+
+    monthlyHistogram.setData(chartData);
+    monthlyChart.timeScale().fitContent();
+  }
+} catch (error) {
+  console.error('Monthly chart error:', error);
+  document.getElementById('monthly-chart').innerHTML = '<p style="color: red; padding: 20px;">차트 로딩 실패</p>';
+}
+
+// 손익 분포 차트 (히스토그램)
+try {
+  const profitDist = {{ profit_distribution|safe }};
+  if (profitDist && profitDist.length > 0) {
+    // 구간별 분류 (50,000원 단위 = 천원으로 50)
+    const bins = {};
+    const binSize = 50000;  // 50,000원 단위로 구간 분류
+
+    profitDist.forEach(profit => {
+      const bin = Math.floor(profit / binSize) * binSize;
+      bins[bin] = (bins[bin] || 0) + 1;
+    });
+
+    // bins를 정렬
+    const sortedBins = Object.keys(bins).sort((a, b) => parseFloat(a) - parseFloat(b));
+
+    // 날짜-bin 값 매핑을 저장 (글로벌 스코프에서 접근 가능하도록)
+    window.distBinMapping = {};
+    window.distBinSize = binSize;
+
+    const distChart = LightweightCharts.createChart(document.getElementById('distribution-chart'), {
+      width: document.getElementById('distribution-chart').offsetWidth,
+      height: 250,
+      layout: {
+        textColor: '#333',
+        background: { color: '#fff' }
+      },
+      grid: {
+        vertLines: { color: '#f0f0f0' },
+        horzLines: { color: '#f0f0f0' }
+      },
+      rightPriceScale: {
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0
+        }
+      },
+      timeScale: {
+        tickMarkFormatter: (time) => {
+          // time을 문자열로 변환
+          const timeStr = typeof time === 'object' ? time.year + '-' + String(time.month).padStart(2, '0') + '-' + String(time.day).padStart(2, '0') : time;
+          const binValue = window.distBinMapping[timeStr];
+          if (binValue !== undefined) {
+            return (binValue / 10000).toFixed(1);  // 만원 단위로 표시
+          }
+          return '';
+        }
+      },
+      localization: {
+        timeFormatter: (time) => {
+          // time을 문자열로 변환
+          const timeStr = typeof time === 'object' ? time.year + '-' + String(time.month).padStart(2, '0') + '-' + String(time.day).padStart(2, '0') : time;
+          const binValue = window.distBinMapping[timeStr];
+          if (binValue !== undefined) {
+            const start = (binValue / 10000).toFixed(1);
+            const end = ((binValue + window.distBinSize) / 10000).toFixed(1);
+            return `${start}~${end} 만원`;
+          }
+          return '';
+        },
+        priceFormatter: function(price) {
+          return Math.round(price).toString() + '건';
+        }
+      }
+    });
+
+    const histogram = distChart.addHistogramSeries({
+      color: '#2962FF',
+      base: 0
+    });
+
+    // 히스토그램 데이터 생성
+    const baseDate = new Date('2024-01-01');
+    const histData = sortedBins.map((bin, index) => {
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + index);
+      const timeStr = date.toISOString().split('T')[0];
+
+      // 매핑 저장
+      window.distBinMapping[timeStr] = parseFloat(bin);
+
+      return {
+        time: timeStr,
+        value: bins[bin],
+        color: parseFloat(bin) >= 0 ? '#4CAF50' : '#f44336'
+      };
+    });
+
+    histogram.setData(histData);
+  }
+} catch (error) {
+  console.error('Distribution chart error:', error);
+  document.getElementById('distribution-chart').innerHTML = '<p style="color: red; padding: 20px;">차트 로딩 실패: ' + error.message + '</p>';
+}
+
+// 반응형
+window.addEventListener('resize', () => {
+  if (document.getElementById('monthly-chart')) {
+    const charts = document.querySelectorAll('.chart-card > div');
+    charts.forEach(chart => {
+      const chartInstance = LightweightCharts.createChart(chart, {
+        width: chart.offsetWidth
+      });
+    });
+  }
+});
+{% endif %}
+</script>
+{% endblock %}

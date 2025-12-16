@@ -1,0 +1,204 @@
+{% extends "trading/futures/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-mobile">
+  {% if no_data %}
+  <!-- 데이터 없음 -->
+  <div class="empty-state">
+    <p>최근 30일간 거래 데이터가 없습니다</p>
+    <p style="font-size: 12px; margin-top: 8px;">거래를 진행한 후 다시 확인해주세요</p>
+  </div>
+  {% else %}
+
+  <!-- 알림/경고 -->
+  {% if alerts %}
+  {% for alert in alerts %}
+  <div class="alert-card {% if alert.level == 'high' %}high{% else %}medium{% endif %}" style="margin-bottom: 16px;">
+    <strong>⚠️ 주의</strong>
+    <p style="margin: 8px 0 0 0;">{{ alert.message }}</p>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- 상품별 성과 -->
+  {% if instrument_stats %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">📦 상품별 성과 (Top 5)</h6>
+    {% for stat in instrument_stats %}
+    <div style="padding: 10px 0; {% if not forloop.last %}border-bottom: 1px solid #f0f0f0;{% endif %}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div>
+          <span style="font-weight: 600;">{{ stat.instrument__symbol }}</span>
+          <span style="color: #757575; font-size: 12px; margin-left: 8px;">{{ stat.num_trades }}건</span>
+        </div>
+        <div style="font-weight: bold; {% if stat.total_profit > 0 %}color: #d32f2f;{% else %}color: #1976d2;{% endif %}">
+          {% if stat.total_profit > 0 %}+{% endif %}₩{{ stat.total_profit|floatformat:0|intcomma }}
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="flex: 1; background: #f0f0f0; border-radius: 8px; height: 6px; overflow: hidden;">
+          <div style="background: {% if stat.win_rate >= 50 %}#4CAF50{% else %}#FF9800{% endif %}; height: 100%; width: {{ stat.win_rate }}%;"></div>
+        </div>
+        <span style="font-size: 12px; color: #757575;">{{ stat.win_rate|floatformat:0 }}%</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 시간대별 분석 -->
+  {% if hour_stats %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">🕐 베스트 거래 시간대</h6>
+    <div style="font-size: 12px; color: #757575; margin-bottom: 8px;">
+      승률이 높은 시간대 Top 5
+    </div>
+    {% for stat in hour_stats %}
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; margin-bottom: 6px; background: #f5f5f5; border-radius: 8px;">
+      <div>
+        <span style="font-weight: 600;">{{ stat.hour }}:00</span>
+        <span style="color: #757575; font-size: 12px; margin-left: 8px;">{{ stat.num_trades }}건</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; color: #757575;">승률</span>
+        <span style="font-weight: bold; color: {% if stat.win_rate >= 50 %}#4CAF50{% else %}#FF9800{% endif %};">
+          {{ stat.win_rate|floatformat:0 }}%
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 타임프레임별 성과 -->
+  {% if timeframe_stats %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">⏱️ 타임프레임별 성과</h6>
+    {% for stat in timeframe_stats %}
+    <div style="padding: 10px 0; {% if not forloop.last %}border-bottom: 1px solid #f0f0f0;{% endif %}">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <div>
+          <span style="font-weight: 600; text-transform: capitalize;">
+            {% if stat.timeframe == 'scalping' %}스캘핑
+            {% elif stat.timeframe == 'day' %}데이 트레이딩
+            {% elif stat.timeframe == 'swing' %}스윙
+            {% elif stat.timeframe == 'longterm' %}장기
+            {% else %}{{ stat.timeframe }}{% endif %}
+          </span>
+          <span style="color: #757575; font-size: 12px; margin-left: 8px;">{{ stat.num_trades }}건</span>
+        </div>
+        <div style="font-weight: bold; {% if stat.total_profit > 0 %}color: #d32f2f;{% else %}color: #1976d2;{% endif %}">
+          {% if stat.total_profit > 0 %}+{% endif %}₩{{ stat.total_profit|floatformat:0|intcomma }}
+        </div>
+      </div>
+      <div style="display: flex; gap: 16px; font-size: 12px; color: #757575;">
+        <span>승률: <strong>{{ stat.win_rate|floatformat:0 }}%</strong></span>
+        <span>평균: <strong>₩{{ stat.avg_profit|floatformat:0|intcomma }}</strong></span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 전략별 성과 -->
+  {% if strategy_stats %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">🎲 전략별 성과 (Top 5)</h6>
+    {% for stat in strategy_stats %}
+    <div style="padding: 10px 0; {% if not forloop.last %}border-bottom: 1px solid #f0f0f0;{% endif %}">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <div>
+          <span style="font-weight: 600;">{{ stat.entry_strategy__name }}</span>
+          <span style="color: #757575; font-size: 12px; margin-left: 8px;">{{ stat.num_trades }}건</span>
+        </div>
+        <div style="font-weight: bold; {% if stat.total_profit > 0 %}color: #d32f2f;{% else %}color: #1976d2;{% endif %}">
+          {% if stat.total_profit > 0 %}+{% endif %}₩{{ stat.total_profit|floatformat:0|intcomma }}
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #757575;">
+        승률: <strong>{{ stat.win_rate|floatformat:0 }}%</strong>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- 위험 지표 -->
+  {% if avg_win %}
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">⚖️ 위험 지표</h6>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+      <div style="background: #ffebee; padding: 12px; border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">평균 수익</div>
+        <div style="font-size: 20px; font-weight: bold; color: #d32f2f;">₩{{ avg_win|floatformat:0|intcomma }}</div>
+      </div>
+      <div style="background: #e3f2fd; padding: 12px; border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">평균 손실</div>
+        <div style="font-size: 20px; font-weight: bold; color: #1976d2;">₩{{ avg_loss|floatformat:0|intcomma }}</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">최대 수익</div>
+        <div style="font-size: 18px; font-weight: bold; color: #333;">₩{{ largest_win|floatformat:0|intcomma }}</div>
+      </div>
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-bottom: 4px;">최대 손실</div>
+        <div style="font-size: 18px; font-weight: bold; color: #333;">₩{{ largest_loss|floatformat:0|intcomma }}</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px; padding: 12px; background: {% if pnl_ratio >= 1.5 %}#e8f5e9{% else %}#fff3cd{% endif %}; border-radius: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px; color: #616161;">손익비 (PnL Ratio)</span>
+        <span style="font-size: 24px; font-weight: bold; color: {% if pnl_ratio >= 1.5 %}#4CAF50{% else %}#FF9800{% endif %};">
+          {{ pnl_ratio|floatformat:2 }}:1
+        </span>
+      </div>
+      <div style="margin-top: 8px; font-size: 11px; color: #616161;">
+        {% if pnl_ratio >= 2 %}
+        ✅ 훌륭합니다! 손익비가 매우 좋습니다.
+        {% elif pnl_ratio >= 1.5 %}
+        👍 양호합니다. 손익비가 좋은 편입니다.
+        {% else %}
+        ⚠️ 손익비가 낮습니다. 손절을 더 빨리 하거나 수익 목표를 높이세요.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 개선 제안 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600;">💬 개선 제안</h6>
+    <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8; color: #616161;">
+      {% if pnl_ratio < 1.5 %}
+      <li>손익비가 낮습니다. 손절을 더 빨리 실행하거나 이익 목표를 높이세요.</li>
+      {% endif %}
+      {% if instrument_stats.0.win_rate < 45 %}
+      <li>주요 거래 상품의 승률이 낮습니다. 상품 특성을 다시 공부해보세요.</li>
+      {% endif %}
+      {% if not strategy_stats %}
+      <li>진입 전략을 기록하면 더 정확한 분석이 가능합니다.</li>
+      {% endif %}
+      {% if pnl_ratio >= 1.5 %}
+      <li>현재 트레이딩이 잘 되고 있습니다! 일관성을 유지하세요.</li>
+      {% endif %}
+    </ul>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+// 페이지 로드 시 애니메이션 (선택사항)
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Insights page loaded');
+});
+</script>
+{% endblock %}

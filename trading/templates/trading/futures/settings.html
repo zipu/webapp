@@ -1,0 +1,160 @@
+{% extends "trading/futures/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-mobile">
+  <!-- 현재 목표 진행 상황 -->
+  <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 16px;">
+    <h6 style="margin-bottom: 12px; font-weight: 600; opacity: 0.9;">🎯 현재 목표 진행 상황</h6>
+
+    <div style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 14px; opacity: 0.9;">
+          {% if goal.period == 'daily' %}일간 목표
+          {% elif goal.period == 'weekly' %}주간 목표
+          {% elif goal.period == 'monthly' %}월간 목표
+          {% endif %}
+        </span>
+        <span style="font-size: 18px; font-weight: bold;">₩{{ current_profit|floatformat:0|intcomma }} / ₩{{ goal.profit_goal|floatformat:0|intcomma }}</span>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.3); border-radius: 12px; height: 24px; overflow: hidden;">
+        <div style="background: rgba(255,255,255,0.9); height: 100%; width: {{ progress_percent }}%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-size: 14px; opacity: 0.9;">
+      <span>진행률: {{ progress_percent|floatformat:0 }}%</span>
+      <span>거래 횟수: {{ num_trades_this_week }}건</span>
+    </div>
+  </div>
+
+  <!-- 설정 폼 -->
+  <form method="post" action="{% url 'settings' %}">
+    {% csrf_token %}
+
+    <!-- 목표 설정 -->
+    <div class="card" style="margin-bottom: 16px;">
+      <h6 style="margin-bottom: 12px; font-weight: 600;">💰 목표 설정</h6>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 13px; color: #757575; margin-bottom: 4px;">목표 기간</label>
+        <select name="period" class="form-select form-select-sm" style="border-radius: 8px;">
+          <option value="daily" {% if goal.period == 'daily' %}selected{% endif %}>일간</option>
+          <option value="weekly" {% if goal.period == 'weekly' %}selected{% endif %}>주간</option>
+          <option value="monthly" {% if goal.period == 'monthly' %}selected{% endif %}>월간</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 13px; color: #757575; margin-bottom: 4px;">수익 목표 (₩)</label>
+        <input type="number" name="profit_goal" class="form-control form-control-sm"
+               value="{{ goal.profit_goal|floatformat:0 }}"
+               step="100" min="0"
+               style="border-radius: 8px;">
+      </div>
+
+      <div style="margin-bottom: 0;">
+        <label style="display: block; font-size: 13px; color: #757575; margin-bottom: 4px;">최대 손실 한도 (₩)</label>
+        <input type="number" name="max_loss_limit" class="form-control form-control-sm"
+               value="{{ goal.max_loss_limit|floatformat:0 }}"
+               step="100" min="0"
+               style="border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-top: 4px;">
+          이 한도를 초과하면 거래를 중단하는 것을 권장합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- 거래 제한 -->
+    <div class="card" style="margin-bottom: 16px;">
+      <h6 style="margin-bottom: 12px; font-weight: 600;">🚦 거래 제한</h6>
+
+      <div style="margin-bottom: 0;">
+        <label style="display: block; font-size: 13px; color: #757575; margin-bottom: 4px;">일일 최대 거래 횟수</label>
+        <input type="number" name="max_trades_per_day" class="form-control form-control-sm"
+               value="{{ goal.max_trades_per_day }}"
+               min="1" max="50"
+               style="border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-top: 4px;">
+          과도한 거래를 방지하고 신중한 진입을 유도합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- 알림 설정 -->
+    <div class="card" style="margin-bottom: 16px;">
+      <h6 style="margin-bottom: 12px; font-weight: 600;">🔔 알림 설정</h6>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 13px; color: #757575; margin-bottom: 4px;">연속 손실 알림 (횟수)</label>
+        <input type="number" name="alert_consecutive_losses" class="form-control form-control-sm"
+               value="{{ goal.alert_consecutive_losses }}"
+               min="2" max="10"
+               style="border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-top: 4px;">
+          이 횟수만큼 연속 손실이 발생하면 알림을 표시합니다.
+        </div>
+      </div>
+
+      <div style="margin-bottom: 0;">
+        <label style="display: block; font-size: 13px; color: #757575; margin-bottom: 4px;">낮은 승률 알림 기준 (%)</label>
+        <input type="number" name="alert_low_win_rate" class="form-control form-control-sm"
+               value="{{ goal.alert_low_win_rate|floatformat:0 }}"
+               min="0" max="100" step="5"
+               style="border-radius: 8px;">
+        <div style="font-size: 11px; color: #757575; margin-top: 4px;">
+          최근 거래의 승률이 이 기준 이하로 떨어지면 알림을 표시합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- 저장 버튼 -->
+    <button type="submit" class="btn btn-primary w-100" style="padding: 14px; border-radius: 8px; font-weight: 600;">
+      저장하기
+    </button>
+  </form>
+
+  <!-- 도움말 -->
+  <div class="card" style="margin-top: 16px; margin-bottom: 16px; background: #f5f5f5; border: none;">
+    <h6 style="margin-bottom: 8px; font-weight: 600; font-size: 14px;">💡 설정 가이드</h6>
+    <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.8; color: #616161;">
+      <li><strong>수익 목표:</strong> 현실적이고 달성 가능한 목표를 설정하세요.</li>
+      <li><strong>손실 한도:</strong> 계좌 잔고의 2-5%를 권장합니다.</li>
+      <li><strong>거래 횟수:</strong> 품질 있는 진입을 위해 제한을 두세요.</li>
+      <li><strong>연속 손실:</strong> 3-5회 설정을 권장합니다.</li>
+      <li><strong>승률 기준:</strong> 40% 이하를 권장합니다.</li>
+    </ul>
+  </div>
+
+  <!-- 앱 정보 -->
+  <div style="text-align: center; padding: 20px; color: #757575; font-size: 12px;">
+    <div style="margin-bottom: 4px;">Futures Trading Journal v1.0</div>
+    <div>Made with Claude Code</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+// 폼 검증
+document.querySelector('form').addEventListener('submit', function(e) {
+  const profitGoal = parseFloat(document.querySelector('[name="profit_goal"]').value);
+  const maxLoss = parseFloat(document.querySelector('[name="max_loss_limit"]').value);
+
+  if (profitGoal <= 0) {
+    alert('수익 목표는 0보다 커야 합니다.');
+    e.preventDefault();
+    return false;
+  }
+
+  if (maxLoss < 0) {
+    alert('최대 손실 한도는 0 이상이어야 합니다.');
+    e.preventDefault();
+    return false;
+  }
+
+  return true;
+});
+</script>
+{% endblock %}
