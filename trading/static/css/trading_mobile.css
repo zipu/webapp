@@ -267,6 +267,15 @@ body {
   color: #1976d2;
 }
 
+/* summary-card 내부에서는 항상 흰색 (가독성 향상) */
+.summary-card .profit-big {
+  color: white;
+}
+
+.summary-card .profit-big.negative {
+  color: white;
+}
+
 .stats-row {
   display: flex;
   justify-content: space-between;
