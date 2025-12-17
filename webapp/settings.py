@@ -195,6 +195,10 @@ DATABASES = {
         'NAME': 'webapp',
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     },
     'maths' :{
         'ENGINE': 'django.db.backends.mysql',
@@ -203,6 +207,10 @@ DATABASES = {
         'NAME': 'maths',
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     },
     'trading' : {
         'ENGINE': 'django.db.backends.mysql',
@@ -211,6 +219,10 @@ DATABASES = {
         'NAME': 'trading',
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     },
     'aops' : {
         'ENGINE': 'django.db.backends.mysql',
@@ -219,6 +231,10 @@ DATABASES = {
         'NAME': 'aops',
         'USER': get_secret('DB_USERNAME'),
         'PASSWORD': get_secret('DB_PASSWORD'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     },
     'tutoring' : {
         'ENGINE': 'django.db.backends.mysql',
