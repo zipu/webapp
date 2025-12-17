@@ -3,6 +3,7 @@
   "short_name": "Trading",
   "description": "Futures 거래 피드백 및 분석 앱",
   "start_url": "/trading/futures/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
