@@ -27,8 +27,9 @@
 </head>
 <body>
   <!-- 상단 헤더 (작게) -->
-  <header class="app-header">
+  <header class="app-header" style="position: relative;">
     <h1>📊 Trading Journal</h1>
+    <a href="{% url 'settings' %}" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #666; font-size: 22px; text-decoration: none; padding: 4px; transition: color 0.2s;">⚙️</a>
   </header>
 
   <!-- 메인 컨텐츠 영역 -->
@@ -54,9 +55,9 @@
       <span class="icon">📈</span>
       <span class="label">분석</span>
     </a>
-    <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
-      <span class="icon">⚙️</span>
-      <span class="label">설정</span>
+    <a href="{% url 'ai_advisor:chat' %}?app_type=trading" class="nav-item {% if 'ai' in request.path %}active{% endif %}">
+      <span class="icon">🤖</span>
+      <span class="label">AI</span>
     </a>
   </nav>
 

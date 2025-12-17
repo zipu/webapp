@@ -31,7 +31,8 @@ urlpatterns = [
     path('aops/', include('aops.urls')),
     path('tilde/', include('tutoring.urls')),
     path('echomind/', include('echomind.urls')),
-    path('ebest/', include('ebest.urls'))
+    path('ebest/', include('ebest.urls')),
+    path('ai/', include('ai_advisor.urls'))
 ]
 
 

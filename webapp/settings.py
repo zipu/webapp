@@ -73,6 +73,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_secret("SECRET_KEY")
 
+# Anthropic API Key for AI Advisor
+ANTHROPIC_API_KEY = get_secret("ANTHROPIC_API_KEY")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 #* 7 
@@ -121,10 +124,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize', #humanize app like 'intcomma'
     'maths.apps.MathsConfig', #수학자료
-    'tutoring.apps.TutoringConfig', # 과외 
+    'tutoring.apps.TutoringConfig', # 과외
     'trading.apps.TradingConfig', #트레이딩 ,
     'aops.apps.AopsConfig', #수학문제, art of problem solving
     'echomind.apps.EchomindConfig', #에코마인드
+    'ai_advisor.apps.AiAdvisorConfig', #AI 트레이딩 어드바이저
    # 'ebest.apps.EbestConfig', #이베스트
 ]
 
@@ -307,3 +311,20 @@ MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/webapp/'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# AI Advisor Configuration
+AI_ADVISOR = {
+    # 메시지 보관 기간 설정
+    'MESSAGE_RETENTION_DAYS': 30,   # 전체 메시지 보관 기간 (이후 요약됨)
+    'MESSAGE_ARCHIVE_DAYS': 60,     # 메시지 아카이빙 기간 (이후 소프트 삭제)
+
+    # 요약 설정
+    'SUMMARY_MAX_TOKENS': 500,      # 요약 최대 토큰 수
+
+    # 메모리 설정
+    'MEMORY_MAX_COUNT': 100,        # 대화당 최대 장기 메모리 개수
+    'AUTO_EXTRACT_MEMORIES': True,  # 자동 메모리 추출 활성화
+
+    # 성능 최적화
+    'CACHE_EXPIRY_HOURS': 1,        # 캐시 만료 시간 (시간)
+}

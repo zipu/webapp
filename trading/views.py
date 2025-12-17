@@ -900,6 +900,10 @@ class SettingsView(TemplateView):
 
         context['goal'] = goal
 
+        # AI 설정 가져오기
+        from ai_advisor.models import AISettings
+        context['ai_settings'] = AISettings.get_settings()
+
         # 현재 주간 통계
         from datetime import datetime, timedelta
         today = datetime.now()
@@ -954,6 +958,18 @@ class SettingsView(TemplateView):
             goal.alert_low_win_rate = D(request.POST.get('alert_low_win_rate'))
 
         goal.save()
+
+        # AI 설정 업데이트
+        from ai_advisor.models import AISettings
+        ai_settings = AISettings.get_settings()
+
+        ai_settings.enable_long_term_memory = request.POST.get('enable_long_term_memory') == '1'
+        if request.POST.get('message_retention_days'):
+            ai_settings.message_retention_days = int(request.POST.get('message_retention_days'))
+        if request.POST.get('ai_model'):
+            ai_settings.ai_model = request.POST.get('ai_model')
+
+        ai_settings.save()
 
         return redirect('settings')
 

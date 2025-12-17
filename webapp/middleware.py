@@ -1,5 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.conf import settings
+from django.urls import reverse
+from urllib.parse import urlencode
 from re import compile
 
 class LoginRequiredMiddleware:
@@ -36,7 +38,10 @@ class LoginRequiredMiddleware:
                 return self.get_response(request)
             #else:
             #    #print(request.path_info)
-            return HttpResponseRedirect(settings.LOGIN_URL) 
+            # 로그인 후 원래 페이지로 돌아가도록 next 파라미터 추가
+            login_url = settings.LOGIN_URL
+            next_url = request.get_full_path()
+            return HttpResponseRedirect(f'{login_url}?next={next_url}') 
         else:
             return self.get_response(request)
         
