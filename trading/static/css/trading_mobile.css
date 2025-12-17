@@ -66,14 +66,15 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 70px;
+  min-height: 70px; /* height 대신 min-height 사용 */
   background: white;
   display: flex;
   justify-content: space-around;
-  align-items: center;
+  align-items: flex-start; /* center 대신 flex-start */
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
   z-index: 1000;
-  padding-bottom: env(safe-area-inset-bottom); /* iOS notch 대응 */
+  padding-top: 12px; /* 아이콘 위쪽 여백 확보 */
+  padding-bottom: max(12px, env(safe-area-inset-bottom)); /* iOS 홈 인디케이터 대응 */
 }
 
 .nav-item {
