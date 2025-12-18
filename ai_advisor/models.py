@@ -189,7 +189,7 @@ class AISettings(models.Model):
     """AI Advisor 설정 (전역 설정, 하나의 인스턴스만 존재)"""
     MODEL_CHOICES = [
         ('claude-sonnet-4-5', 'Claude Sonnet 4.5 (고품질, 느림)'),
-        ('claude-haiku-4-5-20251001', 'Claude Haiku 4.5 (빠름, 저렴)'),
+        ('claude-haiku-4-5', 'Claude Haiku 4.5 (빠름, 저렴)'),
     ]
 
     # 장기 기억 설정

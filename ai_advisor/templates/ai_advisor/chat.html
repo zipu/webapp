@@ -3,7 +3,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,6 +20,32 @@
   <meta name="theme-color" content="#2962FF">
 
   <style>
+    /* 전역 box-sizing 설정 */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    /* PWA 모드 전용: 좌우 움직임 완전 차단 */
+    @media (display-mode: standalone) {
+      html, body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+        position: relative;
+      }
+
+      body {
+        overscroll-behavior-x: none;
+        touch-action: pan-y;
+      }
+    }
+
+    /* 전체 앱에서 좌우 스크롤 방지 */
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+
     /* 헤더 설정 버튼 */
     .app-header {
       position: relative;
@@ -45,7 +71,7 @@
     .chat-container {
       max-width: 100%;
       margin: 0 auto;
-      padding: 16px;
+      padding: 8px;
       padding-bottom: 0;
       min-height: calc(100vh - 120px);
       display: flex;
@@ -57,13 +83,17 @@
     @media (min-width: 768px) {
       .chat-container {
         max-width: 600px;
+        padding: 16px;
+        padding-bottom: 0;
       }
     }
 
     .messages-container {
       overflow-y: auto;
-      padding: 16px;
-      padding-bottom: 130px;
+      overflow-x: hidden;
+      padding: 12px;
+      /* 입력창 높이(~60px) + 여유 공간(~20px) = 80px */
+      padding-bottom: 80px;
       margin-bottom: 0;
       background: white;
       border-radius: 12px;
@@ -72,9 +102,23 @@
       flex-shrink: 1;
       overflow-anchor: none;
       /* 명확한 높이 설정으로 스크롤 활성화 */
-      /* header(60px) + input(55px) + nav(70px) + padding(32px) = ~217px */
-      height: calc(100vh - 217px);
-      max-height: calc(100vh - 217px);
+      /* header(60px) + input(55px) + nav(70px) + padding(32px) + safe-area = ~217px + safe-area */
+      height: calc(100vh - 217px - env(safe-area-inset-bottom, 0px));
+      max-height: calc(100vh - 217px - env(safe-area-inset-bottom, 0px));
+      /* PWA에서 좌우 움직임 방지 */
+      width: 100%;
+      max-width: 100%;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: none;
+    }
+
+    /* 데스크탑에서는 여유 있는 패딩 */
+    @media (min-width: 768px) {
+      .messages-container {
+        padding: 16px;
+        padding-bottom: 80px;
+      }
     }
 
     .message {
@@ -93,10 +137,12 @@
 
     .message-bubble {
       display: inline-block;
-      max-width: 80%;
+      max-width: 85%;
       padding: 12px 16px;
       border-radius: 12px;
       word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
       white-space: pre-wrap;
     }
 
@@ -104,6 +150,7 @@
       background: #2962FF;
       color: white;
       border-bottom-right-radius: 4px;
+      max-width: 80%;
     }
 
     .message.assistant .message-bubble {
@@ -111,6 +158,92 @@
       color: #333;
       border-bottom-left-radius: 4px;
       border: 1px solid #e9ecef;
+      max-width: 95%;
+    }
+
+    /* 마크다운 렌더링 스타일 - 전체 리셋 후 최소 간격만 */
+    .message-bubble * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .message-bubble h1, .message-bubble h2, .message-bubble h3,
+    .message-bubble h4, .message-bubble h5, .message-bubble h6 {
+      margin-top: 8px;
+      margin-bottom: 2px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .message-bubble h3 {
+      font-size: 1.05em;
+    }
+
+    .message-bubble h4 {
+      font-size: 1em;
+    }
+
+    .message-bubble p {
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .message-bubble p:empty {
+      display: none;
+    }
+
+    .message-bubble p + p {
+      margin-top: 4px;
+    }
+
+    .message-bubble strong {
+      font-weight: 600;
+      color: #2962FF;
+    }
+
+    .message-bubble ul, .message-bubble ol {
+      margin: 2px 0 2px 20px;
+      list-style-position: outside;
+    }
+
+    .message-bubble li {
+      line-height: 1.3;
+      margin-bottom: 0;
+    }
+
+    .message-bubble li p {
+      display: inline;
+      margin: 0;
+    }
+
+    .message-bubble code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .message-bubble pre {
+      background: #2d2d2d;
+      color: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    .message-bubble pre code {
+      background: none;
+      padding: 0;
+      color: #f8f9fa;
+    }
+
+    /* 데스크탑에서는 적당한 폭 유지 */
+    @media (min-width: 768px) {
+      .message.assistant .message-bubble {
+        max-width: 85%;
+      }
     }
 
     .message-time {
@@ -124,7 +257,7 @@
       background: white;
       border-top: 1px solid #e0e0e0;
       position: fixed;
-      bottom: 70px;
+      bottom: calc(70px + env(safe-area-inset-bottom, 0px));
       left: 0;
       right: 0;
       z-index: 100;
@@ -150,7 +283,7 @@
       padding: 12px 16px;
       border: 1px solid #e0e0e0;
       border-radius: 24px;
-      font-size: 14px;
+      font-size: 16px;
       outline: none;
     }
 
@@ -277,6 +410,7 @@
 
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
   <script>
     const appType = '{{ app_type }}';
     let conversationId = {% if active_conversation %}{{ active_conversation.id }}{% else %}null{% endif %};
@@ -286,16 +420,14 @@
     function scrollToBottom(smooth = false) {
       const messagesContainer = document.getElementById('messages');
 
-      // 방법 1: 마지막 자식 요소로 스크롤 (가장 확실함)
+      // scrollTop 방식 사용 (padding-bottom을 제대로 인식)
       requestAnimationFrame(() => {
-        const lastElement = messagesContainer.lastElementChild;
-        if (lastElement) {
-          lastElement.scrollIntoView({
-            behavior: smooth ? 'smooth' : 'auto',
-            block: 'end'
+        if (smooth) {
+          messagesContainer.scrollTo({
+            top: messagesContainer.scrollHeight,
+            behavior: 'smooth'
           });
         } else {
-          // 요소가 없으면 scrollTop 사용
           messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
       });
@@ -314,8 +446,22 @@
         tokenInfo = ` • 입력: ${tokenData.input_tokens} / 출력: ${tokenData.output_tokens}`;
       }
 
+      // AI 응답은 마크다운 렌더링, 사용자 메시지는 일반 텍스트
+      let formattedContent;
+      if (role === 'assistant') {
+        // 과도한 줄바꿈 완전 제거
+        let cleanedContent = content
+          .replace(/(\r\n|\r|\n)/g, '\n')     // 줄바꿈 통일
+          .replace(/[ \t]+$/gm, '')            // 각 줄 끝 공백 제거
+          .replace(/\n{2,}/g, '\n')            // 모든 이중+ 줄바꿈 → 단일 줄바꿈
+          .trim();                              // 앞뒤 공백 제거
+        formattedContent = marked.parse(cleanedContent, { breaks: true, gfm: true });
+      } else {
+        formattedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
       messageDiv.innerHTML = `
-        <div class="message-bubble">${content}</div>
+        <div class="message-bubble">${formattedContent}</div>
         <div class="message-time">${now}${tokenInfo}</div>
       `;
 
@@ -409,13 +555,34 @@
       } finally {
         isLoading = false;
         document.getElementById('send-btn').disabled = false;
-        input.focus();
+        // 모바일에서 키보드 자동으로 내리기
+        input.blur();
+      }
+    });
+
+    // 메시지 영역 탭하면 키보드 내리기 (모바일)
+    document.getElementById('messages').addEventListener('click', function() {
+      const input = document.getElementById('message-input');
+      if (document.activeElement === input) {
+        input.blur();
       }
     });
 
     // 초기 스크롤 (페이지 로드 시)
     // 여러 시점에서 스크롤하여 확실하게 맨 아래로 이동
     window.addEventListener('DOMContentLoaded', () => {
+      // 기존 AI 메시지들 마크다운 렌더링
+      document.querySelectorAll('.message.assistant .message-bubble').forEach(bubble => {
+        const content = bubble.textContent;
+        // 과도한 줄바꿈 완전 제거
+        const cleanedContent = content
+          .replace(/(\r\n|\r|\n)/g, '\n')     // 줄바꿈 통일
+          .replace(/[ \t]+$/gm, '')            // 각 줄 끝 공백 제거
+          .replace(/\n{2,}/g, '\n')            // 모든 이중+ 줄바꿈 → 단일 줄바꿈
+          .trim();                              // 앞뒤 공백 제거
+        bubble.innerHTML = marked.parse(cleanedContent, { breaks: true, gfm: true });
+      });
+
       scrollToBottom();
     });
 
