@@ -7,7 +7,7 @@ Claude Tool Use Definitions
 TRADING_TOOLS = [
     {
         "name": "get_recent_trades",
-        "description": "최근 거래 내역을 조회합니다. 특정 전략이나 심리 상태로 필터링할 수 있습니다.",
+        "description": "최근 거래 내역을 조회합니다. 진행중/완료/전체 거래를 선택할 수 있으며, 특정 전략이나 심리 상태로 필터링할 수 있습니다.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -15,6 +15,11 @@ TRADING_TOOLS = [
                     "type": "integer",
                     "description": "조회할 기간 (일 단위)",
                     "default": 7
+                },
+                "is_closed": {
+                    "type": ["boolean", "null"],
+                    "description": "거래 상태 필터: true=완료된 거래만, false=진행중인 거래만, null 또는 생략=전체 거래",
+                    "default": None
                 },
                 "strategy": {
                     "type": "string",

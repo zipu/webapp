@@ -50,23 +50,46 @@ class TradingContextBuilder:
         }
 
     @staticmethod
-    def get_recent_trades(days=7, strategy=None, mental_state=None):
+    def get_recent_trades(days=7, is_closed=None, strategy=None, mental_state=None):
         """
         최근 거래 내역 조회 (Tool use)
+
+        Args:
+            days: 조회 기간 (일)
+            is_closed: True=완료된 거래만, False=진행중인 거래만, None=전체
+            strategy: 전략 필터
+            mental_state: 심리 상태 필터
         """
         from trading.models import FuturesTrade
 
         # 캐시 키 생성
-        cache_key = f"recent_trades_{days}_{strategy}_{mental_state}"
+        cache_key = f"recent_trades_{days}_{is_closed}_{strategy}_{mental_state}"
         cached = ContextCache.get_cached(cache_key)
         if cached:
             return cached
 
+        from django.db.models import Q
+
         cutoff = datetime.now() - timedelta(days=days)
-        trades = FuturesTrade.objects.filter(
-            is_open=False,
-            end_date__gte=cutoff
-        ).order_by('-end_date')
+
+        # is_closed에 따라 쿼리 분기
+        if is_closed is True:
+            # 완료된 거래만: end_date 기준 필터링
+            trades = FuturesTrade.objects.filter(
+                is_open=False,
+                end_date__gte=cutoff
+            ).order_by('-end_date')
+        elif is_closed is False:
+            # 진행중인 거래만: 날짜 필터링 없음 (언제 시작했든 모두 표시)
+            trades = FuturesTrade.objects.filter(
+                is_open=True
+            ).order_by('-pub_date')
+        else:
+            # 전체: 진행중(전체) + 완료(최근 N일)
+            trades = FuturesTrade.objects.filter(
+                Q(is_open=True) |  # 진행중은 전체
+                Q(is_open=False, end_date__gte=cutoff)  # 완료는 최근 N일
+            ).order_by('-end_date', '-pub_date')
 
         if strategy:
             trades = trades.filter(strategy__icontains=strategy)
